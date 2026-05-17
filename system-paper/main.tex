@@ -14,6 +14,12 @@
 \usepackage{booktabs}
 \usepackage{microtype}
 
+% Chinese character support (for author names). Compile with LuaLaTeX
+% (this paper's .latexmkrc sets pdf_mode=4). FandolSong is bundled with
+% TeX Live and resolved by luaotfload.
+\usepackage{fontspec}
+\newfontfamily\zhfont{FandolSong-Regular}
+
 \bibliographystyle{ACM-Reference-Format}
 \citestyle{acmauthoryear}
 
@@ -24,14 +30,11 @@
 \title{MAM-AI: An On-Device Medical Retrieval-Augmented Generation System
 for Nurses and Midwives in Zanzibar}
 
-% TODO: fill author block(s).
-\author{Author One}
+\author{Ren Yi {\zhfont 任一}}
 \affiliation{%
-  \institution{Affiliation TBD}
-  \city{City}
-  \country{Country}
+  \institution{École Polytechnique Fédérale de Lausanne}
+  \country{Switzerland}
 }
-\email{author@example.org}
 
 \begin{document}
 
