@@ -1,0 +1,16 @@
+\section{Discussion}
+
+% Synthesize the cross-cutting findings.
+% - The RAG-hurts-on-device finding: Gemma 4 E4B's MCQ accuracy drops
+%   slightly with retrieved context; GPT-5 is unaffected. Hypotheses
+%   (context-window utilisation, attention dilution at 4B scale,
+%   small-model retrieval-noise tolerance).
+% - Faithfulness vs MCQ accuracy: a model can score lower on MCQ while
+%   producing more faithful open-ended answers; for a deployment whose
+%   real task is free-form clinical Q&A, which signal matters more?
+% - When local guidelines diverge from global standards (WHO vs Zanzibar
+%   MOH), how should a deployed system behave? Acknowledgement vs
+%   silent selection; alignment with the local key vs the benchmark key.
+% - Latency-quality frontier: where is the steady-state usable budget
+%   for a busy ward, and what trades available?
+% - Lessons for similar low-resource clinical deployments.

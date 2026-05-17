@@ -1,0 +1,38 @@
+\section{mamaretrieval Validation}
+
+\subsection{Invariant Verification}
+% Automated checks on every record:
+%   - score == d1_topic * (d2_meaningful + d3_actionable)
+%   - d1_topic == False  =>  d2 == False, d3 == False
+%   - d3_actionable == True  =>  d2_meaningful == True
+% Last run: 78,571 records, 0 violations.
+
+\subsection{Score Distribution}
+% 0 (off-topic or no useful information): 38,762 (49.3%).
+% 1 (on-topic, background only): 15,023 (19.1%).
+% 2 (on-topic, actionable guidance): 24,786 (31.6%).
+
+\subsection{Manual Spot Check}
+% 10-sample stratified review (3 each at scores 0/1/2 plus one seed-
+% chunk reference case). All judgments defensible; nuanced cases
+% (drug-name collisions across clinical contexts; section-header
+% mis-reads) handled correctly.
+
+\subsection{Completeness Audit}
+% 30-query gold-standard subset, stratified by source tier. Per
+% query: top-20 results pooled from >=6 retrievers (Phase 2a BM25 +
+% MedCPT + Octen, plus voyage-4-large, BGE-reranker, LateOn).
+% LLM-judge every candidate with the Phase 2b prompt; hand-review
+% LLM-relevant labels plus 20% random sample of LLM-not-relevant
+% labels. Final verdicts in labels_exhaustive.jsonl.
+% Report Hit Rate@k, MRR, nDCG@10 gap between pipeline labels and
+% exhaustive labels. Acceptance: gap < 2--3 pp on primary metrics.
+% This gap is the error bar on every retrieval number cited in the
+% deployment paper [cite paper1].
+
+\subsection{Metric Sensitivity Under Incomplete Labels}
+% Robust under pooling: Hit Rate@k, MRR.
+% Moderately sensitive: nDCG@k.
+% Most sensitive: Recall@k, Precision@k.
+% Lead the headline retrieval table with robust metrics; report the
+% rest as secondary with the audit-gap caveat.

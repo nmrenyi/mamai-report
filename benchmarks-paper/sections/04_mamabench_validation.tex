@@ -1,0 +1,28 @@
+\section{mamabench Validation}
+
+\subsection{Cross-Classifier Agreement}
+% Qwen3.6-27B-FP8 vs Qwen3.5-397B-A17B-FP8 on HealthBench oss_eval
+% (4,988 jointly classified rows): 98.12% agreement. Per-category
+% counts differ by <1% on every category. Failure-set complementarity
+% (rows the 27B couldn't classify are all NONE by the 397B and vice
+% versa).
+
+\subsection{Parity Check Against Prior Labels}
+% Kenya parity vs prior Gemini classifier: 86.8% agreement. Most
+% disagreements are our prompt being stricter about "core medical
+% concept, not patient demographics".
+
+\subsection{Non-Convergent Prompts}
+% 7 HealthBench oss_eval prompts on which Qwen3.6-27B-FP8 produced
+% unbounded reasoning across retries (32K -> 64K context, 300s ->
+% 3600s timeout). 397B cross-check evidence that all would have been
+% NONE; net effect on in-scope row counts = 0.
+% Audit side-files: oss_eval_excluded.jsonl, hard_excluded.jsonl.
+
+\subsection{Per-Source Filter Yield}
+% OBGYN-scope yield (category != NONE), v0.2 final:
+% Kenya 61.5% (312/507); HealthBench oss_eval 24.2% (1209/4993);
+% hard 25.9% (258/998); consensus 23.8% (872/3668);
+% MedQA-USMLE 29.2% (4199/14369); AfriMed-SAQ 100% (37/37, pre-curated);
+% WHB 100% (20/20, pre-curated).
+% Total v0.2 in-scope rows (incl. v0.1 MCQ carryovers): 25,949.

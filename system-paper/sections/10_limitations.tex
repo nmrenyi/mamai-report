@@ -1,0 +1,15 @@
+\section{Limitations}
+
+% - Single deployment site (Zanzibar); generalization to other regions,
+%   languages, or clinical scopes is untested.
+% - LLM-generated queries in mamaretrieval may inflate dense-retriever
+%   scores; see the audit-gap error bar in the companion paper [cite paper2].
+% - No clinical-trial data; evaluation uses benchmark proxies, not
+%   prospective deployment outcomes (patient-level effect on care quality
+%   is out of scope here).
+% - Contamination caveat: MedMCQA, MedQA-USMLE, MMLU likely in Gemma's
+%   pretraining; report contamination-adjusted numbers via MedFuzz
+%   paraphrases alongside raw numbers.
+% - Some evaluations (faithfulness pipelines, stability probes, multi-device
+%   latency) are still being executed and will be revised in subsequent
+%   versions of this report.

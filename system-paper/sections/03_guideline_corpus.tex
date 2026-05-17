@@ -1,0 +1,28 @@
+\section{Guideline Corpus and RAG Bundle}
+
+% Scope: enough detail about the producer pipeline (mamai-medical-guidelines)
+% to interpret results. Engineering minutiae (marker-pdf flags, cluster
+% submission scripts, embedding byte layout) go to an appendix or are
+% referenced via the producer-repo README.
+
+\subsection{Sources and Tier System}
+% International (NICE, WHO, MSF, Oxford Handbook of Obstetrics and Gynaecology,
+% Hesperian, FIGO, ACOG/RCOG, EmONC handbook, Labour Care Guide, PCPNC,
+% Helping Babies Breathe); national/local (Tanzania MOH, Zanzibar MOH,
+% SUZA teaching materials). Tier weighting
+% (very_high / high / moderate_high / moderate / low_moderate).
+
+\subsection{PDF to Markdown to Chunks}
+% Marker-pdf extraction on cluster; HTML-span normalization;
+% section-aware chunking with parent breadcrumbs and SOURCE/PAGE
+% metadata; chunk-size policy (<=1500 char emit; 1500--2500 char
+% greedy pack at block boundaries; hard cap 2500); boilerplate filter.
+
+\subsection{Embedding and Packaging}
+% Gecko TFLite embedding on CPU cluster (parallel subprocesses,
+% partial SQLite merge); VF32 storage; bundle layout (manifest,
+% checksums, runtime, debug, docs).
+
+\subsection{Bundle Version Used in This Report}
+% Pin the specific bundle version and chunk count for the results
+% that follow.

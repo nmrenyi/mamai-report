@@ -1,0 +1,41 @@
+\section{mamabench: QA Benchmark Construction}
+
+\subsection{Schema and Canonical Format}
+% JSONL row schema (v0.3 for benchmark v0.1; v0.4 for benchmark v0.2);
+% set_types (mcq, open_ended, open_ended_rubric); core fields
+% (id, schema_version, set_type, question, choices, answer,
+% answer_index, source).
+
+\subsection{Source Adapters}
+% Per-source normalization to the canonical schema:
+%   - MedMCQA (filtered OBGYN/Pediatrics subset)
+%   - MedQA-USMLE (filtered OBGYN scope)
+%   - AfriMed-QA MCQ and SAQ
+%   - Kenya Clinical Vignettes
+%   - WHB stumps
+%   - HealthBench (oss_eval, consensus, hard subsets)
+% Per-source manifests record source URL, license, prepared-input
+% provenance, and validation report.
+
+\subsection{AfriMed-QA Cleanup}
+% Two hard filters: multi-answer rows (unrepresentable by single
+% answer_index); ambiguous-answer-position rows (unscorable as MCQ).
+% One row-level normalization: letter-prefix stripping when >= 2
+% choices begin with their own letter label.
+% Accepted cosmetic issues (single-choice prefixes, soft prefixes,
+% short stem questions, duplicate non-answer options, non-ASCII
+% characters) -- documented but not patched.
+
+\subsection{OBGYN Scope Classifier}
+% Five-category schema (NONE, MATERNAL_HEALTH, CHILD_HEALTH, SRH,
+% OBGYN_GENERAL). Prompt v8, modular assembly via
+% load_classifier_prompt. Qwen3.6-27B-FP8 with thinking-on at
+% temperature 0; vLLM guided_json structured output. Cross-job
+% sharding and in-process concurrency.
+
+\subsection{Release Manifest and Distribution}
+% Per-source manifests aggregated into a release manifest with summed
+% counts_by_set_type and counts_by_source_dataset, validated for
+% benchmark_version / schema_version consistency. HuggingFace dataset
+% nmrenyi/mamabench with one git tag per release. License propagation
+% (e.g., AfriMed-QA CC-BY-NC-SA 4.0).

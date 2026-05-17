@@ -1,0 +1,75 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% MAM-AI -- System and Evaluation -- arXiv tech report
+% ACM journal style (acmart, acmsmall, nonacm)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\documentclass[acmsmall,nonacm,review]{acmart}
+
+% Drop ACM-specific frames that do not apply to arXiv tech reports.
+\settopmatter{printacmref=false, printccs=false, printfolios=true}
+\renewcommand\footnotetextcopyrightpermission[1]{}
+\pagestyle{plain}
+
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{microtype}
+
+\bibliographystyle{ACM-Reference-Format}
+\citestyle{acmauthoryear}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Front matter
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\title{MAM-AI: An On-Device Medical Retrieval-Augmented Generation System
+for Nurses and Midwives in Zanzibar}
+
+% TODO: fill author block(s).
+\author{Author One}
+\affiliation{%
+  \institution{Affiliation TBD}
+  \city{City}
+  \country{Country}
+}
+\email{author@example.org}
+
+\begin{document}
+
+\begin{abstract}
+% TODO: 200--300 word abstract. Cover:
+%   - deployment context (Zanzibar nurses/midwives, OBGYN/neonatal scope);
+%   - the on-device system (Gemma 4 E4B via LiteRT-LM + Gecko + SQLite);
+%   - the bottom-up evaluation methodology (retriever -> generator under
+%     oracle context -> end-to-end);
+%   - headline results across retrieval, faithfulness, end-to-end accuracy,
+%     and on-device latency on real Android hardware.
+\end{abstract}
+
+\keywords{retrieval-augmented generation, on-device inference, medical AI,
+global health, maternal health, evaluation}
+
+\maketitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Body
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\input{sections/01_introduction}
+\input{sections/02_system_architecture}
+\input{sections/03_guideline_corpus}
+\input{sections/04_evaluation_methodology}
+\input{sections/05_retrieval_results}
+\input{sections/06_generator_results}
+\input{sections/07_endtoend_results}
+\input{sections/08_latency_results}
+\input{sections/09_discussion}
+\input{sections/10_limitations}
+\input{sections/11_related_work}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Bibliography
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\bibliography{references}
+
+\end{document}

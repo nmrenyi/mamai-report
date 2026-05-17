@@ -1,0 +1,32 @@
+\section{System Architecture}
+
+% Scope: the deployed mamai system as it runs on-device.
+
+\subsection{Flutter UI and Platform Channels}
+% MethodChannel / EventChannel; streaming generation; UI thread marshaling.
+
+\subsection{The RAG Pipeline}
+% RagPipeline.kt: LLM init, embedder init, vector store init; lazy
+% async initialization; awaitLlmReady; single-query concurrency
+% constraint enforced in RagStream.
+
+\subsection{Gemma 4 E4B via LiteRT-LM}
+% Model file (gemma-4-E4B-it.litertlm, int4 quantized, 3.65 GB);
+% CPU vs GPU backend selection (useGpuForLlm); automatic GPU-to-CPU
+% fallback on init failure; MTP smoke-test result (off by default).
+
+\subsection{Gecko Embeddings and SQLite Vector Store}
+% Gecko_1024_quant.tflite (768-dim); sentencepiece tokenizer;
+% VF32 embedding format (magic prefix + 768 x float32 little-endian);
+% SqliteVectorStore from Google AI Edge localagents-rag.
+
+\subsection{Prompt Template and Retrieval Parameters}
+% Top-3 retrieval, similarity threshold 0.0, RETRIEVAL_QUERY task type;
+% prompt-template emphasis on simple language for second-language
+% speakers, bullet structure, emergency escalation guidance.
+
+\subsection{Model Distribution and Storage}
+% First-launch download of ~4.5 GB from public HuggingFace repos and
+% the mamai-medical-guidelines GitHub release; on-device storage in
+% application external files dir; checksum-pinned RAG bundle via
+% rag_assets.lock.json.

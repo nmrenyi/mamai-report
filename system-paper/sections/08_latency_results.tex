@@ -1,0 +1,31 @@
+\section{On-Device Latency}
+
+% Hardware-specific. All measurements on real Android devices, not
+% emulators. Hardware spec table reported per condition.
+
+\subsection{Methodology}
+% Input-length buckets: short (<20 tok), medium (20--50 tok), long
+% (>50 tok). 30 repeats per condition, first 5 discarded as warmup.
+% Report P50 / P90 / P99 and the full distribution per condition.
+
+\subsection{Retrieval Latency}
+% Embedding + vector search only. Varying top-k in {1, 3, 5, 10}.
+% Embedding throughput (tokens/sec). Distribution plot per condition.
+
+\subsection{Generation Latency}
+% Cold start (first inference after model load) vs warm start (steady
+% state). Time-to-first-token, total generation time, decode throughput.
+
+\subsection{End-to-End Latency}
+% Retrieval + generation. Standard (cooled between runs) vs sustained
+% load (30 back-to-back queries). Retrieval share vs generation share.
+
+\subsection{Battery and Thermal}
+% Battery drain per session (unplugged); estimated queries per full charge.
+% Temperature time series during sustained load; throttling onset, peak,
+% recovery; correlate with latency degradation over time.
+
+\subsection{Multi-Device}
+% Primary benchmark device (high-end) and a lower-end device representative
+% of actual Zanzibar deployment hardware. Per-device results reported
+% separately.

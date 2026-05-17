@@ -1,0 +1,26 @@
+\section{Retrieval Evaluation}
+
+% All numbers scored on mamaretrieval. Benchmark construction and the
+% completeness-audit error bar are in the companion paper [cite paper2].
+
+\subsection{Deployed Retriever}
+% Gecko-110M-en embeddings (768-dim, quantized) + SQLite vector store,
+% top-3 cosine, similarity threshold 0.0.
+
+\subsection{Comparators}
+% BM25 lexical baseline; MedCPT (biomedical bi-encoder); Octen-Embedding-8B
+% (general dense); RRF fusion of all three.
+
+\subsection{Results}
+% Hit Rate@k, MRR, nDCG@k, Recall@k, Precision@k at k = 1, 3, 5, 10.
+% Per-retriever side-by-side; clear callout of the deployed configuration.
+
+\subsection{Per-Source-Tier Breakdown}
+% How retrieval quality varies across source tiers (very_high to
+% low_moderate); identify tiers where Gecko under-performs and consider
+% whether to drop or down-weight low-yield sources in future bundles.
+
+\subsection{Discussion}
+% Where Gecko struggles (long-tail clinical vocabulary, abbreviations)
+% vs strengths (semantic paraphrase). Implications for top-k choice
+% and for the on-device retrieval/generation latency budget.

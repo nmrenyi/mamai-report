@@ -1,0 +1,27 @@
+\section{Evaluation Methodology}
+
+% Scope: introduce the bottom-up framework and point to the benchmark
+% companion paper. Keep brief; results sections follow.
+
+\subsection{Bottom-Up Component Evaluation}
+% Why retriever first, then generator under oracle context, then end-to-end.
+% Coupling problem: a weak retriever makes generator eval meaningless;
+% end-to-end alone confounds retrieval quality with generation faithfulness.
+
+\subsection{Benchmarks Used}
+% mamaretrieval (~3,185 queries, ~78,571 labeled query-chunk pairs):
+% retriever evaluation and oracle context for generator isolation.
+% mamabench (~25,997 rows across 7 sources, 3 set_types): end-to-end
+% MCQ + open-ended evaluation. Construction details in the companion
+% benchmarks paper [cite paper2].
+
+\subsection{Metric Choices}
+% Retrieval: Hit Rate, MRR, nDCG, Recall, Precision. Lead with
+% completeness-robust metrics; report Recall/Precision with an
+% audit-gap error bar [cite paper2 \S Completeness Audit].
+% Generation under oracle: MiniCheck sentence-level support rate
+% (Pipeline 1 + Pipeline 2), LLM-judge calibration, stability probes.
+% End-to-end: MCQ accuracy + calibration (Brier, ECE); open-ended
+% rubric scores (factuality / reasoning / harm / omission / guideline
+% adherence); safety pass rates and robustness.
+% Latency: P50 / P90 / P99 percentiles + full distribution plots.

@@ -1,0 +1,21 @@
+\section{Retriever Baselines on mamaretrieval}
+
+% Framed as showing the benchmark distinguishes retrievers, NOT as
+% endorsing one for production. Production-retriever comparison
+% (incl. the deployed Gecko + SQLite top-3 configuration) is in the
+% deployment paper [cite paper1].
+
+\subsection{BM25}
+% Lexical baseline; exact-term recall strength; BEIR-strong zero-shot.
+
+\subsection{MedCPT}
+% Biomedical bi-encoder trained on PubMed 255M query-article pairs.
+
+\subsection{Octen-Embedding-8B}
+% General-purpose dense retriever; strongest open-source on RTEB
+% English (81.17).
+
+\subsection{Side-by-Side Comparison}
+% Hit Rate@k, MRR, nDCG@k, Recall@k, Precision@k per retriever.
+% Show that the benchmark separates the retrievers ordinally (with
+% audit-gap-aware caveats on absolute Recall/Precision values).

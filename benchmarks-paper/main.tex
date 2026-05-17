@@ -1,0 +1,79 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% mamabench & mamaretrieval -- Benchmarks paper -- arXiv tech report
+% ACM journal style (acmart, acmsmall, nonacm)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\documentclass[acmsmall,nonacm,review]{acmart}
+
+% Drop ACM-specific frames that do not apply to arXiv tech reports.
+\settopmatter{printacmref=false, printccs=false, printfolios=true}
+\renewcommand\footnotetextcopyrightpermission[1]{}
+\pagestyle{plain}
+
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{microtype}
+
+\bibliographystyle{ACM-Reference-Format}
+\citestyle{acmauthoryear}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Front matter
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\title{mamabench and mamaretrieval: Benchmarks for Evaluating Medical
+Retrieval-Augmented Generation in Maternal, Neonatal, and Reproductive
+Health}
+
+% TODO: fill author block(s).
+\author{Author One}
+\affiliation{%
+  \institution{Affiliation TBD}
+  \city{City}
+  \country{Country}
+}
+\email{author@example.org}
+
+\begin{document}
+
+\begin{abstract}
+% TODO: 200--300 word abstract. Cover:
+%   - the gap (existing medical benchmarks under-represent OBGYN /
+%     neonatal / Sub-Saharan-African / maternal-health scope);
+%   - the two artifacts (mamabench QA set; mamaretrieval retrieval
+%     benchmark) and the corpus they share;
+%   - construction methodology (source-adapter normalization,
+%     LLM-classifier-based OBGYN scoping, TREC-pooled LLM-judged
+%     relevance labels);
+%   - validation results (cross-classifier agreement, parity checks,
+%     score distributions, completeness audit);
+%   - access via HuggingFace dataset and GitHub repos, with license
+%     propagation notes.
+\end{abstract}
+
+\keywords{benchmark, retrieval, medical question answering, maternal
+health, OBGYN, LLM-as-judge, TREC pooling}
+
+\maketitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Body
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\input{sections/01_introduction}
+\input{sections/02_corpus}
+\input{sections/03_mamabench_construction}
+\input{sections/04_mamabench_validation}
+\input{sections/05_mamaretrieval_construction}
+\input{sections/06_mamaretrieval_validation}
+\input{sections/07_retriever_baselines}
+\input{sections/08_limitations}
+\input{sections/09_access}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Bibliography
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\bibliography{references}
+
+\end{document}

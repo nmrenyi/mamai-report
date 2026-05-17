@@ -1,0 +1,31 @@
+\section{Generator Evaluation under Oracle Context}
+
+% Retrieval held fixed at gold mamaretrieval labels; this section probes
+% generator behaviour only.
+
+\subsection{Faithfulness via MiniCheck}
+% Pipeline 1: scispaCy sentence split, MiniCheck per sentence.
+% Pipeline 2: scispaCy + MedScore decomposition into atomic claims,
+% MiniCheck per claim.
+% Aggregate to per-answer support rate. Report mean +/- std and
+% per-sentence vs per-claim gap (gap signals multi-claim sentences).
+
+\subsection{LLM-Judge Calibration}
+% Frontier-model judge (Claude / GPT) on a random subset; label claims
+% as fully supported / partially supported / unsupported. Spearman
+% correlation against both MiniCheck pipelines; trust threshold rho > 0.7.
+
+\subsection{Stability}
+% Prompt sensitivity: MedFuzz-style paraphrase delta in MiniCheck score.
+% Run-to-run variance: N runs at temperature > 0, fixed retrieval; std
+% of support rate across runs.
+% Greedy vs sampled: temperature 0 vs temperature 0.7 on a subset;
+% informs deployment temperature choice.
+
+\subsection{Deployment Integrity Checks}
+% Citation existence: when the model cites a source, does it appear in
+% the corpus and say what the model claims?
+% Contradiction-among-guidelines set (~20--30 hand-curated cases, e.g.
+% WHO vs Zanzibar MOH on magnesium sulfate dosing): does Gemma
+% acknowledge the conflict or silently pick one source? Score gap
+% between benchmark-key-aligned and local-key-aligned answers.

@@ -1,0 +1,61 @@
+\section{mamaretrieval: Retrieval Benchmark Construction}
+
+\subsection{Pipeline Overview}
+% Funnel from 63,650 corpus chunks to 78,571 labeled (query, chunk)
+% pairs:
+%   63,650 chunks  -[Phase 1a]->  4,540 sampled
+%                  -[Phase 1b]->  3,185 kept (~70%) + seed query each
+%                  -[Phase 1c]->  3,185 query records
+%                  -[Phase 2a]->  ~78,571 candidate pairs (~24.7/query)
+%                  -[Phase 2b]->  78,571 graded labels.
+
+\subsection{Phase 1a -- Tier-Weighted Sampling}
+% Source quotas proportional to source-quality tier; 4,540 chunks
+% sampled across 19 sources (some tiers exhausted before quota).
+
+\subsection{Phase 1b -- LLM Filtering and Seed Query Generation}
+% Per chunk: (a) clinical-answerability judgment; (b) if kept, one
+% specific clinical question answerable from the chunk alone.
+% Qwen3.6-27B-FP8 (thinking-on, temperature 0) via vLLM with
+% reasoning-parser qwen3. PROMPT_HASH covers system prompt + user
+% message template. RESULT_SCHEMA_VERSION derived from
+% FilterResult.__annotations__. Shuffle before shard. Multi-GPU
+% execution (5 H100 shards, ~38 min for 4,540 chunks). Outcome:
+% 3,185 kept (70.2%); 0 errors; 13 legitimate duplicate queries.
+
+\subsection{Phase 1c -- Query Records}
+% Stable IDs (q_00001, ...). Source / tier metadata attached.
+% Query-type policy: spec defines per_chunk / synthesis / adversarial;
+% only per_chunk generated in v0.2.0 (open item).
+
+\subsection{Phase 2a -- Retriever Selection and Pooling}
+% Retriever rationale:
+%   - BM25 -- exact-term recall baseline (BEIR-strong zero-shot).
+%   - MedCPT -- biomedical bi-encoder (PubMed 255M pairs).
+%   - Octen-Embedding-8B -- strongest open-source dense on RTEB English.
+%   - RRF -- parameter-free fusion for ranking.
+% Top-10 from each, union pooled (avg 24.7 candidates / query).
+% Seed-chunk policy: force-included if no retriever returned it
+% (occurred for 170 / 3,185 = 5.3% of queries). Not pre-labeled as
+% relevant.
+
+\subsection{Phase 2b -- LLM-as-Judge Relevance Labeling}
+% Three-dimension binary rubric, combined in post-processing:
+%   D1 (Topic): same clinical problem as query?
+%   D2 (Meaningful): contains clinical information on topic?
+%   D3 (Actionable): contains specific guidance (doses, protocols, ...)?
+%   score = D1 * (D2 + D3) in {0, 1, 2}.
+% Constraints enforced in post-processing: D1=False zeroes D2 and D3;
+% D3=True implies D2=True.
+% Implementation: Qwen3.5-397B-A17B-FP8 via vLLM with guided_json;
+% reasoning emitted before verdicts (G-Eval principle); PROMPT_HASH;
+% RESULT_SCHEMA_VERSION; resume by (query_id, chunk_id) tuple;
+% sharding by query so per-query stats stay intact; post-processing
+% strip of <think>...</think> and markdown code fences.
+
+\subsection{Research Grounding for the Rubric}
+% TREC-CDS three-level ordinal scale; DeCE decomposed binary
+% evaluation (r=0.78 vs r=0.35 for holistic); Saracevic
+% topical/cognitive/situational hierarchy; UMBRELA (binary + topical
+% gate); HealthBench CoT structure; G-Eval (reasoning-before-verdict
+% via field-order in guided_json).
