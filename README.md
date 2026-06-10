@@ -43,4 +43,4 @@ Requires a TeX Live (or other) distribution that includes the `acmart` class. Te
 
 ## Status
 
-Outline-only at present. Both papers contain section headers and scope comments; no prose has been drafted yet. Outstanding evaluation runs that gate parts of the system paper, and the Phase 3 completeness audit that closes the benchmarks paper, are tracked in `paper_design.md` (Open issues).
+Outline-only at present. Both papers contain section headers and scope comments (reconciled against the released artifacts on 2026-06-10); no prose has been drafted yet. The evaluation runs that gate the remaining system-paper sections (open-ended ±RAG rescore, faithfulness recalibration) are tracked in `paper_design.md` (Open issues).
