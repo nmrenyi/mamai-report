@@ -5,10 +5,12 @@
 %   MMLU-medical, PubMedQA, HealthBench) are under-representative of
 %   OBGYN / neonatal / Sub-Saharan-African / midwifery scope.
 % - The two benchmarks introduced here and what each is for:
-%   * mamabench -- a filtered QA benchmark for end-to-end model scoring
-%     (~25,997 rows, 7 sources, 3 set_types).
-%   * mamaretrieval -- a retrieval benchmark over a maternal-health
-%     guideline corpus (~3,185 queries, ~78,571 labeled query-chunk pairs).
+%   * mamabench (v0.2.1) -- a filtered QA benchmark for end-to-end model
+%     scoring (25,949 rows, 7 sources, 3 set_types) plus a 6,853-triple
+%     physician-labeled judge-calibration side-file.
+%   * mamaretrieval (v0.2.0) -- a retrieval benchmark over a
+%     maternal-health guideline corpus (3,185 queries; 230,964 labeled
+%     query-chunk pairs from a top-20 x 6-retriever pool, graded 0--6).
 % - The corpus they share and why they are presented jointly.
 % - How they are used together by the deployment paper [cite paper1].
 % - Versioning policy: benchmarks are corpus-coupled; chunk IDs change

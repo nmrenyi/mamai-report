@@ -1,17 +1,18 @@
 \section{Limitations}
 
 % - LLM-generated queries phrased similarly to chunk text inflate
-%   dense-retriever scores; lead with MRR / Hit Rate and treat
-%   absolute Recall/Precision with an explicit error bar.
-% - No hand-written calibration queries; the completeness audit is the
-%   planned mitigation. The original >85% agreement check against
-%   50--100 human labels was deferred.
-% - Single judge model (Qwen3.5-397B-A17B-FP8); model-bias risk for
-%   unusual query/chunk pairs. Cross-judge calibration is open future
-%   work.
+%   dense-retriever scores; lead with Hit Rate / MRR and treat absolute
+%   Recall/Precision with the pool-completeness caveat.
+% - No hand-written calibration queries; no hand-review layer over the
+%   Tier 2/3 judgments at scale (mitigations: Opus-calibrated judge,
+%   invariant checks, stratified spot checks).
+% - Single judge model (Qwen3.5-397B-A17B-FP8) for relevance labels;
+%   model-bias risk for unusual query/chunk pairs. The Tier 1
+%   calibration vs Claude Opus 4.7 bounds but does not eliminate this.
 % - mamabench OBGYN scope classifier non-convergent on 7 HealthBench
 %   prompts (disclosed; net in-scope effect zero per 397B cross-check).
-% - Benchmarks are tied to a specific corpus version. Updates to the
-%   corpus require re-running the labeling pipeline; chunk IDs change.
+% - Benchmarks are tied to corpus version v0.2.0. Updates to the corpus
+%   require re-running the labeling pipeline; chunk IDs change.
 % - Per_chunk queries only in mamaretrieval v0.2.0; the spec's
-%   synthesis and adversarial query types remain open work.
+%   synthesis and adversarial query types remain open work, as does the
+%   noisy-query (typo / broken-English) robustness probe.

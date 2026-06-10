@@ -1,21 +1,25 @@
-\section{Retriever Baselines on mamaretrieval}
+\section{Retriever Scoreboard on mamaretrieval}
 
-% Framed as showing the benchmark distinguishes retrievers, NOT as
-% endorsing one for production. Production-retriever comparison
-% (incl. the deployed Gecko + SQLite top-3 configuration) is in the
-% deployment paper [cite paper1].
+% Framed as showing the benchmark distinguishes retrievers ordinally,
+% NOT as endorsing one for production. The deployed-system
+% interpretation (incl. the Gecko + SQLite top-3 configuration) is in
+% the deployment paper [cite paper1].
 
-\subsection{BM25}
-% Lexical baseline; exact-term recall strength; BEIR-strong zero-shot.
-
-\subsection{MedCPT}
-% Biomedical bi-encoder trained on PubMed 255M query-article pairs.
-
-\subsection{Octen-Embedding-8B}
-% General-purpose dense retriever; strongest open-source on RTEB
-% English (81.17).
+\subsection{The Six-Retriever Panel}
+% BM25 (lexical baseline; BEIR-strong zero-shot);
+% MedCPT (biomedical bi-encoder, PubMed 255M pairs);
+% Octen-Embedding-8B (strongest open dense on RTEB English);
+% voyage-4-large (frontier API embedder);
+% LateOn (late-interaction);
+% Gecko-110M (on-device-class embedder, included as the consumer
+% system's deployed model).
 
 \subsection{Side-by-Side Comparison}
-% Hit Rate@k, MRR, nDCG@k, Recall@k, Precision@k per retriever.
-% Show that the benchmark separates the retrievers ordinally (with
-% audit-gap-aware caveats on absolute Recall/Precision values).
+% Hit Rate / weighted precision at k=3 and k=20, lenient (>= 3) and
+% strict (>= 5). @k=3 lenient: voyage 0.996/0.867; octen 0.991/0.804;
+% lateon 0.971/0.738; gecko 0.814/0.477; bm25 0.754/0.417;
+% medcpt 0.644/0.334.
+% The benchmark separates the panel cleanly across ~35 pp of Hit Rate
+% and ~53 pp of precision -- and the ordering is stable across
+% lenient/strict thresholds and k. Note the on-device-vs-server-class
+% spread as the benchmark's discriminative range.

@@ -1,13 +1,16 @@
 \section{mamaretrieval: Retrieval Benchmark Construction}
 
 \subsection{Pipeline Overview}
-% Funnel from 63,650 corpus chunks to 78,571 labeled (query, chunk)
-% pairs:
+% Funnel from 63,650 corpus chunks to the released label sets:
 %   63,650 chunks  -[Phase 1a]->  4,540 sampled
 %                  -[Phase 1b]->  3,185 kept (~70%) + seed query each
 %                  -[Phase 1c]->  3,185 query records
-%                  -[Phase 2a]->  ~78,571 candidate pairs (~24.7/query)
-%                  -[Phase 2b]->  78,571 graded labels.
+%                  -[Phase 2a/2b]-> 78,571 binary-rubric labels (legacy)
+%                  -[Tier 2]->    36,418 graded labels (top-3 x 6 retrievers)
+%                  -[Tier 3]->    230,964 graded labels (top-20 x 6 retrievers).
+% Released on HF: v0.1.0 = Tier 2 (2026-05-19); v0.2.0 = Tier 3
+% (2026-05-24, headline artifact, with full thinking traces in
+% audit/judgments_with_reasoning).
 
 \subsection{Phase 1a -- Tier-Weighted Sampling}
 % Source quotas proportional to source-quality tier; 4,540 chunks
@@ -28,34 +31,43 @@
 % Query-type policy: spec defines per_chunk / synthesis / adversarial;
 % only per_chunk generated in v0.2.0 (open item).
 
-\subsection{Phase 2a -- Retriever Selection and Pooling}
-% Retriever rationale:
-%   - BM25 -- exact-term recall baseline (BEIR-strong zero-shot).
-%   - MedCPT -- biomedical bi-encoder (PubMed 255M pairs).
-%   - Octen-Embedding-8B -- strongest open-source dense on RTEB English.
-%   - RRF -- parameter-free fusion for ranking.
-% Top-10 from each, union pooled (avg 24.7 candidates / query).
-% Seed-chunk policy: force-included if no retriever returned it
-% (occurred for 170 / 3,185 = 5.3% of queries). Not pre-labeled as
-% relevant.
+\subsection{Phase 2 -- Initial Pooling and Binary-Rubric Labels (Legacy)}
+% Top-10 union from BM25 / MedCPT / Octen-Embedding-8B (~24.7
+% candidates/query); seed chunks force-included when missed (5.3% of
+% queries), not pre-labeled as relevant. Three-dimension binary rubric,
+% score = D1 x (D2 + D3) in {0,1,2}; Qwen3.5-397B-A17B-FP8 judge via
+% guided_json. 78,571 pairs, 0 errors, 0 invariant violations.
+% Preserved in the release for continuity; superseded as the headline
+% by the graded rubric below.
 
-\subsection{Phase 2b -- LLM-as-Judge Relevance Labeling}
-% Three-dimension binary rubric, combined in post-processing:
-%   D1 (Topic): same clinical problem as query?
-%   D2 (Meaningful): contains clinical information on topic?
-%   D3 (Actionable): contains specific guidance (doses, protocols, ...)?
-%   score = D1 * (D2 + D3) in {0, 1, 2}.
-% Constraints enforced in post-processing: D1=False zeroes D2 and D3;
-% D3=True implies D2=True.
-% Implementation: Qwen3.5-397B-A17B-FP8 via vLLM with guided_json;
-% reasoning emitted before verdicts (G-Eval principle); PROMPT_HASH;
-% RESULT_SCHEMA_VERSION; resume by (query_id, chunk_id) tuple;
-% sharding by query so per-query stats stay intact; post-processing
-% strip of <think>...</think> and markdown code fences.
+\subsection{The v2 Graded Rubric}
+% score = d1 x (d2 + d3 + d4) in {0..6}:
+%   D1 (topic, boolean) -- does the chunk address the query's clinical
+%     question/procedure?
+%   D2 (meaningful, 0/1/2) -- depth of clinical content.
+%   D3 (actionable, 0/1/2) -- specificity of guidance (doses,
+%     thresholds, steps).
+%   D4 (density, 0/1/2) -- fraction of chunk content directly relevant.
+% Motivation: the binary rubric saturated -- it could not separate a
+% chunk that mentions the answer from one that is mostly about it.
+% Research grounding: TREC-CDS ordinal scales; DeCE decomposed binary
+% evaluation; Saracevic relevance hierarchy; UMBRELA; G-Eval
+% (reasoning-before-verdict via field order in guided_json).
 
-\subsection{Research Grounding for the Rubric}
-% TREC-CDS three-level ordinal scale; DeCE decomposed binary
-% evaluation (r=0.78 vs r=0.35 for holistic); Saracevic
-% topical/cognitive/situational hierarchy; UMBRELA (binary + topical
-% gate); HealthBench CoT structure; G-Eval (reasoning-before-verdict
-% via field-order in guided_json).
+\subsection{Tiered Evaluation at Scale}
+% Six-retriever panel: BM25, MedCPT, Octen-8B, voyage-4-large, LateOn,
+% Gecko (the consumer system's deployed embedder).
+%   Tier 1 pilot (2026-05-17): 100 queries x 6 retrievers, 1,150 pairs;
+%     judge validated against Claude Opus 4.7 reference labels on 62
+%     pairs -- 95% threshold agreement at score >= 3, 85% at >= 5.
+%   Tier 2 full (2026-05-18): 3,185 x 6, top-3 union, 36,418 pairs.
+%   Tier 3 deep (-> 2026-05-22): top-20 union, 230,964 pairs
+%     (~5 days wall-clock under cluster preemption).
+% Judge: Qwen3.5-397B-A17B-FP8, temperature 0, thinking budgets soft
+% 10k / hard 25k, prompt hash 9d2abdfb76b030ea.
+
+\subsection{Reproducibility Infrastructure}
+% PROMPT_HASH; RESULT_SCHEMA_VERSION; guided_json; resume by
+% (query_id, chunk_id); sharding by query so per-query stats stay
+% intact; post-processing strip of <think> blocks; full reasoning
+% traces published in the v0.2.0 audit split.

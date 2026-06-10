@@ -20,6 +20,8 @@
 % [SOURCE:<source>|PAGE:<page>|CID:<chunk_id>].
 
 \subsection{Versioning}
-% Corpus version, chunking scheme, and chunk-ID stability. Benchmarks
-% are pinned to a corpus version; an update requires re-running
-% labeling.
+% Both benchmarks are pinned to rag-bundle v0.2.0 (2026-05-19): 63,650
+% chunks from 87 sources, stable 64-bit chunk CIDs (SHA-256-derived,
+% survive source renames / page drift). A corpus update requires
+% re-running labeling; (corpus_version, queries, labels) is one
+% versioned artefact.
