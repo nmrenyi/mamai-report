@@ -1,31 +1,56 @@
 \section{Generator Evaluation under Oracle Context}
+\label{sec:generator}
 
 % Retrieval held fixed at gold mamaretrieval labels; this section probes
-% generator behaviour only.
+% generator behaviour only. Source: mamai-eval branch feat/faithfulness-eval,
+% docs/faithfulness-eval-v0.2.0.md.
 
-\subsection{Faithfulness via MiniCheck}
-% Pipeline 1: scispaCy sentence split, MiniCheck per sentence.
-% Pipeline 2: scispaCy + MedScore decomposition into atomic claims,
-% MiniCheck per claim.
-% Aggregate to per-answer support rate. Report mean +/- std and
-% per-sentence vs per-claim gap (gap signals multi-claim sentences).
+\subsection{Oracle Construction}
+% Oracle = all chunks scored >= 5 on the 0--6 rubric in mamaretrieval
+% v0.1.0 (the threshold the judge was validated at vs Claude Opus 4.7).
+% 2,659 of 3,185 queries have >= 1 oracle chunk (7,343 pairs); top-3 cap
+% at generation time to match the deployed retrieval depth (29% of
+% queries capped). Generation with deployment params (T=1.0, top_p=0.95,
+% top_k=64); 0 errors, 0 context overflows.
 
-\subsection{LLM-Judge Calibration}
-% Frontier-model judge (Claude / GPT) on a random subset; label claims
-% as fully supported / partially supported / unsupported. Spearman
-% correlation against both MiniCheck pipelines; trust threshold rho > 0.7.
+\subsection{Faithfulness Judge Selection}
+% Three candidates, two rejected -- report the journey:
+%   1. MiniCheck (Bespoke-MiniCheck-7B): rejected -- small classifier,
+%      verdicts unauditable (no reasoning).
+%   2. Qwen3.5-397B: rejected for circularity -- the same model produced
+%      the relevance labels that built the oracle.
+%   3. Patronus Lynx 70B: chosen -- open weights, purpose-built for RAG
+%      hallucination detection, medically trained, Llama-3 family
+%      (independent of the Qwen oracle judge), emits auditable reasoning.
+%      Limitation: holistic PASS/FAIL, not per-claim.
+% (The originally planned MiniCheck/scispaCy/MedScore pipelines were
+% abandoned; do not present them as the method.)
 
-\subsection{Stability}
-% Prompt sensitivity: MedFuzz-style paraphrase delta in MiniCheck score.
-% Run-to-run variance: N runs at temperature > 0, fixed retrieval; std
-% of support rate across runs.
-% Greedy vs sampled: temperature 0 vs temperature 0.7 on a subset;
-% informs deployment temperature choice.
+\subsection{Results and FAIL Categorization}
+% Lynx pass rate 94.55% (2,514/2,659), 95% CI [93.6, 95.4].
+% All 145 FAILs categorized one-by-one: contradiction 48,
+% unsupported_addition 22 (these two are candidate hallucinations),
+% omission 35, refusal 17, unclear 23 (not faithfulness failures).
 
-\subsection{Deployment Integrity Checks}
-% Citation existence: when the model cites a source, does it appear in
-% the corpus and say what the model claims?
-% Contradiction-among-guidelines set (~20--30 hand-curated cases, e.g.
-% WHO vs Zanzibar MOH on magnesium sulfate dosing): does Gemma
-% acknowledge the conflict or silently pick one source? Score gap
-% between benchmark-key-aligned and local-key-aligned answers.
+\subsection{Calibration: From Raw Rate to True-Hallucination Estimate}
+% 100-row stratified blinded re-judgment by an independent model family
+% under a strict hallucination-only definition: Lynx precision ~6%
+% (3/50 FAILs confirmed), miss rate 0/50 on the PASS stratum.
+% Population estimate: ~9/2,659 ~= 0.3% true hallucinations.
+% Headline: Gemma 4 E4B is highly faithful to oracle context; Lynx raw
+% FAIL rate overstates hallucination by ~an order of magnitude.
+
+\subsection{Oracle-Context Integrity}
+% 6 of 145 FAILs trace to self-contradictory oracle context (two chunks
+% with conflicting clinical facts, e.g. misoprostol dosing intervals) --
+% disclosed; fix tracked in mamaretrieval#18.
+
+\subsection{Pending and Future Probes}
+% [pending] Recalibration with the consolidated closed-source judge
+% (gpt-oss-120b failed both calibration gates; escalation in progress).
+% [pending] Real-retrieval faithfulness probe (deployed gecko top-3
+% instead of oracle) -- the experiment that gates the RAG-aware
+% fine-tuning plan.
+% Not executed this cycle (future work): paraphrase-sensitivity,
+% run-to-run variance, greedy-vs-sampled stability probes; citation
+% existence checks; contradiction-among-guidelines set.

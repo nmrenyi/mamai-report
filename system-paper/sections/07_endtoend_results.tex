@@ -1,37 +1,46 @@
 \section{End-to-End Evaluation on mamabench}
+\label{sec:endtoend}
 
-% Full system: deployed retriever + generator. Compared against alternatives
-% across model size and presence/absence of RAG.
+% Full system: deployed retriever + generator, +/- RAG, on mamabench
+% v0.2 via mamai-eval config-v0.2.0. Complete for the deployed model
+% (Gemma 4 E4B); the broader model matrix is rescoped (see scope note).
 
-\subsection{Model x RAG Matrix}
-% Models: Gemma 4 E4B (deployed), MedGemma 4B, Meditron-70B, Llama-3
-% (or Qwen 2.5-72B), GPT-5 (or Claude / Gemini). Conditions: no-RAG vs
-% +RAG over the deployment guideline corpus.
-% Methodological constraint: identical RAG pipeline (retriever, embedder,
-% chunker, top-k, prompt template) across all "+RAG" rows; only the
-% generator changes.
+\subsection{Setup}
+% Identical RAG pipeline across all +RAG rows (Gecko top-3, deployed
+% prompt template, bundle v0.2.0); cluster runtime justified by the
+% device--cluster calibration (Section 4). Judge for open-ended tracks:
+% gpt-oss-120b, pinned 2026-05-22 after a bake-off (vs Nemotron-253B,
+% Llama-4 Maverick) on the 6,853-triple physician-labeled calibration
+% set: LLM-consensus agreement 81.6%, met-rate 73.2% vs physician 77%.
 
-\subsection{MCQ Accuracy and Calibration}
-% Accuracy, Brier score, ECE per cell of the matrix.
+\subsection{MCQ Accuracy (+/- RAG)}
+% 23,241 rows (MedMCQA 18,508, MedQA-USMLE 4,199, AfriMed-QA 534).
+% No-RAG 53.7% [53.1, 54.4] vs +RAG 51.9% [51.3, 52.5]: a -1.8 pp
+% regression, statistically significant. Net-flip breakdown and the
+% out-of-domain-corpus explanation: reports/mcq-rag-effect-20260520.md.
 
-\subsection{Open-Ended Rubric Scores}
-% HealthBench-style: factuality, reasoning, harm, omission, guideline
-% adherence.
+\subsection{Open-Ended Rubric Scores (+/- RAG)}
+% HealthBench subsets: oss_eval 1,209 / consensus 872 / hard 258
+% (2,339 rows; 38,308 criterion verdicts, 0 errors).
+% weighted_met deltas (RAG minus no-RAG): oss_eval -0.5 pp,
+% consensus -2.0 pp, hard -0.3 pp; per-axis: communication -3.4 pp,
+% instruction_following -3.2 pp, accuracy -0.4 pp.
+% [pending] Phase B production rescore with the consolidated judge --
+% these become the final numbers; current gpt-oss-120b results stand
+% until then and the revision path is noted in the text.
 
-\subsection{Safety}
-% EquityMedQA / FairMedQA pass rates; MedEqualQA / MedFuzz robustness
-% deltas; clinical-safety judge scores; any safety-1 occurrences flagged.
+\subsection{Open-Ended SAQ (+/- RAG)}
+% 369 rows (Kenya 312, AfriMed-SAQ 37, WHB 20). key_fact_recall:
+% Kenya 0.178 no-RAG vs 0.128 +RAG. Zero `dangerous' verdicts across
+% all 738 scored rows; dominant failure mode is "escalate to doctor"
+% deferral rather than specific management steps (67--81% of
+% zero-recall engaged rows contain explicit escalation language) --
+% a safety-conservative failure, but a utility gap.
 
-\subsection{Corpus-Composition Ablation}
-% Gemma + RAG over: WHO-only, Tanzania-only, Zanzibar-only, full corpus.
-% Compared against Gemma no-RAG. Identifies which sources drive utility.
-
-\subsection{Six Headline Comparisons}
-% (1) Gemma no-RAG -> Gemma +RAG: value added by retrieval.
-% (2) Gemma +RAG vs MedGemma no-RAG: fine-tuning vs RAG at same scale.
-% (3) Gemma +RAG vs Frontier no-RAG: deployability headline.
-% (4) Frontier no-RAG vs Frontier +RAG: does the corpus add information
-%     beyond pretraining for a frontier model?
-% (5) Gemma +RAG vs Mid-size/Frontier +RAG: model-size headroom at
-%     equal knowledge.
-% (6) Gemma no-RAG vs Mid-size/Frontier no-RAG: raw capability gap.
+\subsection{Scope Note: The Model Matrix}
+% The full {MedGemma, Meditron, Llama/Qwen, GPT-5, Claude, Gemini} x
+% {no-RAG, +RAG} matrix was not run this cycle. If frontier reference
+% numbers are quoted (GPT-5 from the earlier app-parity protocol in
+% mamai/evaluation/reports/eval_report_app_parity_v1.md), label the
+% protocol difference explicitly. Safety suites (mamabench v0.3) and
+% the corpus-composition ablation are future work.

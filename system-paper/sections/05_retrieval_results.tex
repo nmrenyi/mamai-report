@@ -1,26 +1,42 @@
 \section{Retrieval Evaluation}
+\label{sec:retrieval-results}
 
-% All numbers scored on mamaretrieval. Benchmark construction and the
-% completeness-audit error bar are in the companion paper [cite paper2].
+% All numbers from the mamaretrieval Tier 2/3 audit
+% (mamaretrieval/AUDIT_REPORT_v2.md). Benchmark construction, the v2
+% graded rubric, and label provenance are in the companion paper
+% [cite paper2]. This section interprets the scoreboard for the
+% *deployed* configuration; Paper 2 presents the same data as evidence
+% of benchmark validity.
 
 \subsection{Deployed Retriever}
-% Gecko-110M-en embeddings (768-dim, quantized) + SQLite vector store,
-% top-3 cosine, similarity threshold 0.0.
+% Gecko-110M-en embeddings (768-dim, quantized TFLite) + SQLite vector
+% store, top-3 cosine, similarity threshold 0.0 -- the exact on-device
+% configuration.
 
 \subsection{Comparators}
-% BM25 lexical baseline; MedCPT (biomedical bi-encoder); Octen-Embedding-8B
-% (general dense); RRF fusion of all three.
+% Six-retriever panel: BM25 (lexical baseline), MedCPT (biomedical
+% bi-encoder), Octen-Embedding-8B (strong open dense), voyage-4-large
+% (frontier API embedder), LateOn (late-interaction), and the deployed
+% Gecko. (An earlier BM25/MedCPT/Octen/RRF plan was superseded by this
+% panel.)
 
 \subsection{Results}
-% Hit Rate@k, MRR, nDCG@k, Recall@k, Precision@k at k = 1, 3, 5, 10.
-% Per-retriever side-by-side; clear callout of the deployed configuration.
+% Hit Rate and weighted precision at k=3 (deployed depth) and k=20,
+% lenient (score >= 3) and strict (>= 5).
+% Headline @k=3 lenient: voyage HR 0.996 / P 0.867; octen 0.991 / 0.804;
+% lateon 0.971 / 0.738; gecko 0.814 / 0.477; bm25 0.754 / 0.417;
+% medcpt 0.644 / 0.334.
+% Gecko sits ~25 pp behind the frontier embedders on weighted precision.
 
-\subsection{Per-Source-Tier Breakdown}
-% How retrieval quality varies across source tiers (very_high to
-% low_moderate); identify tiers where Gecko under-performs and consider
-% whether to drop or down-weight low-yield sources in future bundles.
+\subsection{Ranking Gap vs Retrieval Gap}
+% Tier 3 (top-20) decomposition: gecko HR@3 0.81 -> HR@20 0.98 lenient
+% (ranking recoverable), but HR@3 0.44 -> HR@20 0.76 strict, and gecko
+% captures only ~34% of pool relevance at k=20 vs voyage's ~66% -- a
+% real retrieval gap, not just ranking. Implications for the
+% embedding-swap / query-rewriting decision (mamai#62).
 
 \subsection{Discussion}
-% Where Gecko struggles (long-tail clinical vocabulary, abbreviations)
-% vs strengths (semantic paraphrase). Implications for top-k choice
-% and for the on-device retrieval/generation latency budget.
+% Where Gecko struggles (long-tail clinical vocabulary, abbreviations,
+% user-vs-corpus vocabulary mismatch) vs strengths (semantic paraphrase).
+% Implications for top-k choice and the on-device latency budget; why
+% the retriever -- not the generator -- is the system's weakest link.

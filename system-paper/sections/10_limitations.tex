@@ -1,15 +1,24 @@
 \section{Limitations}
+\label{sec:limitations}
 
-% - Single deployment site (Zanzibar); generalization to other regions,
-%   languages, or clinical scopes is untested.
+% - Pre-deployment: no users in Zanzibar this cycle, no user study, no
+%   clinical-trial data; evaluation uses benchmark proxies, not
+%   prospective deployment outcomes.
+% - Single benchmark device (Snapdragon 8 Elite); MediaTek/Mali --
+%   the majority of the target market -- unmeasured. Battery and
+%   sustained-thermal numbers pending.
 % - LLM-generated queries in mamaretrieval may inflate dense-retriever
-%   scores; see the audit-gap error bar in the companion paper [cite paper2].
-% - No clinical-trial data; evaluation uses benchmark proxies, not
-%   prospective deployment outcomes (patient-level effect on care quality
-%   is out of scope here).
-% - Contamination caveat: MedMCQA, MedQA-USMLE, MMLU likely in Gemma's
-%   pretraining; report contamination-adjusted numbers via MedFuzz
-%   paraphrases alongside raw numbers.
-% - Some evaluations (faithfulness pipelines, stability probes, multi-device
-%   latency) are still being executed and will be revised in subsequent
-%   versions of this report.
+%   scores; label provenance and pooling-completeness evidence in the
+%   companion paper [cite paper2].
+% - Contamination caveat: MedMCQA and MedQA-USMLE likely in Gemma's
+%   pretraining; no contamination-adjusted numbers this cycle.
+% - No Swahili evaluation despite the bilingual deployment context
+%   (EN/SW prompts ship in the app) -- a genuine deployment-quality gap.
+% - Generator stability probes (paraphrase sensitivity, run-to-run
+%   variance, greedy vs sampled) not executed.
+% - Safety track (EquityMedQA/FairMedQA-style suites) deferred to
+%   mamabench v0.3; the only safety signal this cycle is the SAQ judge's
+%   verdict distribution (zero `dangerous', Section 7).
+% - Open-ended rubric numbers may be revised by the pending Phase B
+%   rescore with the consolidated judge; revision path stated in
+%   Section 7.

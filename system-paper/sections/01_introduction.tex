@@ -9,10 +9,20 @@
 % - Safety priority: incorrect medical advice has direct patient-harm
 %   consequences. Evaluation quality is the top engineering concern, not
 %   performance or features.
+% - Honest framing: a feature-complete, pre-deployment prototype with a
+%   comprehensive evaluation -- not yet a fielded system (no user study
+%   this cycle).
 % - Contributions:
-%   1. A deployed on-device medical RAG system (Gemma 4 E4B + Gecko + SQLite).
+%   1. An on-device medical RAG system (Gemma 4 E4B + Gecko + SQLite),
+%      ready for deployment on commodity Android hardware.
 %   2. A bottom-up evaluation methodology (retriever -> generator isolation
-%      -> end-to-end) and its application to the deployed system.
-%   3. Empirical findings across retrieval quality, generator faithfulness,
-%      end-to-end QA accuracy, and on-device latency on real Android hardware.
+%      -> end-to-end) and its application to the deployed configuration.
+%   3. Empirical findings that localize the failure mode: generator
+%      faithfulness under oracle context is essentially solved (~0.3%
+%      calibrated true-hallucination rate); the deployed retriever is the
+%      weakest link (~25 pp behind frontier embedders); RAG currently
+%      *reduces* MCQ accuracy slightly (-1.8 pp); corpus coverage is the
+%      main deployment gap.
+%   4. On-device latency characterization, including a root-caused FP16-GPU
+%      context-length failure at ~5,000 tokens.
 % - Roadmap: section pointers.

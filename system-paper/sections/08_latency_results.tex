@@ -1,31 +1,41 @@
 \section{On-Device Latency}
+\label{sec:latency}
 
-% Hardware-specific. All measurements on real Android devices, not
-% emulators. Hardware spec table reported per condition.
+% Source: mamai/evaluation/reports/latency_report_v2.md (2026-05-17) and
+% maxnumtoken_investigation.md. All measurements on real Android hardware
+% (Snapdragon 8 Elite / OnePlus); battery, sustained thermal, and
+% Zanzibar-representative MediaTek hardware are pending -- disclose the
+% single-device scope.
 
 \subsection{Methodology}
-% Input-length buckets: short (<20 tok), medium (20--50 tok), long
-% (>50 tok). 30 repeats per condition, first 5 discarded as warmup.
-% Report P50 / P90 / P99 and the full distribution per condition.
+% 54 runs per model x backend x k configuration (18 query types x 3
+% repeats), 10 s thermal cooldown between runs; k in {0,1,3,5,7,10,15,20};
+% artifact fingerprints (SHA-256) recorded for reproducibility.
 
-\subsection{Retrieval Latency}
-% Embedding + vector search only. Varying top-k in {1, 3, 5, 10}.
-% Embedding throughput (tokens/sec). Distribution plot per condition.
+\subsection{End-to-End Latency by Backend and Retrieval Depth}
+% E4B: GPU 13--25 s (k <= 15), CPU 28--90 s -- GPU 2--3.5x faster.
+% E2B: GPU 8--18 s, CPU 13--40 s.
+% At the deployed configuration (E4B, k=3): GPU ~19 s, CPU ~43 s median.
+% E2B as the sub-$120-device option (4 GB RAM floor) -- quality
+% comparison pending.
 
-\subsection{Generation Latency}
-% Cold start (first inference after model load) vs warm start (steady
-% state). Time-to-first-token, total generation time, decode throughput.
+\subsection{The FP16-GPU Context Wall}
+% Deterministic decode failure (asterisk repetition loop) at ~5,000
+% total context tokens on FP16 GPU attention; root-caused to precision
+% asymmetry between GPU and CPU paths, not a model-artifact defect.
+% FP32-GPU fallback verified clean past 5,000 tokens at ~25% TTFT cost.
+% Deployment ceiling set to 4,096 tokens (~900-token safety margin).
+% Give this finding space -- it is novel and load-bearing for anyone
+% deploying LiteRT-LM-class runtimes at longer contexts.
 
-\subsection{End-to-End Latency}
-% Retrieval + generation. Standard (cooled between runs) vs sustained
-% load (30 back-to-back queries). Retrieval share vs generation share.
+\subsection{Device Compatibility and Market Mapping}
+% Hardware floors: E4B 6 GB RAM / E2B 4 GB RAM; arm64 2022+ chipsets.
+% Market tiers (sub-$100 E2B-only ... $250+ E4B optimal). Validated on
+% Adreno (Snapdragon) only; MediaTek/Mali GPU reliability unmeasured --
+% the relevant gap for Zanzibar-representative hardware.
 
-\subsection{Battery and Thermal}
-% Battery drain per session (unplugged); estimated queries per full charge.
-% Temperature time series during sustained load; throttling onset, peak,
-% recovery; correlate with latency degradation over time.
-
-\subsection{Multi-Device}
-% Primary benchmark device (high-end) and a lower-end device representative
-% of actual Zanzibar deployment hardware. Per-device results reported
-% separately.
+\subsection{Pending Measurements}
+% [pending] Battery drain per session; sustained-load thermal
+% throttling profile; multi-device comparison on a Zanzibar-
+% representative MediaTek device (procurement pending). Scope these as
+% future revisions rather than holding the report.

@@ -1,16 +1,28 @@
 \section{Discussion}
 
-% Synthesize the cross-cutting findings.
-% - The RAG-hurts-on-device finding: Gemma 4 E4B's MCQ accuracy drops
-%   slightly with retrieved context; GPT-5 is unaffected. Hypotheses
-%   (context-window utilisation, attention dilution at 4B scale,
-%   small-model retrieval-noise tolerance).
-% - Faithfulness vs MCQ accuracy: a model can score lower on MCQ while
-%   producing more faithful open-ended answers; for a deployment whose
-%   real task is free-form clinical Q&A, which signal matters more?
+% Synthesize the cross-cutting findings around the report's central arc:
+% the generator is not the problem; the retriever and the corpus are.
+% - Faithfulness is essentially solved at the generator (oracle-context
+%   true hallucination ~0.3%): the dominant feared failure mode
+%   (ungrounded medical advice) is absent under good context. The
+%   gated fine-tuning plan stays gated unless the real-retrieval
+%   faithfulness probe says otherwise.
+% - The deployed retriever is the weakest link: gecko ~25 pp behind
+%   frontier embedders on weighted precision; the gap is partly real
+%   retrieval (not just ranking). Improvement levers: query-side
+%   rewriting (mamai#62) vs embedding swap vs distillation.
+% - The RAG-hurts finding: -1.8 pp MCQ, small negative open-ended
+%   deltas. Hypotheses: out-of-domain corpus for broad-medicine MCQ,
+%   retrieval noise at 4B scale, prompt-format interaction. What this
+%   means for shipping RAG on-device.
+% - Corpus coverage is the visible deployment gap (ICM demo finding) --
+%   coverage, licensing constraints on high-value textbooks, and the
+%   expansion pipeline.
+% - Safety-conservative failure profile: zero dangerous verdicts but
+%   heavy "escalate to doctor" deferral -- is a deferring assistant
+%   useful enough on a busy ward?
 % - When local guidelines diverge from global standards (WHO vs Zanzibar
-%   MOH), how should a deployed system behave? Acknowledgement vs
-%   silent selection; alignment with the local key vs the benchmark key.
-% - Latency-quality frontier: where is the steady-state usable budget
-%   for a busy ward, and what trades available?
+%   MOH), how should a deployed system behave?
+% - Latency-quality frontier: E4B-GPU vs E2B trade; usable budget for a
+%   busy ward.
 % - Lessons for similar low-resource clinical deployments.
