@@ -1,32 +1,147 @@
 \section{System Architecture}
+\label{sec:architecture}
 
-% Scope: the deployed mamai system as it runs on-device.
+% Facts verified 2026-06-10 against: mamai/config/{app_config.json,
+% runtime_config.json, rag_assets.lock.json}, mamai/CLAUDE.md,
+% config/prompts/system_en.txt, RagPipeline.kt.
+
+MAM-AI is an Android application that answers clinical questions from
+nurse-midwives entirely on-device: retrieval, generation, and all model
+weights live on the phone, and no query ever leaves it. This design is
+forced by the deployment context---health facilities in Zanzibar cannot
+assume reliable internet connectivity---and it has a second benefit that
+matters in a clinical setting: patient-related queries are never
+transmitted to a third-party service. The cost is that every component
+must fit the memory, compute, and thermal budget of a commodity
+smartphone. This section describes the deployed configuration; the
+corpus it retrieves from is described in Section~\ref{sec:corpus}, and
+its empirical behaviour in Sections~\ref{sec:retrieval-results}
+through~\ref{sec:latency}.
+
+The application has three layers: a Flutter user interface, a Kotlin
+native layer hosting the RAG pipeline, and two inference runtimes
+(LiteRT-LM for generation, LiteRT/TFLite for embeddings) backed by a
+SQLite vector store. All runtime hyperparameters are defined in a single
+versioned configuration file (\texttt{runtime\_config.json}) that is
+shared verbatim between the shipped application and the evaluation
+harness, so that evaluation results refer to exactly the deployed
+configuration (Section~\ref{sec:methodology}).
 
 \subsection{Flutter UI and Platform Channels}
-% MethodChannel / EventChannel; streaming generation; UI thread marshaling.
+
+The user-facing layer is a Flutter application offering a single search
+interface with suggestion chips and Markdown rendering of responses.
+Flutter communicates with the native layer over two platform channels: a
+\emph{method channel} through which the UI triggers initialization
+(\texttt{ensureInit}) and submits queries (\texttt{generateResponse}),
+and an \emph{event channel} over which the native layer streams results
+back---first the retrieved documents, then generated tokens as they are
+decoded. Streaming matters at on-device speeds: total generation takes
+tens of seconds on target hardware (Section~\ref{sec:latency}), and
+token-by-token display is the difference between a usable tool and an
+apparently frozen one.
 
 \subsection{The RAG Pipeline}
-% RagPipeline.kt: LLM init, embedder init, vector store init; lazy
-% async initialization; awaitLlmReady; single-query concurrency
-% constraint enforced in RagStream.
+
+The native layer (\texttt{RagPipeline.kt}) manages three components: the
+LLM runtime, the embedding model, and the vector store. Initialization
+is lazy and asynchronous---models are loaded on first access, and
+callers block on \texttt{awaitLlmReady()}, which propagates
+initialization failures rather than silently unblocking. A companion
+stream manager (\texttt{RagStream.kt}) enforces a single-query-at-a-time
+concurrency constraint: duplicate submissions of the same prompt are
+deduplicated, and a new query cancels the previous generation job before
+starting. On a device where one generation saturates the SoC, admitting
+concurrent queries would only slow both.
+
+A query flows through the pipeline as follows: the query text is
+embedded by Gecko; the vector store returns the top-3 chunks by cosine
+similarity; the chunks, the system prompt, and the question are
+assembled into a single prompt; and LiteRT-LM decodes a streaming
+response.
 
 \subsection{Gemma 4 E4B via LiteRT-LM}
-% Model file (gemma-4-E4B-it.litertlm, int4 quantized, 3.65 GB);
-% CPU vs GPU backend selection (useGpuForLlm); automatic GPU-to-CPU
-% fallback on init failure; MTP smoke-test result (off by default).
+
+Generation uses Gemma~4~E4B\footnote{TODO: cite the Gemma 4 technical
+report.} in the int4-quantized \texttt{.litertlm} format (3.65\,GB),
+executed by LiteRT-LM~0.11.0.\footnote{\url{https://github.com/google-ai-edge/LiteRT-LM}}
+The engine is configured with a 4{,}096-token total context (prompt plus
+response); this ceiling is not arbitrary but a deliberate safety margin
+below a precision-induced failure mode at longer contexts that we
+characterize in Section~\ref{sec:latency}. Sampling uses the model's
+recommended deployment parameters (temperature 1.0, top-$p$ 0.95,
+top-$k$ 64), with no explicit output-length cap.
+
+The LLM backend defaults to CPU (XNNPACK) in production builds. GPU
+execution (OpenCL; FP16 by default) is a compile-time opt-in, and if GPU
+initialization fails at runtime the pipeline falls back to CPU
+automatically. GPU decoding is 2--3.5$\times$ faster on supported
+hardware (Section~\ref{sec:latency}), but the conservative default
+reflects the fleet heterogeneity of the target market, where GPU driver
+reliability cannot be assumed. A multi-token-prediction (speculative
+decoding) mode was integrated and smoke-tested but is disabled by
+default: on long retrieval-augmented prompts it measured 10--20\%
+\emph{slower} than standard decoding.
 
 \subsection{Gecko Embeddings and SQLite Vector Store}
-% Gecko_1024_quant.tflite (768-dim); sentencepiece tokenizer;
-% VF32 embedding format (magic prefix + 768 x float32 little-endian);
-% SqliteVectorStore from Google AI Edge localagents-rag.
+
+Query embedding uses Gecko-110M~\cite{lee2024gecko} as a quantized
+TFLite artifact (\texttt{Gecko\_1024\_quant.tflite}, 768-dimensional
+output) with a SentencePiece tokenizer, running on CPU. Document
+embeddings are \emph{not} computed on-device: the corpus is embedded
+ahead of time by the producer pipeline (Section~\ref{sec:corpus}) and
+shipped as a $\sim$260\,MB SQLite database of 63{,}650 pre-computed
+vectors, stored in a compact binary format (a magic prefix followed by
+768 little-endian \texttt{float32} values per row). The vector store is
+the SQLite-backed semantic memory from Google AI Edge's local-agents RAG
+library, queried with cosine similarity.
+
+Each stored chunk carries a structured header
+(\texttt{[SOURCE:$\langle$stem$\rangle$|PAGE:$\langle$n$\rangle$|CID:$\langle$hex$\rangle$]})
+identifying its source document, page, and a stable 64-bit content ID.
+The pipeline parses this header at retrieval time, which is what allows
+the UI to display per-chunk citations and the evaluation harness to
+trace any retrieved passage back to the exact guideline page that
+produced it.
 
 \subsection{Prompt Template and Retrieval Parameters}
-% Top-3 retrieval, similarity threshold 0.0, RETRIEVAL_QUERY task type;
-% prompt-template emphasis on simple language for second-language
-% speakers, bullet structure, emergency escalation guidance.
+
+Retrieval is fixed at top-3 with no similarity threshold (threshold
+0.0): with a 4{,}096-token context shared between prompt and response,
+three chunks of up to 2{,}500 characters are what comfortably fits
+alongside the system prompt, the question, and room for the answer.
+
+The system prompt (shipped in English and Swahili) defines the assistant
+as clinical decision support for government nurse-midwives---explicitly
+not specialist midwives---working in resource-limited facilities. Its
+load-bearing instructions, each of which traces to an observed
+failure mode or deployment requirement: simple short sentences for
+second-language English speakers; responses under 200 words unless a
+procedure requires more; bracketed citation markers ([1], [2], [3])
+tied to the retrieved chunks; a fixed list of emergency presentations
+(postpartum haemorrhage, eclampsia, cord prolapse, shoulder dystocia,
+neonatal sepsis, among others) that must trigger immediate escalation
+advice; a prohibition on recommending drug doses unless the retrieved
+context explicitly states them; and an instruction to admit uncertainty
+rather than guess. Retrieved chunks are injected under a labelled
+context block, and the model is told to fall back to established
+medical knowledge---and say so---when the retrieved context is
+irrelevant. The behavioural consequences of this
+safety-conservative prompt are measurable and discussed in
+Section~\ref{sec:endtoend}.
 
 \subsection{Model Distribution and Storage}
-% First-launch download of ~4.5 GB from public HuggingFace repos and
-% the mamai-medical-guidelines GitHub release; on-device storage in
-% application external files dir; checksum-pinned RAG bundle via
-% rag_assets.lock.json.
+
+The APK ships without weights. On first launch the application downloads
+roughly 4.5\,GB of artifacts: the LLM and embedder from public
+HuggingFace repositories (\texttt{litert-community}), and the RAG bundle
+from the producer repository's GitHub releases. The bundle is pinned by
+a lock file (\texttt{rag\_assets.lock.json}) recording the bundle
+version (v0.2.0 for this report), its download URL, the SHA-256 of its
+manifest, and the producer commit that built it---so a given APK build
+retrieves from a bit-exact, auditable corpus. All artifacts are cached
+in application-external storage; after the initial download the
+application runs fully offline. The first-launch download is the main
+deployment friction in a low-connectivity setting, and
+offline distribution (pre-loaded devices or local file transfer) is an
+open operational item discussed in Section~\ref{sec:limitations}.
