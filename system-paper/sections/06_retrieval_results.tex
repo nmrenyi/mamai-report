@@ -151,12 +151,25 @@ Gecko (former) & 0.270 & 0.125 & $-0.004$ & 0.175 & 0.372 \\
 
 \subsection{Reranking: an offline win that does not transfer}
 
-A fine-tuned reranker makes the same point from a second angle. Re-scoring a
-first stage's \emph{top-20} candidates with a tiny 23M MiniLM-L6
-cross-encoder (fine-tuned on 159k in-domain pairs, shipping as an int8
-on-device model) and keeping the top-3 lifts precision on the benchmark
-dramatically---from 0.485 to 0.72, and a larger fine-tuned variant to 0.79
-(Table~\ref{tab:rerank}). Yet none of that reaches the deployment queries:
+A reranker is a second stage over retrieval: a \emph{cross-encoder} that
+reads each (query, chunk) pair jointly and scores its relevance. It is more
+accurate than the bi-encoder retriever---which embeds query and chunk
+separately---but too costly to run over the whole corpus, so it only
+re-scores the first stage's top-20 candidates and re-picks the top-3. We
+screened several deployable cross-encoders (MiniLM-L6 at 23M, ELECTRA-base,
+bge-reranker-base, mxbai-base) against multi-billion-parameter Qwen3-Reranker
+references, and fine-tuned the smallest, MiniLM-L6, in-domain: a regression
+onto the mamaretrieval judge's normalised relevance grade ($\text{grade}/6$)
+over 158{,}993 train-split (query, chunk) pairs, two epochs, evaluated on
+held-out test queries. \emph{Fine-tuning, not size, was the lever}: the 23M
+fine-tuned model reached benchmark P@3 0.756, beating the $8\times$-larger
+zero-shot mxbai-base (0.714) and approaching the multi-billion-parameter
+references (which it exceeds at the strict cut); its int8 on-device build
+reproduces the offline scores exactly (top-3 agreement 1.000).
+
+That win does not reach the user. Re-scoring the first stage's top-20 with the
+fine-tuned reranker lifts benchmark precision dramatically---from 0.485 to
+0.72, and the larger fine-tuned variant to 0.79 (Table~\ref{tab:rerank}). Yet
 across rerankers \emph{and} across all three first stages tested (Gecko,
 BM25, and their hybrid), Kenya retrieval precision stays near 0.27 and
 end-to-end key-fact recall near 0.12, with HealthBench at zero. The benchmark
