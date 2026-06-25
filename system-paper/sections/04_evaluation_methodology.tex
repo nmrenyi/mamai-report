@@ -215,8 +215,10 @@ its bias cancels in the delta; per-subset samples are small (especially WHB),
 so single-subset deltas are indicative rather than precise.
 
 A final caveat: this check fixes a single device and backend (the on-device
-GPU; \S\ref{sec:latency}), whereas on-device behaviour can still shift with
-the hardware backend (CPU vs.\ GPU), the quantisation, and the SoC, so a
-different phone need not reproduce these numbers exactly. The cluster, a
-single fixed environment, is by contrast straightforward to reproduce---a
-further reason to anchor the evaluation there.
+GPU; \S\ref{sec:latency}). The deployed model uses the same 4-bit weights on
+every phone, but the compute around them is not fixed---on-device behaviour
+can still shift with the hardware backend (CPU vs.\ GPU) and its numeric
+precision (e.g.\ the GPU's FP16 vs.\ FP32 attention) across different
+SoCs---so another phone need not reproduce these numbers exactly. The
+cluster, a single fixed environment, is by contrast straightforward to
+reproduce, a further reason to anchor the evaluation there.
