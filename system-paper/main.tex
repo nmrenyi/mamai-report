@@ -13,6 +13,22 @@
 \usepackage{graphicx}
 \usepackage{booktabs}
 \usepackage{microtype}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, positioning, fit, backgrounds}
+\usepackage{listings}
+\lstdefinestyle{prompt}{
+  basicstyle=\ttfamily\footnotesize,
+  breaklines=true,
+  breakindent=0pt,
+  columns=fullflexible,
+  keepspaces=true,
+  frame=single,
+  framesep=6pt,
+  xleftmargin=4pt,
+  xrightmargin=4pt,
+  aboveskip=1em,
+  belowskip=1em,
+}
 
 % Chinese character support (for author names). Compile with LuaLaTeX
 % (this paper's .latexmkrc sets pdf_mode=4). FandolSong is bundled with
@@ -77,5 +93,11 @@ global health, maternal health, evaluation}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \bibliography{references}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Appendix
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\input{sections/appendix_prompts}
 
 \end{document}
