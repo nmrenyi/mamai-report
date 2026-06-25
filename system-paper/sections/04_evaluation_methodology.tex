@@ -24,15 +24,19 @@ faithful proxy for on-device behaviour.
 
 Two purpose-built benchmarks supply the test data; both are documented in a
 companion paper, so we describe them only as far as the results require.
-\textbf{mamabench} is a maternal/neonatal/OBGYN question-answering benchmark
-(25{,}949 items across multiple-choice, open-ended, and rubric-graded
-tracks). The end-to-end evaluation is anchored on its two open-ended tracks:
+\textbf{mamabench}\footnote{Dataset:
+\url{https://huggingface.co/datasets/nmrenyi/mamabench}; construction code:
+\url{https://github.com/nmrenyi/mamabench}.} is a maternal/neonatal/OBGYN
+question-answering benchmark (25{,}949 items across multiple-choice,
+open-ended, and rubric-graded tracks). The end-to-end evaluation is anchored on its two open-ended tracks:
 the \emph{Kenya Clinical Vignettes} (312 nurse-written primary-care cases,
 close to the deployment setting) and \emph{HealthBench-oss} (1{,}209 items
 with physician-written rubrics); multiple-choice serves only as a control.
-\textbf{mamaretrieval} pairs 3{,}185 clinical queries with graded
-($0$--$6$) relevance labels over the guideline corpus, and is used to score
-the retriever (\S\ref{sec:retrieval-results}).
+\textbf{mamaretrieval}\footnote{Dataset:
+\url{https://huggingface.co/datasets/nmrenyi/mamaretrieval}; construction
+code: \url{https://github.com/nmrenyi/mamaretrieval}.} pairs 3{,}185 clinical
+queries with graded ($0$--$6$) relevance labels over the guideline corpus,
+and is used to score the retriever (\S\ref{sec:retrieval-results}).
 
 \subsection{Validating the Judge}
 \label{sec:judge}
