@@ -7,11 +7,13 @@ problem is \emph{what} is retrieved. We score it on mamaretrieval---3{,}185
 clinical queries with graded ($0$--$6$) relevance labels over the deployment
 corpus, judged by Qwen3.5-397B and validated against Claude~Opus~4.7
 (construction in the companion paper). Retrieval is evaluated at the deployed
-depth, top-3. Because the generator consumes all three chunks of a long
-context with no position bias, the operationally meaningful metrics are Hit
-Rate (is any useful chunk retrieved?) and Precision (how much of the top-3 is
-useful?), not rank-sensitive MRR or nDCG; we report each at a lenient
-threshold (relevance $\ge 3$, any useful content) and a strict one ($\ge 5$,
+depth, top-3. Because all three retrieved chunks are injected into the prompt
+together, the operationally meaningful questions are whether any useful chunk
+is present (Hit Rate) and how much of the small top-3 bundle is useful rather
+than noise (Precision); rank-sensitive metrics such as MRR or nDCG would
+matter only if order within the top-3 strongly shaped the answer, which we do
+not assume. We report Hit Rate and Precision at a lenient threshold
+(relevance $\ge 3$, any useful content) and a strict one ($\ge 5$,
 complete/specific content), plus a threshold-free weighted variant. Queries
 with no qualifying chunk count as Hit Rate $=$ Precision $= 0$, as a user
 would experience them.
