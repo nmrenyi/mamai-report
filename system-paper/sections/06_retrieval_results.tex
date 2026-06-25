@@ -14,9 +14,15 @@ than noise (Precision); rank-sensitive metrics such as MRR or nDCG would
 matter only if order within the top-3 strongly shaped the answer, which we do
 not assume. We report Hit Rate and Precision at a lenient threshold
 (relevance $\ge 3$, any useful content) and a strict one ($\ge 5$,
-complete/specific content), plus a threshold-free weighted variant. Queries
-with no qualifying chunk count as Hit Rate $=$ Precision $= 0$, as a user
-would experience them.
+complete/specific content). We also report threshold-free weighted variants
+(wHR, wP) that replace the binary relevance test with each chunk's graded
+score normalised to $[0,1]$ (the $0$--$6$ grade divided by $6$, so a $3$
+contributes $0.5$): for each query, wHR is the highest normalised grade among
+its top-3 chunks and wP is the mean normalised grade across the three slots
+(empty slots counting $0$), each then averaged over queries---the graded
+analogues of Hit Rate (best chunk present) and Precision (average bundle
+quality). Queries with no qualifying chunk count as Hit Rate $=$ Precision
+$= 0$, as a user would experience them.
 
 \subsection{On-device retrieval is strong}
 
