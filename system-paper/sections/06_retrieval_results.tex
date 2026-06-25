@@ -215,20 +215,58 @@ step---the generator's use of what it is handed.
 \label{sec:retr-gate}
 
 A natural mitigation for ``RAG sometimes hurts'' is an abstention gate:
-detect a weak retrieval and fall back to no-RAG. The headroom is real---a
-perfect per-query oracle gate would lift Kenya recall $0.297\to0.354$---but no
-available signal realises it. EmbeddingGemma's cosine similarity separates
-relevant from irrelevant chunks only moderately (AUC $0.72$, below the $0.80$
-viability bar), and against a $\sim$20\% relevant base rate no cutoff yields
-both decent precision and recall (Table~\ref{tab:gate}): even keeping only
-the top-scoring 11\% of chunks, strict precision is just 0.41.
+detect a weak retrieval from its score and fall back to no-RAG. We re-asked
+this for the deployed EmbeddingGemma---an earlier study had shelved it for
+Gecko---and the verdict is the same: the retrieval score is not thresholdable
+into a usable gate. Every relevance signal a gate could key on falls below the
+standard $0.80$ AUC viability bar (Figure~\ref{fig:gate-auc}). Cosine
+separates relevant from irrelevant Kenya chunks at AUC only $0.72$, and the
+three threshold-rule families a gate could implement---an absolute cutoff on
+chunk relevance, the top-1 chunk's margin over the rest of the bundle, and
+gated abstention on whether the bundle holds any relevant chunk---sit at
+$0.69$--$0.72$, with the relative-margin rule near chance. These are pure
+retrieval-relevance statistics, computed on EmbeddingGemma's top-3 against
+Qwen-judged chunk relevance, so they are independent of the generator and
+prompt and hold for the deployed configuration.
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[font=\footnotesize]
+  % AUC axis 0.50..0.85 mapped to x=(v-0.50)*18: chance at x=0, 0.80 bar at x=5.4
+  \draw[mamamber, dashed, thick] (5.4,0) -- (5.4,3.35);
+  \node[mamamber, font=\scriptsize, above] at (5.4,3.35) {$0.80$ viability bar};
+  \draw[black!45] (0,0) -- (0,3.35);
+  \node[black!55, font=\scriptsize, below] at (0,0) {$0.50$ (chance)};
+  \foreach \nm/\xv/\val/\y in {%
+    {Chunk separability (pooled AUC)}/3.96/0.720/3.0,%
+    {Gated abstention (bundle top-1 AUC)}/3.888/0.716/2.1,%
+    {Absolute cutoff (top-3 chunk AUC)}/3.456/0.692/1.2,%
+    {Relative margin (within-query concord.)}/1.188/0.566/0.3}{%
+    \node[anchor=west, font=\scriptsize] at (0,\y+0.30) {\nm};%
+    \fill[mamteal!78] (0,\y-0.15) rectangle (\xv,\y+0.15);%
+    \node[anchor=west, font=\scriptsize] at (\xv+0.08,\y) {$\val$};%
+  }
+\end{tikzpicture}
+\caption{No retrieval-relevance signal is thresholdable into a usable gate.
+Each bar is the AUC of an EmbeddingGemma cosine statistic at separating
+relevant ($\ge3$) from irrelevant Kenya chunks ($n=6{,}228$ judged top-20
+pairs); all four fall below the standard $0.80$ viability bar, and the
+relative-margin rule is near chance. These are pure retrieval-relevance
+metrics, independent of the generator and prompt; the same four statistics
+left the earlier Gecko retriever ungateable too.}
+\label{fig:gate-auc}
+\end{figure}
+
+Zooming into the cutoff rule, no operating point is usable either: against a
+$\sim$20\% relevant base rate, tightening the cosine cutoff lifts
+strict-relevant precision only to $0.41$ while recall collapses
+(Table~\ref{tab:gate}).
 
 \begin{table}[t]
-\caption{Why a cosine confidence gate fails. As the cutoff on EmbeddingGemma's
-similarity score is tightened, strict-relevant ($\ge5$) precision rises only
-to 0.41 while recall collapses---no operating point has both, against a
-$\sim$20\% relevant base rate. And the same score does not predict whether RAG
-\emph{helps} a query at all (AUC 0.50).}
+\caption{Why a cosine relevance gate fails at the operating-point level. As
+the cutoff on EmbeddingGemma's similarity score is tightened, strict-relevant
+($\ge5$) precision rises only to $0.41$ while recall collapses---no operating
+point has both, against a $\sim$20\% relevant base rate.}
 \label{tab:gate}
 \centering
 \small
@@ -243,13 +281,20 @@ $\ge 0.60$ & 11\% & 0.413 & 0.235 \\
 \end{tabular}
 \end{table}
 
-Decisively, the retrieval score has \emph{no} relationship to answer quality:
-it predicts whether RAG helps a query at AUC $0.50$ (chance; Pearson
-$-0.04$), and a fine-tuned reranker score does no better. All three
-threshold-rule families---absolute cutoff, relative margin, gated
-abstention---fall below the viability bar. A usable confidence signal, like
-the answer-quality fix itself, would have to come from the generator, not
-from retrieval.
+A separate, stronger test asks not whether the score finds relevant chunks but
+whether it predicts when RAG actually \emph{helps the answer}: it does not---%
+AUC $0.50$, Pearson $-0.04$, pure chance---and a perfect oracle gate would lift
+recall only $0.297\to0.354$. This answer-side test, however, was run on
+Gemma~3n under the baseline prompt ($n=300$), not the deployed
+Gemma~4\,+\,G1, so---like the bake-off (\S\ref{sec:retr-g1})---it awaits
+confirmation under the shipped configuration; the relevance-side verdict above
+does not depend on it. Either way, a usable confidence signal would have to
+come from the generator (answer-side confidence or self-consistency), not from
+the retrieval score.
+% TODO (with the G1 bake-off, sec:retr-g1): re-run the answer-side gate test
+% (score -> "RAG helps") on the deployed Gemma 4 + G1, not the 06-18
+% value_gate_eg_3n run (Gemma 3n + baseline). The relevance-side AUCs
+% (fig:gate-auc) are prompt/generator-independent and need no re-run.
 
 \medskip
 Every retrieval lever points the same way. The deployed retriever is strong
