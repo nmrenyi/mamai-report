@@ -85,8 +85,10 @@ isolation, then latency---and yields three findings that structure the paper:
   answers.} A 300M on-device embedder retrieves nearly as well as cloud
   systems---third of seven retrievers, within a few points of the best---yet
   adding its context to the small generator is net-neutral to slightly
-  negative. The bottleneck is the generator's ability to use retrieved
-  context, not the quality of what is retrieved.
+  negative. Since the retriever is already strong, the bottleneck lies
+  downstream of ranking: in how well the small generator uses retrieved
+  context, and in the corpus's coverage and quality for the question at
+  hand---not in retrieval itself.
 
   \item \textbf{The generator is the decisive component, and faithfulness
   decides which one.} Model choice dominates the results---an unconstrained
