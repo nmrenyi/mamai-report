@@ -66,11 +66,14 @@ cloud embedders, within $\sim$8 points of precision of the best (voyage). A
 300M model running on the phone competes with cloud retrieval, and it
 improves on the earlier on-device Gecko by $+30.7$ points of lenient
 precision (0.784 vs.\ 0.477), closing essentially the whole on-device gap.
-One honest caveat sits in the strict columns: even voyage surfaces a
-complete/specific ($\ge5$) chunk for only $\sim$75\% of queries. The
-$\sim$25\% of queries with no strict chunk in any retriever's top-3 is a
-depth-3 ceiling---closing it needs deeper retrieval or a broader corpus, not
-a better re-ranker.
+One honest caveat sits in the strict Hit Rate column of
+Table~\ref{tab:retrievers}: even at the top it is far below the lenient
+one---voyage carries a complete, specific ($\ge5$) chunk in its top-3 for
+only $\sim$75\% of queries ($\text{HR}=0.753$), and the deployed
+EmbeddingGemma for $\sim$70\% ($0.704$). At the deployed depth, then, a
+meaningful minority of queries have no fully specific chunk in the bundle---a
+gap that deeper retrieval or a broader corpus, rather than a better top-3
+embedder, would have to close.
 
 \subsection{A better embedder does not reach the answers}
 
