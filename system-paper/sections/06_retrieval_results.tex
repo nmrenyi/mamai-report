@@ -1,43 +1,146 @@
 \section{Retrieval Evaluation}
 \label{sec:retrieval-results}
 
-% Isolates the retriever. Scoreboard numbers from the mamaretrieval Tier 2
-% audit (mamaretrieval/AUDIT_REPORT_v2.md, 7-retriever scoreboard incl.
-% EmbeddingGemma added 2026-06-25). Benchmark construction + label
-% provenance -> companion paper [cite paper2]. The arc of this section:
-% on-device retrieval is largely SOLVED, yet better retrieval does NOT
-% reach the answers -- which hands the problem to the generator (Section
-% ref sec:generator).
+Having seen that retrieval barely moves end-to-end quality
+(\S\ref{sec:endtoend}), we now isolate the retriever to ask whether the
+problem is \emph{what} is retrieved. We score it on mamaretrieval---3{,}185
+clinical queries with graded ($0$--$6$) relevance labels over the deployment
+corpus, judged by Qwen3.5-397B and validated against Claude~Opus~4.7
+(construction in the companion paper). Retrieval is evaluated at the deployed
+depth, top-3. Because the generator consumes all three chunks of a long
+context with no position bias, the operationally meaningful metrics are Hit
+Rate (is any useful chunk retrieved?) and Precision (how much of the top-3 is
+useful?), not rank-sensitive MRR or nDCG; we report each at a lenient
+threshold (relevance $\ge 3$, any useful content) and a strict one ($\ge 5$,
+complete/specific content), plus a threshold-free weighted variant. Queries
+with no qualifying chunk count as Hit Rate $=$ Precision $= 0$, as a user
+would experience them.
 
-\subsection{Deployed Retriever and Comparators}
-% Deployed: EmbeddingGemma-300M (768-dim, quantized) + SQLite, top-3 cosine,
-% threshold 0.0. Seven-retriever panel: voyage-4-large (cloud), octen
-% (cloud), EmbeddingGemma (deployed, on-device), lateon (cloud), Gecko
-% (former on-device), bm25, medcpt. EmbeddingGemma added in a matched run
-% (same Qwen3.5-397B judge, pooled labels); the six originals reproduce
-% exactly (no drift).
+\subsection{On-device retrieval is strong}
 
-\subsection{Scoreboard: On-Device Retrieval Is Largely Solved}
-% Hit Rate / precision at top-3, lenient (>= 3) and strict (>= 5), + weighted.
-% @top-3 lenient: voyage 0.996/0.867; octen 0.991/0.804; EmbeddingGemma
-% 0.985/0.784; lateon 0.971/0.738; gecko 0.814/0.477; bm25 0.754/0.417;
-% medcpt 0.644/0.334. EmbeddingGemma -- a 300M on-device model -- lands 3rd
-% of 7, within ~8 pp of cloud voyage, and beats the former on-device Gecko
-% by +30.7 pp precision (0.784 vs 0.477). The on-device retrieval gap is
-% essentially closed.
+Table~\ref{tab:retrievers} scores seven retrievers: the deployed on-device
+EmbeddingGemma-300M, the earlier on-device Gecko, three cloud embedders
+(voyage-4-large, octen, lateon), and lexical/biomedical baselines (BM25,
+MedCPT). EmbeddingGemma was added to the original six-retriever pool in a
+matched run under the same judge; the six reproduce exactly, confirming no
+drift (companion paper).
 
-\subsection{But Retrieval Does Not Reach the Answers}
-% Matched end-to-end bake-off (no-RAG vs Gecko vs EmbeddingGemma) on Kenya
-% (n=312) + HealthBench-oss (n=1,209): the swap lifts retrieval P@3
-% 0.270 -> 0.396 (+12.6 pp) but end-to-end Kenya key-fact recall is FLAT
-% (0.125 -> 0.126) and HealthBench stays ~0. On this small generator RAG is
-% net-neutral-to-negative: no-RAG recall (0.178) beats both retrievers.
-% Better retrieval does not convert into better answers.
+\begin{table}[t]
+\caption{Retriever scoreboard on mamaretrieval ($n=3{,}185$, top-3). Hit
+Rate / Precision at lenient ($\ge3$) and strict ($\ge5$) relevance, and
+threshold-free weighted variants (wHR / wP); higher is better throughout. The
+deployed on-device retriever is in bold.}
+\label{tab:retrievers}
+\centering
+\small
+\begin{tabular}{@{}lrrrrrr@{}}
+\toprule
+ & \multicolumn{2}{c}{Lenient ($\ge3$)} & \multicolumn{2}{c}{Strict ($\ge5$)} & \multicolumn{2}{c}{Weighted} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}
+Retriever & HR & P & HR & P & wHR & wP \\
+\midrule
+voyage (cloud) & 0.996 & 0.867 & 0.753 & 0.452 & 0.860 & 0.682 \\
+octen (cloud) & 0.991 & 0.804 & 0.716 & 0.403 & 0.847 & 0.637 \\
+\textbf{EmbeddingGemma (deployed)} & 0.985 & 0.784 & 0.704 & 0.388 & 0.838 & 0.619 \\
+lateon (cloud) & 0.971 & 0.738 & 0.664 & 0.350 & 0.815 & 0.581 \\
+Gecko (former on-device) & 0.814 & 0.477 & 0.439 & 0.193 & 0.662 & 0.393 \\
+BM25 & 0.754 & 0.417 & 0.371 & 0.163 & 0.602 & 0.338 \\
+MedCPT & 0.644 & 0.334 & 0.272 & 0.112 & 0.517 & 0.277 \\
+\bottomrule
+\end{tabular}
+\end{table}
 
-\subsection{What This Rules Out}
-% Reranker tested (offline +12.9 pp P@3) -> does NOT transfer end-to-end:
-% rejected. Retrieval-side abstention gate tested: no thresholdable score
-% exists (chunk/answer-quality AUC ~0.5). So the binding constraint is the
-% generator's ability to USE retrieved context -- examined directly next
-% (Section ref sec:generator) and the basis for the fine-tuning direction
-% (Section ref sec:discussion).
+The deployed retriever lands in the top tier---third of seven, between two
+cloud embedders, within $\sim$8 points of precision of the best (voyage). A
+300M model running on the phone competes with cloud retrieval, and it
+improves on the earlier on-device Gecko by $+30.7$ points of lenient
+precision (0.784 vs.\ 0.477), closing essentially the whole on-device gap.
+One honest caveat sits in the strict columns: even voyage surfaces a
+complete/specific ($\ge5$) chunk for only $\sim$75\% of queries. The
+$\sim$25\% of queries with no strict chunk in any retriever's top-3 is a
+depth-3 ceiling---closing it needs deeper retrieval or a broader corpus, not
+a better re-ranker.
+
+\subsection{A better embedder does not reach the answers}
+
+If retrieval quality were the constraint, the Gecko$\to$EmbeddingGemma
+upgrade should lift end-to-end answers. It does not (Table~\ref{tab:bakeoff}).
+On a matched comparison, the upgrade raises retrieval precision sharply
+($0.270\to0.396$, $+12.6$ points) while end-to-end key-fact recall stays flat
+($0.125\to0.126$) and the HealthBench score barely moves. More starkly, on
+this small generator \emph{no retrieval at all} scores highest on Kenya
+(0.178)---adding context, however good, does not help and slightly hurts.
+
+\begin{table}[t]
+\caption{Matched retrieval bake-off on the deployed generator: no retrieval
+vs.\ Gecko vs.\ the deployed EmbeddingGemma, on Kenya ($n=312$) and
+HealthBench-oss ($n\approx1{,}209$). Retrieval P@3 is lenient precision;
+Kenya recall is end-to-end key-fact recall; \texttt{w\_met} is decomposed
+into positive (completeness) and penalty. A separate controlled study from
+the prompt matrix of \S\ref{sec:endtoend}, with its own prompt, so absolute
+numbers are not comparable to Table~\ref{tab:matrix}; the no-RAG HealthBench
+arm is from a parallel run.}
+\label{tab:bakeoff}
+\centering
+\small
+\begin{tabular}{@{}lrrrrr@{}}
+\toprule
+ & & \multicolumn{1}{c}{Kenya} & \multicolumn{3}{c}{HealthBench-oss} \\
+\cmidrule(lr){3-3}\cmidrule(lr){4-6}
+Setup & \makecell{Retr.\\P@3} & \makecell{Recall\\$\uparrow$} & \makecell{\texttt{w\_met}\\$\uparrow$} & \makecell{Pos.\\$\uparrow$} & \makecell{Pen.\\$\downarrow$} \\
+\midrule
+No retrieval (no-RAG) & --- & 0.178 & $+0.003$ & 0.184 & 0.379 \\
+Gecko (former) & 0.270 & 0.125 & $-0.004$ & 0.175 & 0.372 \\
+\textbf{EmbeddingGemma (deployed)} & 0.396 & 0.126 & $+0.012$ & 0.189 & 0.368 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Reranking: an offline win that does not transfer}
+
+A fine-tuned reranker makes the same point from a second angle. A tiny 23M
+MiniLM-L6 cross-encoder, fine-tuned on 159k in-domain pairs in under three
+minutes, lifts rerank precision on the benchmark from P@3 $0.627\to0.756$
+---past an $8\times$-larger zero-shot model and within $0.04$ of
+multi-billion-parameter references---and ships as an int8 on-device model
+that reproduces the offline scores exactly. Yet on the deployment queries it
+changes nothing: it does not improve Kenya answers, and a relevance
+diagnostic shows it does not even improve Kenya \emph{retrieval}---the
+un-reranked first stage scores highest. The benchmark gain simply does not
+transfer to the Kenyan vignettes, a distribution shift that also carries a
+methodological lesson: retriever changes must be validated on the deployment
+queries, not on the benchmark alone. We do not ship the reranker.
+
+\subsection{It is not the corpus}
+
+Nor is the corpus the gap. A coverage audit finds a relevant chunk present
+for $\sim$96\% of Kenya queries at the lenient bar and $\sim$89\% at the
+strict bar; only $\sim$11\% are genuinely absent. The chain
+retrieval~$\to$~corpus is therefore intact, and the answer breaks at the last
+step---the generator's use of what it is handed.
+
+\subsection{No usable confidence gate}
+
+A natural mitigation for ``RAG sometimes hurts'' is an abstention gate:
+detect a weak retrieval and fall back to no-RAG. The headroom is real---a
+perfect per-query gate would lift Kenya recall $0.297\to0.354$---but no
+available signal realises it. EmbeddingGemma's cosine similarity separates
+relevant from irrelevant chunks only moderately (AUC $0.72$, below the $0.80$
+viability bar), and against a $\sim$20\% relevant base rate no cutoff gives
+usable precision ($\le0.41$ even keeping only the top-scoring 11\% of chunks).
+Decisively, the retrieval score has \emph{no} relationship to answer quality
+(AUC $0.50$, chance), and a fine-tuned reranker score does no better; all
+three threshold-rule families (absolute cutoff, relative margin, gated
+abstention) fall below the viability bar. A usable confidence signal, like
+the answer-quality fix itself, would have to come from the generator, not
+from retrieval.
+
+\medskip
+Every retrieval lever points the same way. The deployed retriever is strong
+and competes with the cloud; a better embedder and a fine-tuned reranker both
+win offline; the corpus covers the questions; and no confidence gate can
+sidestep the bad cases---yet end-to-end answers do not move. The binding
+constraint is the small on-device generator's ability to turn retrieved
+context into better answers, which we examine directly next
+(\S\ref{sec:generator}) and whose remedy---grounding the generator---we take
+up in the discussion (\S\ref{sec:discussion}).
