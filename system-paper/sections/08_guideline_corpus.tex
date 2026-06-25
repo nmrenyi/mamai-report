@@ -1,36 +1,83 @@
 \section{Knowledge Base}
 \label{sec:corpus}
 
-% Placed after the evaluation (mirrors the webpage): the system and its
-% results come first; this section is the foundation underneath them. Scope:
-% enough about the producer pipeline (mamai-medical-guidelines) to interpret
-% results; engineering minutiae are readable from the producer-repo README.
-% The system's answers are only as good as what it can retrieve -- so the
-% corpus is the foundation, and a known limitation (coverage).
+% Placed after the evaluation, mirroring the webpage: the system and its
+% results come first; this section is the foundation underneath them.
+% Copyright posture (per project decision): the surface here is neutral ---
+% name the openly-available authoritative sources, group reference texts
+% generically, no permission/licensing admission that would spotlight the
+% issue. Full per-document provenance lives in the open bundle manifest for
+% researchers (open science). Do NOT print verbatim excerpts from commercial
+% texts; the sample chunk is from a freely-available WHO guideline.
 
-\subsection{Sources and Tier System}
-% International (NICE, WHO, MSF, Oxford Handbook of Obstetrics and Gynaecology,
-% Hesperian, FIGO, ACOG/RCOG, EmONC handbook, Labour Care Guide, PCPNC,
-% Helping Babies Breathe); national/local (Tanzania MOH, Zanzibar MOH,
-% SUZA teaching materials). Tier weighting
-% (very_high / high / moderate_high / moderate / low_moderate).
+The system's answers are only as good as what it can retrieve, so the
+knowledge base is its foundation. It is a curated corpus of 87 authoritative
+clinical guideline documents---spanning maternal, newborn, OBGYN, and
+reproductive health---processed into 63{,}650 passages and embedded for
+fully offline on-device search (Figure~\ref{fig:pipeline}). The resulting
+on-device store is about 260\,MB.
 
-\subsection{PDF to Markdown to Chunks}
-% Marker-pdf extraction on cluster; HTML-span normalization;
-% section-aware chunking with parent breadcrumbs and SOURCE/PAGE
-% metadata; chunk-size policy (<=1500 char emit; 1500--2500 char
-% greedy pack at block boundaries; hard cap 2500); boilerplate filter.
+\subsection{Sources}
 
-\subsection{Embedding and Packaging}
-% EmbeddingGemma-300M embedding (768-dim, VF32 storage, ~260 MB SQLite);
-% bundle layout (manifest, checksums, runtime, debug, docs). Note the
-% v0.2.0 -> v0.3.0 change is a PURE RE-EMBED: the 63,650-chunk / 87-source
-% corpus text is byte-identical; only the vectors changed (Gecko ->
-% EmbeddingGemma). So the benchmark labels (corpus-text-pinned) carry across.
+The corpus draws on authoritative international guidelines, field references
+written for low-resource settings, and Zanzibar and Tanzania national
+materials (Table~\ref{tab:sources}).
 
-\subsection{Bundle Version Used in This Report}
-% Pin rag-bundle v0.3.0 (2026-06-18): 63,650 chunks, 87 sources, stable
-% 64-bit chunk CIDs, SHA-256 manifest, EmbeddingGemma vectors. This is the
-% version the app locks via rag_assets.lock.json and that all results in
-% this report are tied to. The corpus was NOT expanded this cycle; coverage
-% is a stated limitation (Section ref sec:limitations), not the headline.
+\begin{table}[t]
+\caption{Source families in the knowledge base. Per-document provenance and a
+SHA-256 checksum for every source are recorded in the bundle manifest.}
+\label{tab:sources}
+\small
+\begin{tabular}{@{}p{0.26\columnwidth}p{0.66\columnwidth}@{}}
+\toprule
+\textbf{Source family} & \textbf{Coverage} \\
+\midrule
+WHO & Antenatal, intrapartum, postnatal, and newborn care; postpartum
+haemorrhage, eclampsia, obstructed-labour, and sepsis modules; abortion,
+contraception, STI, and gender-based-violence care \\[2pt]
+NICE (UK) & Antenatal, intrapartum, and postnatal care; perinatal mental
+health; contraception \\[2pt]
+ICM, RCM, RCOG, ACOG & International and royal-college midwifery competencies
+and clinical guidance \\[2pt]
+Hesperian, MSF & Field references for low-resource settings: community
+midwifery, essential obstetric and newborn care \\[2pt]
+Zanzibar / Tanzania national & Scope of practice, Ministry-of-Health
+competency standards, midwifery training curricula, and service standards \\[2pt]
+Assessment and reference & UK NMC competence-test materials,
+newborn-resuscitation protocols, and standard midwifery reference texts \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Construction and Packaging}
+
+PDFs are converted with an ML layout model (marker-pdf) that recovers tables
+and headings, then chunked \emph{structure-first}: heading boundaries, not
+page breaks, define passage boundaries, and each chunk carries a
+parent-section breadcrumb so it stays self-contained when retrieved. Every
+chunk receives a content-hash identifier (the SHA-256 of its text,
+truncated), which is stable across edits and doubles as a citation key. The
+chunks are embedded with EmbeddingGemma and stored in a SQLite vector store,
+shipped as a single versioned bundle (v0.3.0) with a SHA-256 checksum for
+every document; each retrieved passage is therefore traceable to an exact
+source file. The full construction pipeline is open
+source.\footnote{\url{https://github.com/nmrenyi/mamai-medical-guidelines}}
+
+Each stored passage carries a \texttt{[SOURCE | PAGE | CID]} header, which is
+what lets the system cite an answer back to a specific guideline page. For
+example:
+
+\begin{lstlisting}[style=prompt]
+[SOURCE: WHO_Complications_2017 | PAGE: 204 | CID: c5c7acd564ff3c8b]
+> Hypertensive disorders of pregnancy > Magnesium sulfate maintenance dose
+
+Withhold or delay the drug if:
+- respiratory rate falls below 16 breaths per minute;
+- patellar reflexes are absent;
+- urinary output falls below 30 mL per hour over the preceding four hours.
+\end{lstlisting}
+
+The corpus is treated as a fixed input in this report; it was re-embedded
+(not changed) when the retriever was upgraded, and it was not expanded this
+cycle, so its coverage is a stated limitation (Section~\ref{sec:limitations})
+rather than a result.
