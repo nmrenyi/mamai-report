@@ -85,6 +85,20 @@ On a matched comparison, the upgrade raises retrieval precision sharply
 this small generator \emph{no retrieval at all} scores highest on Kenya
 (0.178)---adding context, however good, does not help and slightly hurts.
 
+Why do the retrieval gains not convert? The information is not missing:
+precision rises, so it is retrieved, and the corpus contains it and it cannot
+be gated away (\S\ref{sec:retr-corpus}, \S\ref{sec:retr-gate}). The break is
+downstream, in the small generator's response behaviour---which the prompt
+matrix (\S\ref{sec:endtoend}) already exposed and which better context does
+not change. It declines to engage on a large share of questions, and even
+when it engages it tends to withhold specific guidance, deferring to ``see a
+doctor''; for a deflecting or non-committal answer, no improvement in the
+retrieved chunk can raise its key-fact recall. (A subtler, metric-level
+contributor: retrieval precision rewards \emph{topical} relevance, which need
+not coincide with the specific gold facts a key-fact-recall answer is scored
+on.) We isolate the generator's use of context directly in
+\S\ref{sec:generator}.
+
 \begin{table}[t]
 \caption{Matched retrieval bake-off on the deployed generator: no retrieval
 vs.\ Gecko vs.\ the deployed EmbeddingGemma, on Kenya ($n=312$) and
@@ -127,6 +141,7 @@ methodological lesson: retriever changes must be validated on the deployment
 queries, not on the benchmark alone. We do not ship the reranker.
 
 \subsection{It is not the corpus}
+\label{sec:retr-corpus}
 
 Nor is the corpus the gap. A coverage audit finds a relevant chunk present
 for $\sim$96\% of Kenya queries at the lenient bar and $\sim$89\% at the
@@ -135,6 +150,7 @@ retrieval~$\to$~corpus is therefore intact, and the answer breaks at the last
 step---the generator's use of what it is handed.
 
 \subsection{No usable confidence gate}
+\label{sec:retr-gate}
 
 A natural mitigation for ``RAG sometimes hurts'' is an abstention gate:
 detect a weak retrieval and fall back to no-RAG. The headroom is real---a
