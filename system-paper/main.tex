@@ -22,6 +22,9 @@
 \usepackage{listings}
 \usepackage{placeins}  % \FloatBarrier to keep tables within their section
 \usepackage{makecell}  % multi-line table headers
+\usepackage{soul}      % \hl highlighting for dangerous spans in examples
+\colorlet{dangbg}{red!16}
+\sethlcolor{dangbg}
 \lstdefinestyle{prompt}{
   basicstyle=\ttfamily\footnotesize,
   breaklines=true,
