@@ -88,9 +88,10 @@ this small generator \emph{no retrieval at all} scores highest on Kenya
 \begin{table}[t]
 \caption{Matched retrieval bake-off on the deployed generator: no retrieval
 vs.\ Gecko vs.\ the deployed EmbeddingGemma, on Kenya ($n=312$) and
-HealthBench-oss ($n\approx1{,}209$). Retrieval P@3 is lenient precision;
-Kenya recall is end-to-end key-fact recall; \texttt{w\_met} is decomposed
-into positive (completeness) and penalty. A separate controlled study from
+HealthBench-oss ($n\approx1{,}209$). Retrieval P@3 is lenient precision on the
+Kenya queries; key-fact recall is the end-to-end answer metric;
+\texttt{weighted\_met} is shown with its positive (completeness) and penalty
+components. A separate controlled study from
 the prompt matrix of \S\ref{sec:endtoend}, with its own prompt, so absolute
 numbers are not comparable to Table~\ref{tab:matrix}; the no-RAG HealthBench
 arm is from a parallel run.}
@@ -99,9 +100,9 @@ arm is from a parallel run.}
 \small
 \begin{tabular}{@{}lrrrrr@{}}
 \toprule
- & & \multicolumn{1}{c}{Kenya} & \multicolumn{3}{c}{HealthBench-oss} \\
-\cmidrule(lr){3-3}\cmidrule(lr){4-6}
-Setup & \makecell{Retr.\\P@3} & \makecell{Key-fact\\recall $\uparrow$} & \makecell{\texttt{w\_met}\\$\uparrow$} & \makecell{Pos.\\$\uparrow$} & \makecell{Pen.\\$\downarrow$} \\
+ & \multicolumn{2}{c}{Kenya} & \multicolumn{3}{c}{HealthBench-oss} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-6}
+Setup & \makecell{Retrieval\\P@3 $\uparrow$} & \makecell{Key-fact\\recall $\uparrow$} & \makecell{weighted\_met\\$\uparrow$} & \makecell{Positive\\$\uparrow$} & \makecell{Penalty\\$\downarrow$} \\
 \midrule
 No retrieval (no-RAG) & --- & 0.178 & $+0.003$ & 0.184 & 0.379 \\
 Gecko (former) & 0.270 & 0.125 & $-0.004$ & 0.175 & 0.372 \\
