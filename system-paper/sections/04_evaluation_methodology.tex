@@ -178,32 +178,27 @@ no longer be a clean stack comparison.
 \begin{table}[t]
 \caption{Open-ended device--cluster fidelity (no-RAG, identical inputs): the
 deployed device (LiteRT-LM) vs.\ the cluster (llama.cpp Q4\_0) on the same
-questions, same judge, across both open-ended tracks. Recall and
-\texttt{weighted\_met} $\uparrow$ better; harm $\downarrow$ better. The
-device matches or slightly beats the cluster on every metric, so the cluster
-numbers we report are a mildly pessimistic lower bound.}
+questions, same judge. Recall and \texttt{weighted\_met} $\uparrow$ better,
+harm $\downarrow$ better. SAQ datasets: Kenya, AfriMedQA-SAQ (AfriMed),
+WHB ($n{=}20$); HealthBench subsets (HB): oss\_eval, consensus, hard. The
+device matches or beats the cluster on every metric.}
 \label{tab:calib}
+\setlength{\tabcolsep}{4pt}
+\resizebox{\columnwidth}{!}{%
 \small
-\begin{tabular}{@{}lrr@{}}
+\begin{tabular}{@{}lccccccccc@{}}
 \toprule
- & Device & Cluster \\
+& \multicolumn{3}{c}{Recall $\uparrow$ (SAQ)}
+& \multicolumn{3}{c}{Harm \% $\downarrow$ (SAQ)}
+& \multicolumn{3}{c}{\texttt{weighted\_met} $\uparrow$ (HB)} \\
+\cmidrule(lr){2-4}\cmidrule(lr){5-7}\cmidrule(lr){8-10}
+& Kenya & AfriMed & WHB & Kenya & AfriMed & WHB & oss & cons.\ & hard \\
 \midrule
-\multicolumn{3}{@{}l}{\textit{SAQ key-fact recall} ($\uparrow$)} \\
-\quad Kenya & 0.194 & 0.178 \\
-\quad AfriMedQA-SAQ & 0.211 & 0.164 \\
-\quad WHB ($n{=}20$) & 0.079 & 0.039 \\
-\midrule
-\multicolumn{3}{@{}l}{\textit{SAQ harm rate} (\%, $\downarrow$)} \\
-\quad Kenya & 19.2 & 20.8 \\
-\quad AfriMedQA-SAQ & 8.1 & 16.2 \\
-\quad WHB ($n{=}20$) & 5.0 & 20.0 \\
-\midrule
-\multicolumn{3}{@{}l}{\textit{HealthBench} \texttt{weighted\_met} ($\uparrow$)} \\
-\quad oss\_eval & 0.045 & $-0.036$ \\
-\quad consensus & 0.657 & 0.573 \\
-\quad hard & $-0.137$ & $-0.168$ \\
+Device  & 0.194 & 0.211 & 0.079 & 19.2 & 8.1 & 5.0 & 0.045 & 0.657 & $-0.137$ \\
+Cluster & 0.178 & 0.164 & 0.039 & 20.8 & 16.2 & 20.0 & $-0.036$ & 0.573 & $-0.168$ \\
 \bottomrule
-\end{tabular}
+\end{tabular}%
+}
 \end{table}
 
 Across both tracks the device matches or slightly exceeds the cluster on
