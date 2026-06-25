@@ -151,18 +151,40 @@ Gecko (former) & 0.270 & 0.125 & $-0.004$ & 0.175 & 0.372 \\
 
 \subsection{Reranking: an offline win that does not transfer}
 
-A fine-tuned reranker makes the same point from a second angle. A tiny 23M
-MiniLM-L6 cross-encoder, fine-tuned on 159k in-domain pairs in under three
-minutes, lifts rerank precision on the benchmark from P@3 $0.627\to0.756$
----past an $8\times$-larger zero-shot model and within $0.04$ of
-multi-billion-parameter references---and ships as an int8 on-device model
-that reproduces the offline scores exactly. Yet on the deployment queries it
-changes nothing: it does not improve Kenya answers, and a relevance
-diagnostic shows it does not even improve Kenya \emph{retrieval}---the
-un-reranked first stage scores highest. The benchmark gain simply does not
-transfer to the Kenyan vignettes, a distribution shift that also carries a
-methodological lesson: retriever changes must be validated on the deployment
-queries, not on the benchmark alone. We do not ship the reranker.
+A fine-tuned reranker makes the same point from a second angle. Re-scoring
+the deployed first stage with a tiny 23M MiniLM-L6 cross-encoder
+(fine-tuned on 159k in-domain pairs, shipping as an int8 on-device model)
+lifts top-3 precision on the benchmark dramatically---from 0.485 to 0.72, and
+a larger fine-tuned variant to 0.79 (Table~\ref{tab:rerank}). Yet none of
+that reaches the deployment queries: across rerankers, Kenya retrieval
+precision stays near 0.27 and end-to-end key-fact recall near 0.12, with
+HealthBench at zero. The benchmark gain does not transfer to the Kenyan
+vignettes---a distribution shift with a methodological lesson: retriever
+changes must be validated on the deployment queries, not on the benchmark
+alone. We do not ship the reranker.
+
+\begin{table}[t]
+\caption{Reranking the deployed Gecko first stage (Gemma~4 generator): a large
+gain on the benchmark that neither transfers to deployment-query retrieval nor
+moves answers. \emph{Benchmark} P@3 is top-3 precision on the mamaretrieval
+test split; the remaining columns are on the Kenya deployment queries
+(retrieval precision, end-to-end key-fact recall, HealthBench
+\texttt{weighted\_met}). ``ft'' = fine-tuned in-domain.}
+\label{tab:rerank}
+\centering
+\small
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+ & Benchmark & \multicolumn{3}{c}{Kenya deployment queries} \\
+\cmidrule(lr){2-2}\cmidrule(lr){3-5}
+Reranker on Gecko & \makecell{P@3\\$\uparrow$} & \makecell{Retr.\ P@3\\$\uparrow$} & \makecell{Key-fact\\recall $\uparrow$} & \makecell{Health-\\Bench $\uparrow$} \\
+\midrule
+none (deployed) & 0.485 & 0.269 & 0.125 & $-0.004$ \\
+{}+ MiniLM-L6 (ft) & 0.720 & 0.244 & 0.118 & $-0.004$ \\
+{}+ mxbai-base (ft) & 0.794 & 0.279 & 0.125 & $+0.002$ \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \subsection{It is not the corpus}
 \label{sec:retr-corpus}
@@ -178,15 +200,38 @@ step---the generator's use of what it is handed.
 
 A natural mitigation for ``RAG sometimes hurts'' is an abstention gate:
 detect a weak retrieval and fall back to no-RAG. The headroom is real---a
-perfect per-query gate would lift Kenya recall $0.297\to0.354$---but no
+perfect per-query oracle gate would lift Kenya recall $0.297\to0.354$---but no
 available signal realises it. EmbeddingGemma's cosine similarity separates
 relevant from irrelevant chunks only moderately (AUC $0.72$, below the $0.80$
-viability bar), and against a $\sim$20\% relevant base rate no cutoff gives
-usable precision ($\le0.41$ even keeping only the top-scoring 11\% of chunks).
-Decisively, the retrieval score has \emph{no} relationship to answer quality
-(AUC $0.50$, chance), and a fine-tuned reranker score does no better; all
-three threshold-rule families (absolute cutoff, relative margin, gated
-abstention) fall below the viability bar. A usable confidence signal, like
+viability bar), and against a $\sim$20\% relevant base rate no cutoff yields
+both decent precision and recall (Table~\ref{tab:gate}): even keeping only
+the top-scoring 11\% of chunks, strict precision is just 0.41.
+
+\begin{table}[t]
+\caption{Why a cosine confidence gate fails. As the cutoff on EmbeddingGemma's
+similarity score is tightened, strict-relevant ($\ge5$) precision rises only
+to 0.41 while recall collapses---no operating point has both, against a
+$\sim$20\% relevant base rate. And the same score does not predict whether RAG
+\emph{helps} a query at all (AUC 0.50).}
+\label{tab:gate}
+\centering
+\small
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+Cosine cutoff & Chunks kept & \makecell{Precision\\(strict) $\uparrow$} & \makecell{Recall\\(strict) $\uparrow$} \\
+\midrule
+$\ge 0.50$ & 70\% & 0.260 & 0.900 \\
+$\ge 0.55$ & 36\% & 0.345 & 0.627 \\
+$\ge 0.60$ & 11\% & 0.413 & 0.235 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Decisively, the retrieval score has \emph{no} relationship to answer quality:
+it predicts whether RAG helps a query at AUC $0.50$ (chance; Pearson
+$-0.04$), and a fine-tuned reranker score does no better. All three
+threshold-rule families---absolute cutoff, relative margin, gated
+abstention---fall below the viability bar. A usable confidence signal, like
 the answer-quality fix itself, would have to come from the generator, not
 from retrieval.
 
