@@ -38,6 +38,26 @@ code: \url{https://github.com/nmrenyi/mamaretrieval}.} pairs 3{,}185 clinical
 queries with graded ($0$--$6$) relevance labels over the guideline corpus,
 and is used to score the retriever (\S\ref{sec:retrieval-results}).
 
+\subsection{Metrics}
+
+Three metrics recur across the open-ended results and are defined once here;
+retrieval and faithfulness metrics are defined where they are used
+(\S\ref{sec:retrieval-results}, \S\ref{sec:generator}).
+\begin{itemize}
+  \item \textbf{Key-fact recall} --- the fraction of an expert reference
+  answer's key facts the response conveys, counting partial mentions at half
+  weight. (Each short-answer item ships with a physician-written list of key
+  facts; recall is the share of that list the answer states.)
+  \item \textbf{Safety} --- a four-level judgement by \emph{harm pathway},
+  not tone: \emph{safe}, \emph{minor concern}, \emph{potentially harmful}
+  (a small, often catchable harm path), and \emph{dangerous} (would harm if
+  followed at face value).
+  \item \textbf{\texttt{weighted\_met}} --- the HealthBench rubric score:
+  credit for satisfied criteria, net of penalties for violated ``should-not''
+  criteria, normalised by the achievable positive credit. It can go negative,
+  so we report it decomposed into positive credit and penalty incurred.
+\end{itemize}
+
 \subsection{Validating the Judge}
 \label{sec:judge}
 
@@ -139,6 +159,7 @@ Always ``not met'' (trivial) & 14.8 & 0\phantom{.0} & 100\phantom{.0} \\
 \end{tabular}
 \end{table}
 
+\FloatBarrier
 \subsection{Device--Cluster Fidelity}
 \label{sec:calibration}
 
@@ -157,52 +178,43 @@ no longer be a clean stack comparison.
 \begin{table}[t]
 \caption{Open-ended device--cluster fidelity (no-RAG, identical inputs): the
 deployed device (LiteRT-LM) vs.\ the cluster (llama.cpp Q4\_0) on the same
-questions, same judge. Recall $\uparrow$, harm $\downarrow$. The device
-matches or slightly beats the cluster on both axes, so the cluster numbers we
-report are a mildly pessimistic lower bound.}
+questions, same judge, across both open-ended tracks. Recall and
+\texttt{weighted\_met} $\uparrow$ better; harm $\downarrow$ better. The
+device matches or slightly beats the cluster on every metric, so the cluster
+numbers we report are a mildly pessimistic lower bound.}
 \label{tab:calib}
 \small
-\begin{tabular}{@{}lrrrr@{}}
+\begin{tabular}{@{}lrr@{}}
 \toprule
- & \multicolumn{2}{c}{Recall} & \multicolumn{2}{c}{Harm \%} \\
-\cmidrule(lr){2-3}\cmidrule(lr){4-5}
-Dataset & Device & Cluster & Device & Cluster \\
+ & Device & Cluster \\
 \midrule
-Kenya & 0.194 & 0.178 & 19.2 & 20.8 \\
-AfriMedQA-SAQ & 0.211 & 0.164 & 8.1 & 16.2 \\
-WHB ($n{=}20$) & 0.079 & 0.039 & 5.0 & 20.0 \\
+\multicolumn{3}{@{}l}{\textit{SAQ key-fact recall} ($\uparrow$)} \\
+\quad Kenya & 0.194 & 0.178 \\
+\quad AfriMedQA-SAQ & 0.211 & 0.164 \\
+\quad WHB ($n{=}20$) & 0.079 & 0.039 \\
+\midrule
+\multicolumn{3}{@{}l}{\textit{SAQ harm rate} (\%, $\downarrow$)} \\
+\quad Kenya & 19.2 & 20.8 \\
+\quad AfriMedQA-SAQ & 8.1 & 16.2 \\
+\quad WHB ($n{=}20$) & 5.0 & 20.0 \\
+\midrule
+\multicolumn{3}{@{}l}{\textit{HealthBench} \texttt{weighted\_met} ($\uparrow$)} \\
+\quad oss\_eval & 0.045 & $-0.036$ \\
+\quad consensus & 0.657 & 0.573 \\
+\quad hard & $-0.137$ & $-0.168$ \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Across all three datasets the device matches or slightly exceeds the cluster
-on both recall and harm (Table~\ref{tab:calib}), and HealthBench shows the
-same pattern (no-RAG \texttt{weighted\_met} higher on the device for all three
-subsets---e.g.\ oss\_eval $0.045$ vs.\ $-0.036$). The deployed device is
-therefore at least as good as the cluster numbers we report, which stand as a
-mildly pessimistic lower bound (the 4-bit cluster quantisation is slightly
-lossier than the on-device bundle), so every end-to-end conclusion holds
-on-device. A leaked-reasoning artifact seen on the cluster rubric track is
-absent on all 669 device generations, confirming it as an evaluation quirk
-rather than model behaviour. The same judge scores both stacks, so its bias
-cancels in the delta; per-subset samples are small (especially WHB), so
-single-subset deltas are indicative rather than precise.
-
-\subsection{Metrics}
-
-Three metrics recur across the open-ended results and are defined once here;
-retrieval and faithfulness metrics are defined where they are used
-(\S\ref{sec:retrieval-results}, \S\ref{sec:generator}).
-\begin{itemize}
-  \item \textbf{Key-fact recall} --- the fraction of an expert reference
-  answer's key facts the response conveys, counting partial mentions at half
-  weight.
-  \item \textbf{Safety} --- a four-level judgement by \emph{harm pathway},
-  not tone: \emph{safe}, \emph{minor concern}, \emph{potentially harmful}
-  (a small, often catchable harm path), and \emph{dangerous} (would harm if
-  followed at face value).
-  \item \textbf{\texttt{weighted\_met}} --- the HealthBench rubric score:
-  credit for satisfied criteria, net of penalties for violated ``should-not''
-  criteria, normalised by the achievable positive credit. It can go negative,
-  so we report it decomposed into positive credit and penalty incurred.
-\end{itemize}
+Across both tracks the device matches or slightly exceeds the cluster on
+every metric (Table~\ref{tab:calib}): higher key-fact recall and lower harm
+on all three SAQ datasets, and higher \texttt{weighted\_met} on all three
+HealthBench subsets. The deployed device is therefore at least as good as the
+cluster numbers we report, which stand as a mildly pessimistic lower bound
+(the 4-bit cluster quantisation is slightly lossier than the on-device
+bundle), so every end-to-end conclusion holds on-device. A leaked-reasoning
+artifact seen on the cluster rubric track is absent on all 669 device
+generations, confirming it as an evaluation quirk rather than model
+behaviour. The same judge scores both stacks, so its bias cancels in the
+delta; per-subset samples are small (especially WHB), so single-subset
+deltas are indicative rather than precise.
