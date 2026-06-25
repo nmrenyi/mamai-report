@@ -53,6 +53,7 @@ the largest open models over-rate.
 
 \begin{figure}[t]
 \centering
+\scalebox{1.2}{%
 \begin{tikzpicture}[font=\footnotesize]
   % met-rate 50%..90% mapped at 0.18 cm per point: x = (v-50)*0.18
   \draw[black!55] (0,0) -- (7.2,0);
@@ -79,7 +80,8 @@ the largest open models over-rate.
   % under/over annotations
   \node[font=\scriptsize\itshape, text=black!55] at (1.3,-0.62) {$\leftarrow$ under-rates};
   \node[font=\scriptsize\itshape, text=black!55] at (6.2,-0.62) {over-rates $\rightarrow$};
-\end{tikzpicture}
+\end{tikzpicture}%
+}
 \caption{Judge calibration spectrum: each candidate's met-rate against the
 physician target (77\%). Stronger closed-source judges under-rate; larger
 open models over-rate; the deployed \texttt{gpt-oss-120b} sits closest to
