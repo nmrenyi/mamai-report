@@ -151,25 +151,28 @@ Gecko (former) & 0.270 & 0.125 & $-0.004$ & 0.175 & 0.372 \\
 
 \subsection{Reranking: an offline win that does not transfer}
 
-A fine-tuned reranker makes the same point from a second angle. Re-scoring
-the deployed first stage with a tiny 23M MiniLM-L6 cross-encoder
-(fine-tuned on 159k in-domain pairs, shipping as an int8 on-device model)
-lifts top-3 precision on the benchmark dramatically---from 0.485 to 0.72, and
-a larger fine-tuned variant to 0.79 (Table~\ref{tab:rerank}). Yet none of
-that reaches the deployment queries: across rerankers, Kenya retrieval
-precision stays near 0.27 and end-to-end key-fact recall near 0.12, with
-HealthBench at zero. The benchmark gain does not transfer to the Kenyan
-vignettes---a distribution shift with a methodological lesson: retriever
-changes must be validated on the deployment queries, not on the benchmark
-alone. We do not ship the reranker.
+A fine-tuned reranker makes the same point from a second angle. Re-scoring a
+first stage's \emph{top-20} candidates with a tiny 23M MiniLM-L6
+cross-encoder (fine-tuned on 159k in-domain pairs, shipping as an int8
+on-device model) and keeping the top-3 lifts precision on the benchmark
+dramatically---from 0.485 to 0.72, and a larger fine-tuned variant to 0.79
+(Table~\ref{tab:rerank}). Yet none of that reaches the deployment queries:
+across rerankers \emph{and} across all three first stages tested (Gecko,
+BM25, and their hybrid), Kenya retrieval precision stays near 0.27 and
+end-to-end key-fact recall near 0.12, with HealthBench at zero. The benchmark
+gain does not transfer to the Kenyan vignettes---a distribution shift with a
+methodological lesson: retriever changes must be validated on the deployment
+queries, not on the benchmark alone. We do not ship the reranker.
 
 \begin{table}[t]
-\caption{Reranking the deployed Gecko first stage (Gemma~4 generator): a large
-gain on the benchmark that neither transfers to deployment-query retrieval nor
-moves answers. \emph{Benchmark} P@3 is top-3 precision on the mamaretrieval
-test split; the remaining columns are on the Kenya deployment queries
-(retrieval precision, end-to-end key-fact recall, HealthBench
-\texttt{weighted\_met}). ``ft'' = fine-tuned in-domain.}
+\caption{Reranking, shown on the Gecko first stage (one of three tested---%
+Gecko, BM25, and their RRF hybrid---all with the same outcome; Gecko was the
+deployed retriever at the time). Each reranker re-scores the first stage's
+top-20 candidates and keeps the top-3. \emph{Benchmark} P@3 is top-3
+precision on the mamaretrieval test split; the Kenya columns are retrieval
+precision, end-to-end key-fact recall, and HealthBench \texttt{weighted\_met}
+(Gemma~4). A large benchmark gain that neither transfers to deployment-query
+retrieval nor moves answers. ``ft'' = fine-tuned in-domain.}
 \label{tab:rerank}
 \centering
 \small
