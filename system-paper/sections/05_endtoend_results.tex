@@ -17,23 +17,29 @@ under oracle context, which isolates faithfulness, is analysed in
 \begin{table}[t]
 \caption{End-to-end matrix (the deployed +RAG configuration): three
 generators $\times$ three prompts on Kenya vignettes ($n=312$) and
-HealthBench-oss ($n\approx1{,}209$), gpt-oss-120b judge. Higher is better for
-recall, \texttt{w\_met} (HealthBench \texttt{weighted\_met}), and Pos.\
-(positive score---reward criteria earned, i.e.\ completeness); lower is
-better for deflection (Defl.), potentially-harmful rate (P.harm), dangerous
-count (Dang., of 312), and Pen.\ (penalty rate---``should-not'' criteria
-triggered). P.harm and Dang.\ are reported separately rather than summed,
-and \texttt{w\_met} is shown decomposed into Pos.\ and Pen. The deployed cell
-is Gemma~4~+G1 (bold); oracle faithfulness for the same matrix is in
+HealthBench-oss ($n\approx1{,}209$), gpt-oss-120b judge. Arrows mark metric
+direction ($\uparrow$ higher is better, $\downarrow$ lower is better);
+dangerous is a count (of 312). Potentially-harmful and dangerous are reported
+separately rather than summed, and \texttt{weighted\_met} is shown decomposed
+into its positive component (reward criteria earned, i.e.\ completeness) and
+penalty component (``should-not'' criteria triggered). The deployed cell is
+Gemma~4~+G1 (bold); oracle faithfulness for the same matrix is in
 \S\ref{sec:generator}.}
 \label{tab:matrix}
 \centering
 \small
+\setlength{\tabcolsep}{5pt}
 \begin{tabular}{@{}lrrrrrrr@{}}
 \toprule
  & \multicolumn{4}{c}{Kenya vignettes} & \multicolumn{3}{c}{HealthBench-oss} \\
 \cmidrule(lr){2-5}\cmidrule(lr){6-8}
-Generator $\cdot$ prompt & Recall & Defl. & P.harm & Dang. & \texttt{w\_met} & Pos. & Pen. \\
+Generator $\cdot$ prompt & \makecell{Recall\\$\uparrow$}
+ & \makecell{Deflection\\$\downarrow$}
+ & \makecell{Potentially\\harmful $\downarrow$}
+ & \makecell{Dangerous\\$\downarrow$}
+ & \makecell{weighted\_met\\$\uparrow$}
+ & \makecell{Positive\\$\uparrow$}
+ & \makecell{Penalty\\$\downarrow$} \\
 \midrule
 \multicolumn{8}{@{}l}{\textit{Gemma 4 E4B (deployed generator)}} \\
 \quad baseline & 0.139 & 32.7\% & 12.8\% & 0 & 0.000 & 0.182 & 0.377 \\
