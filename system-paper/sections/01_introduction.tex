@@ -81,12 +81,12 @@ isolation, then latency---and yields three findings that structure the paper:
   questions; a redesigned prompt cut that to roughly 3\% and about doubled the
   correct guidance that answers carry, with no increase in unsafe answers.
 
-  \item \textbf{Better retrieval does not reach the answers.} A 300M
-  on-device embedder retrieves nearly as well as cloud systems---third of
-  seven retrievers, within a few points of the best---yet adding its context
-  to the small generator is net-neutral to slightly negative. The bottleneck
-  is the generator's ability to use retrieved context, not the quality of
-  what is retrieved.
+  \item \textbf{On-device retrieval is strong, but it does not reach the
+  answers.} A 300M on-device embedder retrieves nearly as well as cloud
+  systems---third of seven retrievers, within a few points of the best---yet
+  adding its context to the small generator is net-neutral to slightly
+  negative. The bottleneck is the generator's ability to use retrieved
+  context, not the quality of what is retrieved.
 
   \item \textbf{The generator is the decisive component, and faithfulness
   decides which one.} Model choice dominates the results---an unconstrained
