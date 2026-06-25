@@ -102,11 +102,10 @@ Because the dangerous count is the decisive axis, we checked whether those
 flags are genuine. Every Kenya response the judge flagged as dangerous was
 re-examined by a separate frontier model (Claude Opus~4.8) against the item's
 gold key facts and standard clinical references (drug doses,
-contraindications, recommended management). This is a second automated check,
-not clinician confirmation (\S\ref{sec:limitations}). It found Gemma~3n's
-flags to be overwhelmingly genuine---$4/4$ (baseline), $\sim$$10/11$ (+G1),
-and $\sim$$7/15$ (+G1+G2) real, serious errors, the rest borderline or
-over-flags. They are mostly order-of-magnitude dose errors, contraindicated
+contraindications, recommended management)---a second, automated check. It
+found Gemma~3n's flags to be overwhelmingly genuine---$4/4$ (baseline),
+$\sim$10/11 (+G1), and $\sim$7/15 (+G1+G2) real, serious errors, the rest
+borderline or over-flags. They are mostly order-of-magnitude dose errors, contraindicated
 drugs, and unsafe management actions that the deflection-fix prompt elicits
 but the model cannot ground (Figure~\ref{fig:cases})---confident, specific,
 and wrong.
@@ -180,9 +179,9 @@ review by qualified clinicians (\S\ref{sec:limitations}).
 
 The Qwen-397B row shows what the same prompt does as capability rises. The
 identical +G1+G2 prompt \emph{hurts} Gemma~3n (dangerous $4\to15$), is
-\emph{neutral} on Gemma~4 ($0\to0$), and is \emph{pure upside} on Qwen
-($1\to0$ dangerous while recall climbs to 0.553)---the best cell in the
-matrix on every axis at once (recall 0.553, harm 4.2\%, zero dangerous). The
+\emph{neutral} on Gemma~4 ($0\to0$), and is \emph{pure upside} on Qwen---the
+best cell in the matrix on every axis at once: recall climbs from 0.295 to
+0.553, potentially-harmful falls to 4.2\%, and dangerous stays at zero. The
 prompts were never the problem; what varies is whether the generator can act
 on a request for more clinical substance \emph{without} inventing
 unsupported claims. That reframes the on-device goal: the lever is
