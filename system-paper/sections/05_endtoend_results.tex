@@ -89,18 +89,28 @@ prompt only moves along it.
 
 \subsection{Dangerous-case adjudication}
 
-Because ``dangerous'' is the decisive axis, we hand-read the flagged cases
-with a clinician's eye. Gemma~3n's are genuine, serious errors, concentrated
-on the prompt lever that authorises naming drugs and doses: oxytocin dosed in
-``mg/min'' rather than milli-units (a $\sim$1000$\times$ overdose),
-ceftriaxone in a two-week-old neonate (contraindicated; kernicterus risk),
-benzathine penicillin at 250{,}000~units for syphilis (a $\sim$10$\times$
-underdose), and telling a clinician that an HIV-negative assaulted child is
-``not eligible for PEP'' (backwards). On a non-deflecting weak grounder, the
-deflection-fix prompts buy recall by spending safety. Gemma~4's single
-flagged case (under +G1) is, by contrast, a judge over-flag---standard
-choking first-aid scored as dangerous---consistent with its near-zero genuine
-rate.
+Because the dangerous count is the decisive axis, we manually re-read every
+Kenya response the judge flagged as dangerous and checked each against the
+item's gold key facts and standard clinical references (drug doses,
+contraindications, recommended management). Gemma~3n's flags are
+overwhelmingly genuine: of its flagged answers we judged $4/4$ (baseline),
+$\sim$$10/11$ (+G1), and $\sim$$7/15$ (+G1+G2) to be real, serious errors,
+the rest borderline or over-flags. They are mostly dosing and drug-choice
+mistakes that the deflection-fix prompt elicits but the model cannot
+ground---for example, misoprostol given in milligrams where micrograms are
+meant (a $\sim$1000$\times$ unit error), benzathine penicillin at
+250{,}000~units for syphilis (a $\sim$10$\times$ underdose), diazepam
+10~mg~IV in an eight-month-old (a $\sim$4$\times$ overdose), ceftriaxone used
+first-line in neonates (kernicterus risk), and oxytocin augmentation in a
+woman with a previous caesarean and suspected obstructed labour
+(uterine-rupture risk).
+
+Gemma~4's single flagged case, by contrast, is a judge over-flag---the answer
+is standard choking first aid (back blows, abdominal thrusts, escalation),
+not a dangerous one---so Gemma~4~+G1 is effectively free of genuine dangerous
+answers. Across the matrix the judge's errors run in the over-flagging
+direction ($\sim$3 of 31 flags); we re-read only the flagged cases, so these
+counts bound flagged errors, not necessarily all errors.
 
 \subsection{HealthBench, decomposed: the gap is completeness, not harm}
 
