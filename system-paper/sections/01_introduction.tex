@@ -70,24 +70,32 @@ Safety is the governing constraint throughout---wrong advice can cause direct
 harm---and we are explicit that MAM-AI is a thoroughly evaluated research
 prototype, not a fielded product: a planned field test could not proceed this
 cycle, so we have no data on how the system performs in real clinical use;
-all our evidence comes from benchmarks and LLM-judge scoring. The evaluation
-is layered
-(end-to-end, then retriever and generator in isolation, then latency) and
-yields three findings, against the intuitive story, that structure the paper.
-\emph{First}, a redesigned system prompt is the largest single lever on
-quality: the base model deflected (``see a doctor'') on about a third of
-questions, and the redesign cut that to roughly 3\% while about doubling the
-correct guidance answers carry, with no increase in unsafe answers.
-\emph{Second}, on-device retrieval is largely solved---a 300M on-device
-embedder ranks third of seven retrievers, within a few points of cloud
-systems---yet better retrieval does not reach the answers: on the small
-generator, adding retrieved context is net-neutral to slightly negative, so
-the binding constraint is the generator. \emph{Third}, the deciding axis
-between candidate on-device models is faithfulness, on which the deployed
-model matches an unconstrained frontier model and roughly doubles a
-more-helpful but unsafe same-size alternative; deployment is thus a
-safety-versus-usefulness choice, resolved toward safety and recovered toward
-usefulness by the prompt.
+all our evidence comes from benchmarks and LLM-judge scoring.
+
+The evaluation is layered---end-to-end, then retriever and generator in
+isolation, then latency---and yields three findings that run against the
+intuitive story and that structure the paper:
+
+\begin{enumerate}
+  \item \textbf{The prompt, not the model, is the largest lever on answer
+  quality.} The base model deflected (``see a doctor'') on about a third of
+  questions; a redesigned system prompt cut that to roughly 3\% and about
+  doubled the correct guidance answers carry---with no increase in unsafe
+  answers.
+
+  \item \textbf{On-device retrieval is solved---yet it does not reach the
+  answers.} A 300M on-device embedder ranks third of seven retrievers, within
+  a few points of cloud systems; but on the small generator, adding retrieved
+  context is net-neutral to slightly negative. The binding constraint is the
+  generator's ability to use context, not the quality of what is retrieved.
+
+  \item \textbf{Faithfulness is the deciding axis, and the small model wins
+  it.} The deployed model is as faithful to its sources as an unconstrained
+  frontier model, and about twice as faithful as a more-helpful but unsafe
+  same-size alternative; deployment is therefore a safety-versus-usefulness
+  choice---resolved toward safety, then recovered toward usefulness by the
+  prompt.
+\end{enumerate}
 
 \paragraph{Contributions.}
 \begin{itemize}
