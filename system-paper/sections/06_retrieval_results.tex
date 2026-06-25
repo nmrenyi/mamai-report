@@ -99,16 +99,24 @@ not coincide with the specific gold facts a key-fact-recall answer is scored
 on.) We isolate the generator's use of context directly in
 \S\ref{sec:generator}.
 
+One bound on this result: the bake-off uses the \emph{baseline} prompt and
+predates the deployed G1 prompt, so the deflection above is the baseline's
+33\%. Because G1 cuts deflection to 3\% (\S\ref{sec:endtoend}), whether a
+better embedder reaches answers once the model engages is a separate
+question, which a G1 replication settles (\S\ref{sec:retr-g1}). The broader
+claim---that the generator, not retrieval, is the binding constraint---rests
+also on the prompt-independent faithfulness analysis (\S\ref{sec:generator}).
+
 \begin{table}[t]
-\caption{Matched retrieval bake-off on the deployed generator: no retrieval
-vs.\ Gecko vs.\ the deployed EmbeddingGemma, on Kenya ($n=312$) and
+\caption{Matched retrieval bake-off on Gemma~4 under the \emph{baseline}
+prompt (it predates the deployed G1 prompt; cf.\ \S\ref{sec:retr-g1}): no
+retrieval vs.\ Gecko vs.\ EmbeddingGemma, on Kenya ($n=312$) and
 HealthBench-oss ($n\approx1{,}209$). Retrieval P@3 is lenient precision on the
 Kenya queries; key-fact recall is the end-to-end answer metric;
 \texttt{weighted\_met} is shown with its positive (completeness) and penalty
-components. A separate controlled study from
-the prompt matrix of \S\ref{sec:endtoend}, with its own prompt, so absolute
-numbers are not comparable to Table~\ref{tab:matrix}; the no-RAG HealthBench
-arm is from a parallel run.}
+components. A separate controlled study from the prompt matrix of
+\S\ref{sec:endtoend}, so absolute numbers are not comparable to
+Table~\ref{tab:matrix}; the no-RAG HealthBench arm is from a parallel run.}
 \label{tab:bakeoff}
 \centering
 \small
@@ -124,6 +132,22 @@ Gecko (former) & 0.270 & 0.125 & $-0.004$ & 0.175 & 0.372 \\
 \bottomrule
 \end{tabular}
 \end{table}
+
+\subsection{Replication under the deployed G1 prompt [PENDING]}
+\label{sec:retr-g1}
+% TODO (2026-06-25, in progress): re-run the embedder bake-off (no-RAG / Gecko
+% / EmbeddingGemma) under the DEPLOYED Gemma 4 + G1 prompt, to test whether the
+% EmbeddingGemma gain reaches answers once deflection is fixed (the table above
+% is baseline-prompt). Status of the three arms:
+%   - EmbeddingGemma + G1: HAVE -- it is the matrix g4_g1 cell
+%     (Kenya key-fact recall 0.279; HealthBench weighted_met 0.038,
+%      Positive 0.221, Penalty 0.373).
+%   - no-RAG + G1 (Gemma 4): generated; being judged on the cluster (gpt-oss-120b).
+%   - Gecko + G1 (Gemma 4): to be run by a separate agent
+%     (reuse Gecko top-3 contexts; generate with G4 + arm2_system_en.txt; score
+%      SAQ + HealthBench with gpt-oss-120b).
+% On completion: add a G1 bake-off table here and revisit intro finding 2 +
+% the "retrieval does not reach the answers" framing (currently baseline-only).
 
 \subsection{Reranking: an offline win that does not transfer}
 
