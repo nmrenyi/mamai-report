@@ -89,28 +89,57 @@ prompt only moves along it.
 
 \subsection{Dangerous-case adjudication}
 
-Because the dangerous count is the decisive axis, we manually re-read every
-Kenya response the judge flagged as dangerous and checked each against the
-item's gold key facts and standard clinical references (drug doses,
-contraindications, recommended management). Gemma~3n's flags are
-overwhelmingly genuine: of its flagged answers we judged $4/4$ (baseline),
-$\sim$$10/11$ (+G1), and $\sim$$7/15$ (+G1+G2) to be real, serious errors,
-the rest borderline or over-flags. They are mostly dosing and drug-choice
-mistakes that the deflection-fix prompt elicits but the model cannot
-ground---for example, misoprostol given in milligrams where micrograms are
-meant (a $\sim$1000$\times$ unit error), benzathine penicillin at
-250{,}000~units for syphilis (a $\sim$10$\times$ underdose), diazepam
-10~mg~IV in an eight-month-old (a $\sim$4$\times$ overdose), ceftriaxone used
-first-line in neonates (kernicterus risk), and oxytocin augmentation in a
-woman with a previous caesarean and suspected obstructed labour
-(uterine-rupture risk).
+Because the dangerous count is the decisive axis, we checked whether those
+flags are genuine. Every Kenya response the judge flagged as dangerous was
+re-examined by a separate frontier model (Claude Opus~4.8) against the item's
+gold key facts and standard clinical references (drug doses,
+contraindications, recommended management). This is a second automated check,
+not clinician confirmation (\S\ref{sec:limitations}). It found Gemma~3n's
+flags to be overwhelmingly genuine---$4/4$ (baseline), $\sim$$10/11$ (+G1),
+and $\sim$$7/15$ (+G1+G2) real, serious errors, the rest borderline or
+over-flags---mostly dosing, drug-choice, and management mistakes that the
+deflection-fix prompt elicits but the model cannot ground: misoprostol given
+in milligrams
+where micrograms are meant (a $\sim$1000$\times$ unit error), benzathine
+penicillin at 250{,}000~units for syphilis (a $\sim$10$\times$ underdose),
+diazepam 10~mg~IV in an eight-month-old (a $\sim$4$\times$ overdose),
+ceftriaxone used first-line in neonates (kernicterus risk), and oxytocin
+augmentation in a woman with a previous caesarean and suspected obstructed
+labour (uterine-rupture risk).
 
-Gemma~4's single flagged case, by contrast, is a judge over-flag---the answer
-is standard choking first aid (back blows, abdominal thrusts, escalation),
-not a dangerous one---so Gemma~4~+G1 is effectively free of genuine dangerous
-answers. Across the matrix the judge's errors run in the over-flagging
-direction ($\sim$3 of 31 flags); we re-read only the flagged cases, so these
-counts bound flagged errors, not necessarily all errors.
+Gemma~4's single flagged case, by contrast, was assessed as a judge
+over-flag---the answer is standard choking first aid (back blows, chest
+thrusts, escalation), not a dangerous one---so Gemma~4~+G1 is effectively
+free of genuine dangerous answers. Figure~\ref{fig:cases} shows one of each:
+a genuine Gemma~3n error and the Gemma~4 over-flag. Across the matrix the
+judge's errors run in the over-flagging direction ($\sim$3 of 31 flags);
+only the flagged cases were re-examined, so these counts bound flagged
+errors, not necessarily all errors.
+
+\begin{figure}[t]
+\small
+\textbf{Genuine danger}~---~Gemma~3n (+G1+G2), superficial burn with blisters:
+\begin{quote}
+``\ldots\,\textbf{Rupture the blisters.} This is important to prevent fluid
+buildup and promote healing. Use a sterile technique.''
+\end{quote}
+Correctly flagged: deliberately rupturing burn blisters is contraindicated
+(infection risk), and the reference answer advises against it.
+
+\smallskip
+\textbf{Over-flag}~---~Gemma~4 (deployed), child choking on a swallowed coin:
+\begin{quote}
+``If the child cannot cough or breathe: perform \textbf{back blows} (5 between
+the shoulder blades), follow with \textbf{chest thrusts} (5 in the centre of
+the chest)\,\ldots\ Call for help immediately.''
+\end{quote}
+A false positive: this is standard paediatric choking first aid, not a
+dangerous answer.
+\caption{Representative responses behind the dangerous counts in
+Table~\ref{tab:matrix}: a genuine Gemma~3n error and Gemma~4's single flag,
+which is a judge over-flag. Excerpts lightly trimmed; emphasis added.}
+\label{fig:cases}
+\end{figure}
 
 \subsection{HealthBench, decomposed: the gap is completeness, not harm}
 
