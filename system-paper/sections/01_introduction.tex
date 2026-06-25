@@ -33,11 +33,11 @@ be configured.
 \begin{tikzpicture}[
   font=\footnotesize,
   every node/.style={align=center},
-  stage/.style={draw, rounded corners, minimum height=1.05cm,
-    minimum width=1.7cm, fill=black!4, inner sep=2pt},
-  endpoint/.style={draw, rounded corners, minimum height=1.05cm,
-    minimum width=1.4cm, fill=black!12, inner sep=2pt},
-  flow/.style={-{Latex[length=2mm]}, thick, black!55},
+  stage/.style={draw=mamteal!60, rounded corners, minimum height=1.05cm,
+    minimum width=1.7cm, fill=mamteal!8, inner sep=2pt},
+  endpoint/.style={draw=mamamber!75, rounded corners, minimum height=1.05cm,
+    minimum width=1.4cm, fill=mamamber!13, inner sep=2pt},
+  flow/.style={-{Latex[length=2mm]}, thick, mamteal!70},
 ]
   \node[endpoint] (q) {\textbf{Query}\\[1pt]\scriptsize clinical\\\scriptsize question};
   \node[stage, right=3.5mm of q] (e) {\textbf{1. Embed}\\[1pt]\scriptsize EmbeddingGemma\\\scriptsize 300M};
@@ -47,15 +47,16 @@ be configured.
   \node[endpoint, right=3.5mm of g] (ans) {\textbf{Answer}\\[1pt]\scriptsize with citations\\\scriptsize [1] [2] [3]};
   \draw[flow] (q)--(e); \draw[flow] (e)--(r); \draw[flow] (r)--(a);
   \draw[flow] (a)--(g); \draw[flow] (g)--(ans);
-  \node[draw, dashed, rounded corners, fill=black!6, below=9mm of r,
-    minimum width=6cm, inner sep=4pt] (kb)
+  \node[draw=mamteal!55, dashed, rounded corners, fill=mamteal!6,
+    below=9mm of r, minimum width=6cm, inner sep=4pt] (kb)
     {\textbf{On-device knowledge base}\\[1pt]\scriptsize
      87 guideline documents \,\textbullet\, 63{,}650 chunks
      \,\textbullet\, SQLite vector store};
   \draw[flow, dashed] (kb)--(r);
   \begin{scope}[on background layer]
-    \node[draw, dotted, rounded corners, inner sep=5mm, fit=(q)(ans)(kb),
-      label={[font=\scriptsize\itshape]above:Runs 100\% on-device --- fully offline}] {};
+    \node[draw=mamamber!60, dotted, thick, rounded corners, inner sep=5mm,
+      fit=(q)(ans)(kb),
+      label={[font=\scriptsize\itshape, text=mamamber]above:Runs 100\% on-device --- fully offline}] {};
   \end{scope}
 \end{tikzpicture}%
 }

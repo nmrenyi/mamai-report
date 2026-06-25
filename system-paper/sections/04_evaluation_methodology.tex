@@ -1,50 +1,149 @@
 \section{Evaluation Methodology}
 \label{sec:methodology}
 
-% Scope: introduce the bottom-up framework and point to the benchmark
-% companion paper. Keep brief; results sections follow.
+We evaluate the \emph{exact deployed configuration}---Gemma~4~E4B with the G1
+prompt, EmbeddingGemma top-3 retrieval, and corpus bundle v0.3.0---rather
+than a research stand-in. This section fixes the framework, the benchmarks,
+the judge, and the metrics that the results sections
+(\S\ref{sec:endtoend}--\S\ref{sec:latency}) report against.
 
-\subsection{Bottom-Up, Presented Top-Down}
-% The system is evaluated in layers -- end-to-end, then retriever and
-% generator in isolation, then latency. Built bottom-up (a weak retriever
-% would make generator eval meaningless; end-to-end alone confounds the
-% two), but PRESENTED top-down: lead with the deployed-system result
-% (Section ref sec:endtoend), then decompose to show where it comes from
-% (Sections ref sec:retrieval-results, ref sec:generator).
+\subsection{A Layered Evaluation}
 
-\subsection{Benchmarks Used}
-% mamaretrieval v0.2.0 (3,185 queries; 230,964 labeled query-chunk pairs
-% from the Tier 3 top-20 x 6-retriever pool): retriever evaluation and
-% oracle context for generator isolation.
-% mamabench v0.2.1 (25,949 rows across 7 sources, 3 set_types: mcq /
-% open_ended / open_ended_rubric): end-to-end evaluation. Construction
-% details in the companion benchmarks paper [cite paper2].
+We evaluate in layers: the end-to-end system first (\S\ref{sec:endtoend}),
+then the retriever (\S\ref{sec:retrieval-results}) and the generator
+(\S\ref{sec:generator}) in isolation, then on-device latency
+(\S\ref{sec:latency}). The components are built bottom-up---a weak retriever
+would make generator evaluation meaningless, and an end-to-end score alone
+confounds retrieval quality with generation faithfulness---but presented
+top-down: we lead with the deployed system's behaviour, then decompose it to
+locate the cause. Except for the latency measurements, which require the
+phone, evaluation runs on a cluster; \S\ref{sec:calibration} shows this is a
+faithful proxy for on-device behaviour.
+
+\subsection{Benchmarks}
+
+Two purpose-built benchmarks supply the test data; both are documented in a
+companion paper, so we describe them only as far as the results require.
+\textbf{mamabench} is a maternal/neonatal/OBGYN question-answering benchmark
+(25{,}949 items across multiple-choice, open-ended, and rubric-graded
+tracks). The end-to-end evaluation is anchored on its two open-ended tracks:
+the \emph{Kenya Clinical Vignettes} (312 nurse-written primary-care cases,
+close to the deployment setting) and \emph{HealthBench-oss} (1{,}209 items
+with physician-written rubrics); multiple-choice serves only as a control.
+\textbf{mamaretrieval} pairs 3{,}185 clinical queries with graded
+($0$--$6$) relevance labels over the guideline corpus, and is used to score
+the retriever (\S\ref{sec:retrieval-results}).
+
+\subsection{Validating the Judge}
+\label{sec:judge}
+
+The open-ended tracks are scored by an LLM judge, so we first validate the
+judge against physicians. Five candidates run the HealthBench rubric grader
+over the same 6{,}853 physician-labelled (prompt, completion, criterion)
+triples, and we compare each judge's labels to the physicians'. The headline
+calibration axis is the \emph{met-rate}---how often a judge labels a
+criterion satisfied---whose target is the physician rate of 77\%. The judges
+fall on a clean spectrum around that target (Figure~\ref{fig:judge}):
+stronger closed-source models under-rate (gpt-5 by nearly 19 points), while
+the largest open models over-rate.
+
+\begin{figure}[t]
+\centering
+\resizebox{\columnwidth}{!}{%
+\begin{tikzpicture}[font=\footnotesize]
+  % met-rate 50%..90% mapped at 0.18 cm per point: x = (v-50)*0.18
+  \draw[black!55] (0,0) -- (7.2,0);
+  \foreach \v/\x in {50/0, 60/1.8, 70/3.6, 80/5.4, 90/7.2}{
+    \draw[black!55] (\x,0) -- (\x,-0.08);
+    \node[below=1pt, font=\scriptsize, text=black!60] at (\x,-0.08) {\v\%};
+  }
+  % physician target at 77% -> x=4.86
+  \draw[mamamber, dashed, thick] (4.86,-0.12) -- (4.86,2.0);
+  \node[font=\scriptsize, text=mamamber, align=center] at (4.86,2.3)
+    {physician 77\%\\(target)};
+  % other judges: dot + connector + label
+  \foreach \x/\nm/\val in {1.49/gpt-5/58.3, 3.6/gpt-5-mini/70.0,
+                           5.99/Nemotron/83.3, 6.98/Maverick/88.8}{
+    \fill[black!55] (\x,0) circle (2.2pt);
+    \draw[black!30] (\x,0.05) -- (\x,0.66);
+    \node[font=\scriptsize, align=center] at (\x,0.92) {\nm\\\scriptsize \val\%};
+  }
+  % deployed judge highlighted: gpt-oss-120b at 73.2% -> x=4.18
+  \fill[mamteal] (4.18,0) circle (3pt);
+  \draw[mamteal!50] (4.18,0.05) -- (4.18,1.2);
+  \node[font=\scriptsize, text=mamteal, align=center] at (4.18,1.46)
+    {\textbf{gpt-oss-120b}\\\scriptsize\textbf{73.2\% (deployed)}};
+  % under/over annotations
+  \node[font=\scriptsize\itshape, text=black!55] at (1.3,-0.62) {$\leftarrow$ under-rates};
+  \node[font=\scriptsize\itshape, text=black!55] at (6.2,-0.62) {over-rates $\rightarrow$};
+\end{tikzpicture}%
+}
+\caption{Judge calibration spectrum: each candidate's met-rate against the
+physician target (77\%). Stronger closed-source judges under-rate; larger
+open models over-rate; the deployed \texttt{gpt-oss-120b} sits closest to
+physicians.}
+\label{fig:judge}
+\end{figure}
+
+Met-rate alone is not enough, because overall agreement is misleading: with
+most criteria satisfied, a judge that simply says ``met'' scores well. The
+diagnostic is the per-class split (Table~\ref{tab:judge})---agreement on
+physician-MET versus physician-NOT-MET rows. Lenient judges score
+near-perfectly on MET rows but collapse on NOT-MET rows (the larger open
+models, and the trivial always-``met'' baseline, all show this signature);
+over-strict judges do the reverse. We deploy \texttt{gpt-oss-120b}: its
+met-rate is closest to physicians ($-3.8$ points) \emph{and} it keeps healthy
+NOT-MET-row agreement, so it neither rubber-stamps nor over-penalises, at no
+API cost (it runs on our cluster). Its mild conservative bias is a known,
+disclosed direction on every rubric score that follows.
+
+\begin{table}[t]
+\caption{Per-class agreement (\%), the rubber-stamp detector.
+\emph{Cons.}\ is agreement with physician consensus; \emph{MET}/\emph{NOT-MET}
+are agreement on the rows physicians marked met / not met. Lenient judges are
+high on MET but low on NOT-MET.}
+\label{tab:judge}
+\small
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+Judge & Cons. & MET & NOT-MET \\
+\midrule
+Always ``met'' (trivial) & 85.2 & 100\phantom{.0} & 0\phantom{.0} \\
+Llama-4 Maverick & 88.7 & 96.3 & 44.6 \\
+Nemotron-253B & 87.4 & 92.9 & 55.3 \\
+\textbf{gpt-oss-120b (deployed)} & 81.6 & 84.0 & 67.9 \\
+gpt-5-mini & 79.1 & 80.7 & 69.5 \\
+gpt-5 & 71.8 & 70.1 & 81.9 \\
+Always ``not met'' (trivial) & 14.8 & 0\phantom{.0} & 100\phantom{.0} \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \subsection{Device--Cluster Calibration}
-% Most evaluation runs on cluster (llama-cpp Q4_0 on A100) rather than
-% on-device (LiteRT-LM FP16 on Android GPU). Justified by a paired MCQ
-% calibration on 300 rows: accuracy delta +2.7 pp (within noise),
-% per-row agreement 65.0%, Cohen's kappa 0.558 -- the two runtimes are
-% effectively interchangeable for aggregate scoring.
-% Source: mamai-eval configs/config-v0.2.0/reports/calibration-mcq-20260519.md.
+\label{sec:calibration}
 
-\subsection{Judge Validation}
-% The open-ended tracks are scored by an LLM judge -- so the judge itself is
-% validated first. Phase A: 5 candidate judges (Maverick, Nemotron,
-% gpt-oss-120b, gpt-5-mini, gpt-5) run the HealthBench rubric over 6,853
-% physician-labeled triples (mamabench v0.2.1 calibration side-file). No
-% judge hits the physician baseline; larger open models over-rate
-% (rubber-stamp), gpt-5 under-rates by ~19 pp. gpt-oss-120b is the best
-% calibrated (met-rate -3.8 pp vs physicians; NOT-MET agreement 67.9%, no
-% rubber-stamping) and is pinned for all open-ended scoring. Disclose the
-% conservative bias as a known direction. Source:
-% docs/judge-validation-phase-a-result-20260608.html.
+To justify scoring on the cluster, we ran the same multiple-choice set on
+both the device (LiteRT-LM, on-device GPU) and the cluster (the same model in
+a server runtime). Accuracy differed by $+2.7$ points (within noise), with
+65\% per-row agreement and Cohen's $\kappa = 0.558$---the two runtimes are
+effectively interchangeable for aggregate scoring, so cluster results stand
+in for the device everywhere except the latency measurements.
 
-\subsection{Metric Choices}
-% End-to-end (open-ended, deployment-relevant): key-fact recall + 4-level
-% safety verdict (Kenya); weighted_met decomposed into positive credit vs
-% penalty (HealthBench rubric). MCQ accuracy as a negative control only.
-% Retrieval: Hit Rate and precision at top-3 (deployed depth), lenient
-% (>= 3) / strict (>= 5) on the 0--6 graded rubric, + weighted [cite paper2].
-% Generator: categorized true-hallucination (two-pass Lynx-70B -> GPT-5).
-% Latency: median per condition over repeated runs.
+\subsection{Metrics}
+
+Three metrics recur across the open-ended results and are defined once here;
+retrieval and faithfulness metrics are defined where they are used
+(\S\ref{sec:retrieval-results}, \S\ref{sec:generator}).
+\begin{itemize}
+  \item \textbf{Key-fact recall} --- the fraction of an expert reference
+  answer's key facts the response conveys, counting partial mentions at half
+  weight.
+  \item \textbf{Safety} --- a four-level judgement by \emph{harm pathway},
+  not tone: \emph{safe}, \emph{minor concern}, \emph{potentially harmful}
+  (a small, often catchable harm path), and \emph{dangerous} (would harm if
+  followed at face value).
+  \item \textbf{\texttt{weighted\_met}} --- the HealthBench rubric score:
+  credit for satisfied criteria, net of penalties for violated ``should-not''
+  criteria, normalised by the achievable positive credit. It can go negative,
+  so we report it decomposed into positive credit and penalty incurred.
+\end{itemize}
