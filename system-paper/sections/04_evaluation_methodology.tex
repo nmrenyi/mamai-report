@@ -206,9 +206,17 @@ on all three SAQ datasets, and higher \texttt{weighted\_met} on all three
 HealthBench subsets. The deployed device is therefore at least as good as the
 cluster numbers we report, which stand as a mildly pessimistic lower bound
 (the 4-bit cluster quantisation is slightly lossier than the on-device
-bundle), so every end-to-end conclusion holds on-device. A leaked-reasoning
-artifact seen on the cluster rubric track is absent on all 669 device
-generations, confirming it as an evaluation quirk rather than model
-behaviour. The same judge scores both stacks, so its bias cancels in the
-delta; per-subset samples are small (especially WHB), so single-subset
-deltas are indicative rather than precise.
+bundle), so every end-to-end conclusion holds on-device. In one respect the two
+differ: on the cluster, the model's internal reasoning occasionally leaked
+into the scored answer---an artifact of the cluster's prompt template---
+whereas this never occurred across the 669 on-device generations, so it is an
+evaluation quirk, not model behaviour. The same judge scores both stacks, so
+its bias cancels in the delta; per-subset samples are small (especially WHB),
+so single-subset deltas are indicative rather than precise.
+
+A final caveat: this check fixes a single device and backend (the on-device
+GPU; \S\ref{sec:latency}), whereas on-device behaviour can still shift with
+the hardware backend (CPU vs.\ GPU), the quantisation, and the SoC, so a
+different phone need not reproduce these numbers exactly. The cluster, a
+single fixed environment, is by contrast straightforward to reproduce---a
+further reason to anchor the evaluation there.
