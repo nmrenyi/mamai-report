@@ -73,28 +73,28 @@ cycle, so we have no data on how the system performs in real clinical use;
 all our evidence comes from benchmarks and LLM-judge scoring.
 
 The evaluation is layered---end-to-end, then retriever and generator in
-isolation, then latency---and yields three findings that run against the
-intuitive story and that structure the paper:
+isolation, then latency---and yields three findings that structure the paper:
 
 \begin{enumerate}
-  \item \textbf{The prompt, not the model, is the largest lever on answer
+  \item \textbf{A redesigned system prompt is a major lever on answer
   quality.} The base model deflected (``see a doctor'') on about a third of
-  questions; a redesigned system prompt cut that to roughly 3\% and about
-  doubled the correct guidance answers carry---with no increase in unsafe
-  answers.
+  questions; a redesigned prompt cut that to roughly 3\% and about doubled the
+  correct guidance that answers carry, with no increase in unsafe answers.
 
-  \item \textbf{On-device retrieval is solved---yet it does not reach the
-  answers.} A 300M on-device embedder ranks third of seven retrievers, within
-  a few points of cloud systems; but on the small generator, adding retrieved
-  context is net-neutral to slightly negative. The binding constraint is the
-  generator's ability to use context, not the quality of what is retrieved.
+  \item \textbf{Better retrieval does not reach the answers.} A 300M
+  on-device embedder retrieves nearly as well as cloud systems---third of
+  seven retrievers, within a few points of the best---yet adding its context
+  to the small generator is net-neutral to slightly negative. The bottleneck
+  is the generator's ability to use retrieved context, not the quality of
+  what is retrieved.
 
-  \item \textbf{Faithfulness is the deciding axis, and the small model wins
-  it.} The deployed model is as faithful to its sources as an unconstrained
-  frontier model, and about twice as faithful as a more-helpful but unsafe
-  same-size alternative; deployment is therefore a safety-versus-usefulness
-  choice---resolved toward safety, then recovered toward usefulness by the
-  prompt.
+  \item \textbf{The generator is the decisive component, and faithfulness
+  decides which one.} Model choice dominates the results---an unconstrained
+  frontier model far outperforms the on-device options---and among same-size
+  on-device candidates the deciding axis is faithfulness: we deploy the model
+  that is as faithful to its sources as the frontier model and about twice as
+  faithful as a more-helpful but unsafe alternative, making deployment a
+  safety-versus-usefulness choice.
 \end{enumerate}
 
 \paragraph{Contributions.}
