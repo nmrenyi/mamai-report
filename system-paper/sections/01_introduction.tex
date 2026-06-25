@@ -1,32 +1,81 @@
 \section{Introduction}
+\label{sec:intro}
 
-% Scope of this section:
-% - Clinical context: nurses and midwives in Zanzibar; OBGYN, neonatal, and
-%   reproductive-health caseloads; gap between guideline knowledge and
-%   point-of-care availability.
-% - The on-device constraint: no reliable internet, low-end Android devices,
-%   intermittent power. Why a server-based RAG system is not deployable here.
-% - Safety priority: incorrect medical advice has direct patient-harm
-%   consequences. Evaluation quality is the top engineering concern, not
-%   performance or features.
-% - Honest framing: a feature-complete, pre-deployment prototype with a
-%   comprehensive evaluation -- not yet a fielded system (no user study
-%   this cycle).
-% - Mention the live web demo + open-source repos (footnote / end of intro).
-% - Contributions, framed top-down to match the body order:
-%   1. An on-device medical RAG system (Gemma 4 E4B + EmbeddingGemma-300M +
-%      SQLite, G1 prompt) deployable on commodity Android hardware.
-%   2. A bottom-up evaluation (end-to-end, retrieval, generator) presented
-%      top-down, with a designed prompt (G1) that cuts deflection 32.7% ->
-%      3.2% and ~doubles key-fact recall.
-%   3. Findings that localize the failure mode, against intuition:
-%      on-device retrieval is largely SOLVED (EmbeddingGemma 3rd of 7,
-%      within ~8 pp of cloud); yet better retrieval does NOT reach the
-%      answers (RAG net-neutral-to-negative on the small generator); the
-%      deciding axis is generator faithfulness, where Gemma 4 (2.6-3.6%
-%      true-hallucination) matches a frontier model and ~halves Gemma 3n;
-%      so the deployed model is chosen by a safety-vs-usefulness tradeoff,
-%      and generator-side RAG-grounding is the open problem.
-%   4. On-device latency characterization, including a root-caused FP16-GPU
-%      context-length failure at ~5,000 tokens.
-% - Roadmap: section pointers.
+In Zanzibar, maternal and newborn mortality remain a serious burden, falling
+hardest on rural households. The nurse-midwives who staff government health
+facilities carry much of this caseload, often with limited resources and
+little specialist backup, and they regularly face complex obstetric,
+neonatal, and reproductive-health presentations. Authoritative clinical
+guidance for these cases exists---in WHO, national, and reference
+guidelines---but it is rarely available at the point of care: the documents
+are long, and looking something up online is unreliable where connectivity
+is intermittent and mobile data is costly.
+
+We present MAM-AI, a medical question-answering assistant that runs entirely
+on an Android phone. The nurse-midwife's question is embedded and matched
+against an on-device store of guideline passages; the most relevant passages
+are added to the prompt; and an on-device language model generates an
+answer grounded in those passages, with citations back to the source
+(Section~\ref{sec:system-design}). Embedding, retrieval, and generation all
+run locally, so the system needs no connectivity after a one-time setup
+download, and no patient-related query ever leaves the device. The two model
+components---a generator and an embedder---are off-the-shelf open models;
+what we contribute is the system around them, the curated clinical knowledge
+base, and the evaluation that determines how it should be configured.
+
+Because wrong medical advice can cause direct patient harm, safety is the
+governing constraint throughout, ahead of helpfulness or features. We are
+deliberate about what this paper does and does not establish: MAM-AI is a
+thoroughly evaluated research prototype, not a fielded product. A planned
+field test with nurse-midwives could not proceed this cycle, so we report no
+point-of-care outcomes; the evaluation rests on benchmarks and
+LLM-as-judge measurements, which we validate but which are not a substitute
+for clinical use.
+
+The evaluation is organized in layers---the end-to-end system first, then
+the retriever and generator in isolation, then on-device latency---and it
+yields a set of findings that run against the intuitive story. We summarize
+them here because they also structure the paper. \emph{First}, a redesigned
+system prompt is the single largest lever on end-to-end quality: the base
+model deflected on roughly a third of questions (``see a doctor'' instead of
+guidance), and the redesign cut that to about 3\% while roughly doubling how
+much correct guidance answers carry, with no increase in unsafe answers.
+\emph{Second}, on-device retrieval is largely a solved problem---a 300M
+on-device embedder places third of seven retrievers on our benchmark, within
+a few points of cloud systems---yet better retrieval does not reach the
+answers: on the small on-device generator, adding retrieved context is
+net-neutral to slightly negative. The binding constraint is the generator's
+ability to use context, not the quality of what is retrieved. \emph{Third},
+the deciding axis between candidate on-device models is faithfulness, and on
+that axis the deployed model is as faithful as an unconstrained frontier
+model and about twice as faithful as a same-size alternative that is more
+helpful but produces genuinely dangerous advice; the deployment is therefore
+a safety-versus-usefulness choice, resolved in favour of safety and then
+recovered toward usefulness by the prompt.
+
+\paragraph{Contributions.}
+\begin{itemize}
+  \item A deployable on-device medical RAG system for nurse-midwives in a
+  low-connectivity setting, with every component running offline on
+  commodity Android hardware (Section~\ref{sec:system-design}).
+  \item A layered evaluation---end-to-end, retriever, generator, and
+  latency---built on two purpose-made benchmarks and a validated LLM judge,
+  applied to the exact deployed configuration
+  (Sections~\ref{sec:methodology}--\ref{sec:latency}).
+  \item Findings that localize the system's failure mode: a prompt redesign
+  that fixes over-deflection; evidence that on-device retrieval is solved but
+  does not translate into better answers; and a faithfulness result showing
+  the deployed small model matches a frontier model and that generator-side
+  grounding, not retrieval or prompting, is the open problem.
+  \item An on-device latency characterization on real hardware, including a
+  root-caused FP16-GPU decoding failure beyond roughly 5{,}000 tokens of
+  context that sets the deployed context ceiling (Section~\ref{sec:latency}).
+\end{itemize}
+
+The system, knowledge-base pipeline, benchmarks, and evaluation harness are
+open source, and a browser demo of the deployed configuration is publicly
+available.\footnote{App and pipeline: \url{https://github.com/nmrenyi/mamai}
+and \url{https://github.com/nmrenyi/mamai-medical-guidelines}. Live web demo:
+\url{https://nmrenyi-mamai-demo.hf.space}. The benchmarks
+(Section~\ref{sec:methodology}) are documented in a companion
+paper.\label{fn:repos}}
