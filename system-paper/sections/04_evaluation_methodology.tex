@@ -139,15 +139,54 @@ Always ``not met'' (trivial) & 14.8 & 0\phantom{.0} & 100\phantom{.0} \\
 \end{tabular}
 \end{table}
 
-\subsection{Device--Cluster Calibration}
+\subsection{Device--Cluster Fidelity}
 \label{sec:calibration}
 
-To justify scoring on the cluster, we ran the same multiple-choice set on
-both the device (LiteRT-LM, on-device GPU) and the cluster (the same model in
-a server runtime). Accuracy differed by $+2.7$ points (within noise), with
-65\% per-row agreement and Cohen's $\kappa = 0.558$---the two runtimes are
-effectively interchangeable for aggregate scoring, so cluster results stand
-in for the device everywhere except the latency measurements.
+The deployed app runs on the phone, but for efficiency the open-ended
+evaluation is generated on a GPU cluster---a different runtime on different
+hardware (LiteRT-LM at FP16 on the Android GPU vs.\ a 4-bit Q4\_0
+quantisation under llama.cpp on an A100). Before trusting cluster scores as a
+stand-in for the device, we re-ran the open-ended questions on the real
+device and scored both stacks with the same judge (SAQ in full, 369 per arm;
+HealthBench on a 150-per-arm stratified sample, as the full set is
+$\sim$12\,h per arm on-device). We compare on the no-RAG arm, which feeds
+both stacks \emph{identical} inputs and so isolates the runtime gap; the
+deployed +RAG arm would additionally reflect the device's own retrieval and
+no longer be a clean stack comparison.
+
+\begin{table}[t]
+\caption{Open-ended device--cluster fidelity (no-RAG, identical inputs): the
+deployed device (LiteRT-LM) vs.\ the cluster (llama.cpp Q4\_0) on the same
+questions, same judge. Recall $\uparrow$, harm $\downarrow$. The device
+matches or slightly beats the cluster on both axes, so the cluster numbers we
+report are a mildly pessimistic lower bound.}
+\label{tab:calib}
+\small
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+ & \multicolumn{2}{c}{Recall} & \multicolumn{2}{c}{Harm \%} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}
+Dataset & Device & Cluster & Device & Cluster \\
+\midrule
+Kenya & 0.194 & 0.178 & 19.2 & 20.8 \\
+AfriMedQA-SAQ & 0.211 & 0.164 & 8.1 & 16.2 \\
+WHB ($n{=}20$) & 0.079 & 0.039 & 5.0 & 20.0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Across all three datasets the device matches or slightly exceeds the cluster
+on both recall and harm (Table~\ref{tab:calib}), and HealthBench shows the
+same pattern (no-RAG \texttt{weighted\_met} higher on the device for all three
+subsets---e.g.\ oss\_eval $0.045$ vs.\ $-0.036$). The deployed device is
+therefore at least as good as the cluster numbers we report, which stand as a
+mildly pessimistic lower bound (the 4-bit cluster quantisation is slightly
+lossier than the on-device bundle), so every end-to-end conclusion holds
+on-device. A leaked-reasoning artifact seen on the cluster rubric track is
+absent on all 669 device generations, confirming it as an evaluation quirk
+rather than model behaviour. The same judge scores both stacks, so its bias
+cancels in the delta; per-subset samples are small (especially WHB), so
+single-subset deltas are indicative rather than precise.
 
 \subsection{Metrics}
 
