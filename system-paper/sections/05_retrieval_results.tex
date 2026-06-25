@@ -1,42 +1,43 @@
 \section{Retrieval Evaluation}
 \label{sec:retrieval-results}
 
-% All numbers from the mamaretrieval Tier 2/3 audit
-% (mamaretrieval/AUDIT_REPORT_v2.md). Benchmark construction, the v2
-% graded rubric, and label provenance are in the companion paper
-% [cite paper2]. This section interprets the scoreboard for the
-% *deployed* configuration; Paper 2 presents the same data as evidence
-% of benchmark validity.
+% Isolates the retriever. Scoreboard numbers from the mamaretrieval Tier 2
+% audit (mamaretrieval/AUDIT_REPORT_v2.md, 7-retriever scoreboard incl.
+% EmbeddingGemma added 2026-06-25). Benchmark construction + label
+% provenance -> companion paper [cite paper2]. The arc of this section:
+% on-device retrieval is largely SOLVED, yet better retrieval does NOT
+% reach the answers -- which hands the problem to the generator (Section
+% ref sec:generator).
 
-\subsection{Deployed Retriever}
-% Gecko-110M-en embeddings (768-dim, quantized TFLite) + SQLite vector
-% store, top-3 cosine, similarity threshold 0.0 -- the exact on-device
-% configuration.
+\subsection{Deployed Retriever and Comparators}
+% Deployed: EmbeddingGemma-300M (768-dim, quantized) + SQLite, top-3 cosine,
+% threshold 0.0. Seven-retriever panel: voyage-4-large (cloud), octen
+% (cloud), EmbeddingGemma (deployed, on-device), lateon (cloud), Gecko
+% (former on-device), bm25, medcpt. EmbeddingGemma added in a matched run
+% (same Qwen3.5-397B judge, pooled labels); the six originals reproduce
+% exactly (no drift).
 
-\subsection{Comparators}
-% Six-retriever panel: BM25 (lexical baseline), MedCPT (biomedical
-% bi-encoder), Octen-Embedding-8B (strong open dense), voyage-4-large
-% (frontier API embedder), LateOn (late-interaction), and the deployed
-% Gecko. (An earlier BM25/MedCPT/Octen/RRF plan was superseded by this
-% panel.)
+\subsection{Scoreboard: On-Device Retrieval Is Largely Solved}
+% Hit Rate / precision at top-3, lenient (>= 3) and strict (>= 5), + weighted.
+% @top-3 lenient: voyage 0.996/0.867; octen 0.991/0.804; EmbeddingGemma
+% 0.985/0.784; lateon 0.971/0.738; gecko 0.814/0.477; bm25 0.754/0.417;
+% medcpt 0.644/0.334. EmbeddingGemma -- a 300M on-device model -- lands 3rd
+% of 7, within ~8 pp of cloud voyage, and beats the former on-device Gecko
+% by +30.7 pp precision (0.784 vs 0.477). The on-device retrieval gap is
+% essentially closed.
 
-\subsection{Results}
-% Hit Rate and weighted precision at k=3 (deployed depth) and k=20,
-% lenient (score >= 3) and strict (>= 5).
-% Headline @k=3 lenient: voyage HR 0.996 / P 0.867; octen 0.991 / 0.804;
-% lateon 0.971 / 0.738; gecko 0.814 / 0.477; bm25 0.754 / 0.417;
-% medcpt 0.644 / 0.334.
-% Gecko sits ~25 pp behind the frontier embedders on weighted precision.
+\subsection{But Retrieval Does Not Reach the Answers}
+% Matched end-to-end bake-off (no-RAG vs Gecko vs EmbeddingGemma) on Kenya
+% (n=312) + HealthBench-oss (n=1,209): the swap lifts retrieval P@3
+% 0.270 -> 0.396 (+12.6 pp) but end-to-end Kenya key-fact recall is FLAT
+% (0.125 -> 0.126) and HealthBench stays ~0. On this small generator RAG is
+% net-neutral-to-negative: no-RAG recall (0.178) beats both retrievers.
+% Better retrieval does not convert into better answers.
 
-\subsection{Ranking Gap vs Retrieval Gap}
-% Tier 3 (top-20) decomposition: gecko HR@3 0.81 -> HR@20 0.98 lenient
-% (ranking recoverable), but HR@3 0.44 -> HR@20 0.76 strict, and gecko
-% captures only ~34% of pool relevance at k=20 vs voyage's ~66% -- a
-% real retrieval gap, not just ranking. Implications for the
-% embedding-swap / query-rewriting decision (mamai#62).
-
-\subsection{Discussion}
-% Where Gecko struggles (long-tail clinical vocabulary, abbreviations,
-% user-vs-corpus vocabulary mismatch) vs strengths (semantic paraphrase).
-% Implications for top-k choice and the on-device latency budget; why
-% the retriever -- not the generator -- is the system's weakest link.
+\subsection{What This Rules Out}
+% Reranker tested (offline +12.9 pp P@3) -> does NOT transfer end-to-end:
+% rejected. Retrieval-side abstention gate tested: no thresholdable score
+% exists (chunk/answer-quality AUC ~0.5). So the binding constraint is the
+% generator's ability to USE retrieved context -- examined directly next
+% (Section ref sec:generator) and the basis for the fine-tuning direction
+% (Section ref sec:discussion).

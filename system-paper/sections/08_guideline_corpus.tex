@@ -1,0 +1,36 @@
+\section{Knowledge Base}
+\label{sec:corpus}
+
+% Placed after the evaluation (mirrors the webpage): the system and its
+% results come first; this section is the foundation underneath them. Scope:
+% enough about the producer pipeline (mamai-medical-guidelines) to interpret
+% results; engineering minutiae are readable from the producer-repo README.
+% The system's answers are only as good as what it can retrieve -- so the
+% corpus is the foundation, and a known limitation (coverage).
+
+\subsection{Sources and Tier System}
+% International (NICE, WHO, MSF, Oxford Handbook of Obstetrics and Gynaecology,
+% Hesperian, FIGO, ACOG/RCOG, EmONC handbook, Labour Care Guide, PCPNC,
+% Helping Babies Breathe); national/local (Tanzania MOH, Zanzibar MOH,
+% SUZA teaching materials). Tier weighting
+% (very_high / high / moderate_high / moderate / low_moderate).
+
+\subsection{PDF to Markdown to Chunks}
+% Marker-pdf extraction on cluster; HTML-span normalization;
+% section-aware chunking with parent breadcrumbs and SOURCE/PAGE
+% metadata; chunk-size policy (<=1500 char emit; 1500--2500 char
+% greedy pack at block boundaries; hard cap 2500); boilerplate filter.
+
+\subsection{Embedding and Packaging}
+% EmbeddingGemma-300M embedding (768-dim, VF32 storage, ~260 MB SQLite);
+% bundle layout (manifest, checksums, runtime, debug, docs). Note the
+% v0.2.0 -> v0.3.0 change is a PURE RE-EMBED: the 63,650-chunk / 87-source
+% corpus text is byte-identical; only the vectors changed (Gecko ->
+% EmbeddingGemma). So the benchmark labels (corpus-text-pinned) carry across.
+
+\subsection{Bundle Version Used in This Report}
+% Pin rag-bundle v0.3.0 (2026-06-18): 63,650 chunks, 87 sources, stable
+% 64-bit chunk CIDs, SHA-256 manifest, EmbeddingGemma vectors. This is the
+% version the app locks via rag_assets.lock.json and that all results in
+% this report are tied to. The corpus was NOT expanded this cycle; coverage
+% is a stated limitation (Section ref sec:limitations), not the headline.

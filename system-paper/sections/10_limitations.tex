@@ -1,24 +1,28 @@
 \section{Limitations}
 \label{sec:limitations}
 
-% - Pre-deployment: no users in Zanzibar this cycle, no user study, no
-%   clinical-trial data; evaluation uses benchmark proxies, not
-%   prospective deployment outcomes.
-% - Single benchmark device (Snapdragon 8 Elite); MediaTek/Mali --
-%   the majority of the target market -- unmeasured. Battery and
-%   sustained-thermal numbers pending.
-% - LLM-generated queries in mamaretrieval may inflate dense-retriever
-%   scores; label provenance and pooling-completeness evidence in the
-%   companion paper [cite paper2].
-% - Contamination caveat: MedMCQA and MedQA-USMLE likely in Gemma's
-%   pretraining; no contamination-adjusted numbers this cycle.
-% - No Swahili evaluation despite the bilingual deployment context
-%   (EN/SW prompts ship in the app) -- a genuine deployment-quality gap.
-% - Generator stability probes (paraphrase sensitivity, run-to-run
-%   variance, greedy vs sampled) not executed.
-% - Safety track (EquityMedQA/FairMedQA-style suites) deferred to
-%   mamabench v0.3; the only safety signal this cycle is the SAQ judge's
-%   verdict distribution (zero `dangerous', Section 7).
-% - Open-ended rubric numbers may be revised by the pending Phase B
-%   rescore with the consolidated judge; revision path stated in
-%   Section 7.
+% Mirror the webpage's honest limitations list; this is a thoroughly-
+% evaluated research prototype, not a deployed product.
+% - No user testing yet: a funding lag meant the planned field test with
+%   nurse-midwives did not happen this cycle; no real-world point-of-care
+%   data. Pre-deployment.
+% - Not fully clinician-verified: shaped by clinician input (the deflection
+%   fix came from it) but clinical correctness is not fully verified; the
+%   evaluation relies on LLM judges, not a human gold standard.
+% - English only: the deployment context (Zanzibar/Tanzania) is Swahili-
+%   speaking, but the system, knowledge base, and evaluation are English-
+%   only (the earlier Swahili prompt was withdrawn as unvalidated). A real
+%   deployment gap.
+% - RAG does not yet pay off on the small generator: better retrieval does
+%   not reach the answers, and added context is net-neutral-to-negative.
+%   Teaching the generator to use context (generator-side grounding) is the
+%   central open problem, not a solved one.
+% - Latency on a single flagship device (Snapdragon 8 Elite); the cheaper
+%   MediaTek phones that dominate the target market are untested and will be
+%   slower; battery drain and sustained thermal throttling not yet profiled.
+% - Corpus coverage: the corpus was not expanded this cycle; licensing
+%   limits some high-value textbooks.
+% - Contamination caveat: MedMCQA / MedQA-USMLE likely in pretraining (MCQ is
+%   a negative control here, not a headline).
+% - Benchmark caveats (LLM-written queries flatter dense retrievers; single
+%   judge) are detailed in the companion paper [cite paper2].

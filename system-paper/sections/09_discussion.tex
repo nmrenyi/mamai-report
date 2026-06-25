@@ -1,28 +1,28 @@
 \section{Discussion}
+\label{sec:discussion}
 
-% Synthesize the cross-cutting findings around the report's central arc:
-% the generator is not the problem; the retriever and the corpus are.
-% - Faithfulness is essentially solved at the generator (oracle-context
-%   true hallucination ~0.3%): the dominant feared failure mode
-%   (ungrounded medical advice) is absent under good context. The
-%   gated fine-tuning plan stays gated unless the real-retrieval
-%   faithfulness probe says otherwise.
-% - The deployed retriever is the weakest link: gecko ~25 pp behind
-%   frontier embedders on weighted precision; the gap is partly real
-%   retrieval (not just ranking). Improvement levers: query-side
-%   rewriting (mamai#62) vs embedding swap vs distillation.
-% - The RAG-hurts finding: -1.8 pp MCQ, small negative open-ended
-%   deltas. Hypotheses: out-of-domain corpus for broad-medicine MCQ,
-%   retrieval noise at 4B scale, prompt-format interaction. What this
-%   means for shipping RAG on-device.
-% - Corpus coverage is the visible deployment gap (ICM demo finding) --
-%   coverage, licensing constraints on high-value textbooks, and the
-%   expansion pipeline.
-% - Safety-conservative failure profile: zero dangerous verdicts but
-%   heavy "escalate to doctor" deferral -- is a deferring assistant
-%   useful enough on a busy ward?
-% - When local guidelines diverge from global standards (WHO vs Zanzibar
-%   MOH), how should a deployed system behave?
-% - Latency-quality frontier: E4B-GPU vs E2B trade; usable budget for a
-%   busy ward.
+% Synthesize around the (inverted) central arc: the retriever is largely
+% solved; the binding constraint is the generator's ability to use context.
+% - On-device retrieval is solved: a 300M embedder (EmbeddingGemma) rivals
+%   cloud retrieval (3rd of 7, within ~8 pp of voyage). The former on-device
+%   gap (Gecko) is closed.
+% - Yet RAG does not convert on the small generator: better retrieval leaves
+%   end-to-end recall flat, and RAG is net-neutral-to-negative vs no-RAG.
+%   Hypotheses: the 4B-scale model under-uses long retrieved context;
+%   off-domain distraction; the answer is bottlenecked by generation, not
+%   retrieval. This is the central finding.
+% - The deployed model is a safety-vs-usefulness choice: Gemma 3n is more
+%   helpful but produces genuine dangerous dosing/drug errors; Gemma 4 is
+%   ~2x more faithful (and matches a frontier model on faithfulness), so it
+%   ships. G1 wins back most of the usefulness Gemma 4 gives up.
+% - The open problem is generator-side RAG-grounding (a fine-tune): teach a
+%   more capable on-device model to use retrieved context faithfully, so a
+%   more helpful model can be deployed without losing the safety margin.
+%   The Qwen ceiling shows the prompts are already sound.
+% - Corpus coverage remains a real but secondary gap (the corpus was not
+%   expanded this cycle); licensing constraints on high-value textbooks.
+% - Local-vs-global guideline divergence (WHO vs Zanzibar MOH): how should a
+%   deployed system behave?
+% - Latency-quality frontier: E4B-GPU vs E2B; usable budget on a busy ward;
+%   the FP16 context cliff as a deployment constraint.
 % - Lessons for similar low-resource clinical deployments.

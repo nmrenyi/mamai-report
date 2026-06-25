@@ -1,56 +1,51 @@
-\section{Generator Evaluation under Oracle Context}
+\section{Generator Faithfulness}
 \label{sec:generator}
 
-% Retrieval held fixed at gold mamaretrieval labels; this section probes
-% generator behaviour only. Source: mamai-eval branch feat/faithfulness-eval,
-% docs/faithfulness-eval-v0.2.0.md.
+% Isolates the generator: retrieval is replaced by gold (oracle) context, so
+% any failure is the generator's. Source: mamai-eval faithfulness re-run
+% configs/config-v0.2.0/reports/faithfulness-g4-vs-3n-prompts-20260622.html.
+% This is where the deployment choice (Gemma 4 over 3n) is explained: the
+% deciding axis is faithfulness, and small size is not the problem.
 
-\subsection{Oracle Construction}
-% Oracle = all chunks scored >= 5 on the 0--6 rubric in mamaretrieval
-% v0.1.0 (the threshold the judge was validated at vs Claude Opus 4.7).
-% 2,659 of 3,185 queries have >= 1 oracle chunk (7,343 pairs); top-3 cap
-% at generation time to match the deployed retrieval depth (29% of
-% queries capped). Generation with deployment params (T=1.0, top_p=0.95,
-% top_k=64); 0 errors, 0 context overflows.
+\subsection{Setup}
+% Oracle = mamaretrieval chunks scored >= 5, top-3 (matched to deployed
+% depth), n=2,989 questions. Failure = contradiction (wrong dose/threshold)
+% or unsupported addition (a claim not in the source); incompleteness and
+% refusals do NOT count. Evaluated across the matrix: Gemma 4 E4B vs
+% Gemma 3n E4B (x baseline/G1/G1+G2), with Qwen3.5-397B as the frontier
+% reference.
 
-\subsection{Faithfulness Judge Selection}
-% Three candidates, two rejected -- report the journey:
-%   1. MiniCheck (Bespoke-MiniCheck-7B): rejected -- small classifier,
-%      verdicts unauditable (no reasoning).
-%   2. Qwen3.5-397B: rejected for circularity -- the same model produced
-%      the relevance labels that built the oracle.
-%   3. Patronus Lynx 70B: chosen -- open weights, purpose-built for RAG
-%      hallucination detection, medically trained, Llama-3 family
-%      (independent of the Qwen oracle judge), emits auditable reasoning.
-%      Limitation: holistic PASS/FAIL, not per-claim.
-% (The originally planned MiniCheck/scispaCy/MedScore pipelines were
-% abandoned; do not present them as the method.)
+\subsection{Two-Pass Judge}
+% Detector -> verifier. Patronus Lynx-70B flags every candidate faithfulness
+% failure (high recall, low precision); GPT-5 re-reads each flag and keeps
+% only genuine contradictions/unsupported additions. The "categorized
+% true-hallucination" rate (deterministic, full population) is the metric of
+% record. Judge-selection journey worth one line: MiniCheck (too small,
+% unauditable) and Qwen-397B (circular -- it built the oracle labels) were
+% rejected; Lynx is independent (Llama-3 family) and auditable.
 
-\subsection{Results and FAIL Categorization}
-% Lynx pass rate 94.55% (2,514/2,659), 95% CI [93.6, 95.4].
-% All 145 FAILs categorized one-by-one: contradiction 48,
-% unsupported_addition 22 (these two are candidate hallucinations),
-% omission 35, refusal 17, unclear 23 (not faithfulness failures).
+\subsection{Results}
+% Categorized true-hallucination, across baseline/G1/G1+G2:
+%   Gemma 4 E4B:   2.64% / 3.31% / 3.55%
+%   Gemma 3n E4B:  6.26% / 6.46% / 6.72%
+%   Qwen3.5-397B:  2.51% / 3.71% / 0.97%
+% Gemma 4 is ~2x more faithful than Gemma 3n at every prompt, and grounds
+% about as faithfully as the unconstrained frontier Qwen. So the small
+% on-device Gemma 4 is already strong on faithfulness; Gemma 3n is the
+% outlier, not the small size. This is the core reason Gemma 4 ships.
 
-\subsection{Calibration: From Raw Rate to True-Hallucination Estimate}
-% 100-row stratified blinded re-judgment by an independent model family
-% under a strict hallucination-only definition: Lynx precision ~6%
-% (3/50 FAILs confirmed), miss rate 0/50 on the PASS stratum.
-% Population estimate: ~9/2,659 ~= 0.3% true hallucinations.
-% Headline: Gemma 4 E4B is highly faithful to oracle context; Lynx raw
-% FAIL rate overstates hallucination by ~an order of magnitude.
+\subsection{The Calibration Artifact (honesty note)}
+% The headline metric is the categorized rate above. A separate Lynx-miss-
+% rate "calibrated" extrapolation produced a 53.9% outlier on Gemma 4 +G1+G2
+% -- a statistical artifact: G2's longer answers (1,193 vs 770 chars) exceed
+% the narrow 3-chunk oracle, so standard-of-care content gets flagged as
+% unsupported, and a ~50-sample miss-rate swings the population estimate.
+% Report the deterministic categorized rate; explain the artifact (section
+% 4a of the source report) rather than burying it.
 
-\subsection{Oracle-Context Integrity}
-% 6 of 145 FAILs trace to self-contradictory oracle context (two chunks
-% with conflicting clinical facts, e.g. misoprostol dosing intervals) --
-% disclosed; fix tracked in mamaretrieval#18.
-
-\subsection{Pending and Future Probes}
-% [pending] Recalibration with the consolidated closed-source judge
-% (gpt-oss-120b failed both calibration gates; escalation in progress).
-% [pending] Real-retrieval faithfulness probe (deployed gecko top-3
-% instead of oracle) -- the experiment that gates the RAG-aware
-% fine-tuning plan.
-% Not executed this cycle (future work): paraphrase-sensitivity,
-% run-to-run variance, greedy-vs-sampled stability probes; citation
-% existence checks; contradiction-among-guidelines set.
+\subsection{Implication}
+% Generator matters ~4x more than prompt for faithfulness, and 3n's gap is a
+% property of the model (it contradicts context ~2x as often), not the
+% prompt. So improving faithfulness -- and thus enabling a more helpful model
+% to be deployed safely -- requires generator-side work: RAG-grounding /
+% fine-tuning (Section ref sec:discussion), not more prompt engineering.

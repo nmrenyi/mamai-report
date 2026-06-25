@@ -12,17 +12,21 @@
 % - Honest framing: a feature-complete, pre-deployment prototype with a
 %   comprehensive evaluation -- not yet a fielded system (no user study
 %   this cycle).
-% - Contributions:
-%   1. An on-device medical RAG system (Gemma 4 E4B + Gecko + SQLite),
-%      ready for deployment on commodity Android hardware.
-%   2. A bottom-up evaluation methodology (retriever -> generator isolation
-%      -> end-to-end) and its application to the deployed configuration.
-%   3. Empirical findings that localize the failure mode: generator
-%      faithfulness under oracle context is essentially solved (~0.3%
-%      calibrated true-hallucination rate); the deployed retriever is the
-%      weakest link (~25 pp behind frontier embedders); RAG currently
-%      *reduces* MCQ accuracy slightly (-1.8 pp); corpus coverage is the
-%      main deployment gap.
+% - Mention the live web demo + open-source repos (footnote / end of intro).
+% - Contributions, framed top-down to match the body order:
+%   1. An on-device medical RAG system (Gemma 4 E4B + EmbeddingGemma-300M +
+%      SQLite, G1 prompt) deployable on commodity Android hardware.
+%   2. A bottom-up evaluation (end-to-end, retrieval, generator) presented
+%      top-down, with a designed prompt (G1) that cuts deflection 32.7% ->
+%      3.2% and ~doubles key-fact recall.
+%   3. Findings that localize the failure mode, against intuition:
+%      on-device retrieval is largely SOLVED (EmbeddingGemma 3rd of 7,
+%      within ~8 pp of cloud); yet better retrieval does NOT reach the
+%      answers (RAG net-neutral-to-negative on the small generator); the
+%      deciding axis is generator faithfulness, where Gemma 4 (2.6-3.6%
+%      true-hallucination) matches a frontier model and ~halves Gemma 3n;
+%      so the deployed model is chosen by a safety-vs-usefulness tradeoff,
+%      and generator-side RAG-grounding is the open problem.
 %   4. On-device latency characterization, including a root-caused FP16-GPU
 %      context-length failure at ~5,000 tokens.
 % - Roadmap: section pointers.

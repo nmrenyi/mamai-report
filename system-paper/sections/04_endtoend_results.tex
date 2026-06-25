@@ -1,0 +1,59 @@
+\section{End-to-End Evaluation}
+\label{sec:endtoend}
+
+% CENTERPIECE of the system paper. The deployed system, evaluated top-down:
+% lead with the headline (deflection fix), then the full 3x3 matrix that
+% justifies the deployed config, then the safety/usefulness tradeoff and the
+% capability ceiling. Numbers: pull exact values from mamai-eval
+% configs/config-v0.2.0/reports/generator-prompt-matrix-20260622.html and
+% the dangerous-case adjudication (dangerous-case-adjudication-20260623.md).
+% The webpage rounds; the eval reports are the source of record.
+
+\subsection{Headline: Fixing Deflection}
+% The base model deflected on ~1/3 of questions ("see a doctor"). The G1
+% prompt (Section ref sec:system-prompt) cut deflection 32.7% -> 3.2% and
+% ~doubled key-fact recall (0.139 -> 0.279) with no added dangerous answers.
+% This is the single largest end-to-end gain and the reason G1 ships.
+
+\subsection{The Generator x Prompt Matrix}
+% Full 3x3: generators {Gemma 4 E4B (deployed), Gemma 3n E4B, Qwen3.5-397B
+% (frontier ceiling)} x prompts {baseline, +G1, +G1+G2}. Scored on two
+% open-ended benchmarks from mamabench: Kenya Clinical Vignettes (n=312,
+% nurse-written, close to deployment) and HealthBench-oss (n=1,209,
+% physician-rubric). Metrics per cell: key-fact recall, deflection,
+% potentially-harmful %, dangerous count (Kenya); weighted_met with the
+% positive-credit vs penalty decomposition (HealthBench). Identical RAG
+% pipeline across all cells (EmbeddingGemma top-3, bundle v0.3.0); only the
+% generator/prompt changes. Judge: gpt-oss-120b (validated, Section
+% ref sec:methodology). Present the 9-cell table here.
+
+\subsection{Safety versus Usefulness}
+% The two on-device models trade off on a single axis. Gemma 3n is more
+% useful (recall 0.30-0.39, ~2x HealthBench) but less safe: 4 -> 11 -> 15
+% dangerous answers across prompts. Gemma 4 is the mirror: less complete but
+% near-zero dangerous (0 -> 1 -> 0). G1/G2 raise engagement, which on a weak
+% grounder (3n) concentrates harm exactly where it is weakest (dosing).
+% Decision: deploy Gemma 4 (safe), use G1 to win back most of the usefulness.
+
+\subsection{Dangerous-Case Adjudication}
+% All 31 dangerous-flagged cases hand-read (dangerous-case-adjudication-
+% 20260623.md). Gemma 3n's are genuine serious errors: oxytocin dosed in mg
+% not milli-units (~1000x overdose), ceftriaxone in a neonate
+% (contraindicated), benzathine penicillin ~10x underdose, PEP eligibility
+% reversed. Gemma 4's single +G1 flag is a judge over-flag (standard choking
+% first-aid). This is what grounds the "safe" claim in clinical terms.
+
+\subsection{The Capability Ceiling}
+% Qwen3.5-397B (unconstrained frontier) shows the prompts are sound: G1+G2 is
+% pure upside (recall 0.553, harm 4.2%, 0 dangerous). The deployed config
+% still trails this ceiling on recall/completeness/safety alike. The gap is
+% generator capability and grounding, not prompt design -- motivating the
+% component layers that follow and the fine-tuning direction (Section
+% ref sec:discussion).
+
+\subsection{MCQ as a Negative Control}
+% Aside: full MCQ suite +-RAG on Gemma 4 (n=23,241): no-RAG 53.7% vs +RAG
+% 51.9% (-1.8 pp). Not a deployment failure -- the maternal/neonatal corpus
+% is off-domain for broad USMLE-style MCQ, so retrieved chunks distract.
+% This is why the deployment-relevant signal is the open-ended tracks above,
+% not MCQ. (mcq-rag-effect-20260520.md)

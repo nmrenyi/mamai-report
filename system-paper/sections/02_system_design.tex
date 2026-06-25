@@ -1,0 +1,73 @@
+\section{System Design}
+\label{sec:system-design}
+
+% Deliberately high-level. Low-level app mechanics (Flutter UI, platform
+% channels, lazy init, stream/job lifecycle) are omitted -- they are
+% readable from the open-source repo and not needed to interpret results.
+% Keep only what is load-bearing for the evaluation: the RAG flow, the two
+% deployed models, the system prompt (a designed artifact whose effect is a
+% headline result), and the deployment choices that have measurable
+% consequences (notably the GPU FP16 default and its long-context failure).
+% Verified 2026-06-25 against mamai/config/* and CLAUDE.md.
+
+MAM-AI is an Android application that answers a nurse-midwife's clinical
+question entirely on-device: embedding, retrieval, and generation all run on
+the phone, and no query ever leaves it. This is forced by the deployment
+context---health facilities in Zanzibar cannot assume connectivity, and data
+costs make online tools unreliable---and it has the side benefit that
+patient-related queries are never transmitted off the device.
+
+\subsection{On-Device RAG Pipeline}
+
+The system is a retrieval-augmented generation (RAG) pipeline. The user's
+question is embedded and matched against an on-device vector store of
+guideline passages; the top-3 passages are injected into the prompt
+alongside the question; and the generator produces a streamed answer with
+inline citations back to the source passages. Every stage runs locally
+against a pre-computed, versioned knowledge base (Section~\ref{sec:corpus});
+the application is fully offline after a one-time model download.
+
+\subsection{Models}
+
+Both model components are off-the-shelf open models from Google, run through
+the LiteRT-LM on-device runtime; what is contributed here is the system, the
+knowledge base, and the evaluation built around them.
+
+\begin{itemize}
+  \item \textbf{Generator: Gemma~4~E4B} (int4-quantized, 3.66\,GB). Decodes
+  the final answer from the question and retrieved passages.
+  \item \textbf{Retriever: EmbeddingGemma-300M} (768-dimensional, quantized).
+  Embeds the query for vector search. It replaced an earlier on-device
+  embedder (Gecko); the retrieval gain from that swap, and why it does not
+  translate into better answers, are quantified in
+  Section~\ref{sec:retrieval-results}.
+\end{itemize}
+
+\subsection{The System Prompt}
+\label{sec:system-prompt}
+
+The deployed system prompt (``G1'') is a designed artifact, not boilerplate,
+and its effect is one of the paper's headline results
+(Section~\ref{sec:endtoend}). The base prompt left the model evasive---on
+roughly a third of questions it deflected to ``see a doctor'' rather than
+giving first-line guidance. G1 targets that failure with a set of explicit
+levers: it addresses the user as a clinician rather than the patient, treats
+any clinical question (including emergencies and ones naming a location) as
+in scope, requires concrete first-line management \emph{before} advising
+referral, permits naming standard first-line drugs and doses with a
+formulary caveat, and prefers locally available options. The prompt is
+English-only; an earlier bilingual (English/Swahili) configuration was
+withdrawn because a safety-critical prompt cannot ship in a language it was
+not evaluated in (Section~\ref{sec:limitations}).
+
+\subsection{Deployment Configuration}
+
+Retrieval depth is fixed at top-3 and the context window at 4{,}096 tokens.
+The generator defaults to CPU, with GPU execution as an opt-in that falls
+back to CPU on failure. The GPU path matters for one non-obvious reason: it
+runs FP16 attention by default, which decodes correctly at the deployed
+depth but \emph{degrades deterministically past roughly 5{,}000 tokens of
+context}---the 4{,}096-token ceiling is a safety margin below that cliff
+(characterized in Section~\ref{sec:latency}). The knowledge base ships as a
+checksum-pinned bundle (v0.3.0), so a given build retrieves from a bit-exact,
+auditable corpus.
