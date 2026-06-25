@@ -53,7 +53,6 @@ the largest open models over-rate.
 
 \begin{figure}[t]
 \centering
-\resizebox{\columnwidth}{!}{%
 \begin{tikzpicture}[font=\footnotesize]
   % met-rate 50%..90% mapped at 0.18 cm per point: x = (v-50)*0.18
   \draw[black!55] (0,0) -- (7.2,0);
@@ -80,8 +79,7 @@ the largest open models over-rate.
   % under/over annotations
   \node[font=\scriptsize\itshape, text=black!55] at (1.3,-0.62) {$\leftarrow$ under-rates};
   \node[font=\scriptsize\itshape, text=black!55] at (6.2,-0.62) {over-rates $\rightarrow$};
-\end{tikzpicture}%
-}
+\end{tikzpicture}
 \caption{Judge calibration spectrum: each candidate's met-rate against the
 physician target (77\%). Stronger closed-source judges under-rate; larger
 open models over-rate; the deployed \texttt{gpt-oss-120b} sits closest to
@@ -95,16 +93,22 @@ diagnostic is the per-class split (Table~\ref{tab:judge})---agreement on
 physician-MET versus physician-NOT-MET rows. Lenient judges score
 near-perfectly on MET rows but collapse on NOT-MET rows (the larger open
 models, and the trivial always-``met'' baseline, all show this signature);
-over-strict judges do the reverse. We deploy \texttt{gpt-oss-120b} for two
-reasons. First, calibration: its met-rate is the closest to physicians
-($-3.8$ points), and it sits well clear of the rubber-stamping models on
-NOT-MET rows---the best overall balance, given that escalating to the
-stronger closed-source judges only worsens calibration (gpt-5 under-rates by
-nearly 19 points). Second, it is an \emph{open} model: we host it on our own
-GPU, so the full rubric scoring is reproducible and free to re-run, whereas
-the closed-source candidates bill per call and cannot be reproduced
-independently. Its mild conservative bias is a known, disclosed direction on
-every rubric score that follows.
+over-strict judges do the reverse.
+
+We deploy \texttt{gpt-oss-120b} for two reasons:
+\begin{itemize}
+  \item \textbf{Calibration.} Its met-rate is the closest to physicians
+  ($-3.8$ points), and it sits well clear of the rubber-stamping models on
+  NOT-MET rows---the best overall balance, since escalating to the stronger
+  closed-source judges only worsens calibration (gpt-5 under-rates by nearly
+  19 points).
+  \item \textbf{Open and reproducible.} It is an open model we host on our
+  own GPU, so the full rubric scoring is reproducible and free to re-run;
+  the closed-source candidates bill per call and cannot be reproduced
+  independently.
+\end{itemize}
+Its mild conservative bias is a known, disclosed direction on every rubric
+score that follows.
 
 \begin{table}[t]
 \caption{Judge--physician agreement (\%) on the 6{,}853-triple set, the
