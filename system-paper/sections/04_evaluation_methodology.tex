@@ -102,10 +102,15 @@ API cost (it runs on our cluster). Its mild conservative bias is a known,
 disclosed direction on every rubric score that follows.
 
 \begin{table}[t]
-\caption{Per-class agreement (\%), the rubber-stamp detector.
-\emph{Cons.}\ is agreement with physician consensus; \emph{MET}/\emph{NOT-MET}
-are agreement on the rows physicians marked met / not met. Lenient judges are
-high on MET but low on NOT-MET.}
+\caption{Judge--physician agreement (\%) on the 6{,}853-triple set, the
+rubber-stamp detector. \textbf{Cons.}: agreement with the physician
+\emph{consensus} label, on the rows where physicians agreed (overall
+accuracy). \textbf{MET}: of the criteria physicians marked \emph{met}, the
+fraction the judge also marks met. \textbf{NOT-MET}: of the criteria
+physicians marked \emph{not met}, the fraction the judge also marks not
+met---the decisive column, since a lenient judge scores high on MET but low
+here. The deployed \texttt{gpt-oss-120b} stays balanced across both classes;
+the trivial baselines max out one class at the cost of the other.}
 \label{tab:judge}
 \small
 \begin{tabular}{@{}lrrr@{}}
