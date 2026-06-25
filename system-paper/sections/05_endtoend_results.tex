@@ -83,9 +83,15 @@ deploy. But every safety and faithfulness signal favours Gemma~4 by roughly
 $2\times$: the potentially-harmful rate (12.8--17.0\% vs.\ 24.4--31.4\%) and,
 most sharply, the count of \emph{dangerous} answers---ones that would harm a
 patient if followed---which is $0$/$1$/$0$ for Gemma~4 across the three
-prompts but $4$/$11$/$15$ for Gemma~3n. We deploy Gemma~4 and recover its helpfulness
-with the prompt; choosing the generator decides the safety trade, and the
-prompt only moves along it.
+prompts but $4$/$11$/$15$ for Gemma~3n. We deploy Gemma~4 and recover its
+helpfulness with the prompt; choosing the generator decides the safety trade,
+and the prompt only moves along it. This safety gap does not surface in
+HealthBench, whose \texttt{weighted\_met} is effectively a completeness score:
+in Table~\ref{tab:matrix} the positive component rises with model capability
+while the penalty component stays flat ($\sim$0.34--0.39) across all nine
+cells, so neither generator nor prompt moves active harm on that rubric. The
+safety difference shows up only in the targeted Kenya dangerous count and in
+oracle faithfulness (\S\ref{sec:generator}).
 
 \subsection{Dangerous-case adjudication}
 
@@ -163,25 +169,9 @@ single flag, which is a judge over-flag. Queries and answers trimmed.}
 \emph{Verification note.} The genuine-versus-over-flag determinations in this
 section---including the specific clinical errors highlighted in
 Figure~\ref{fig:cases}---were identified by the LLM adjudicator (Claude
-Opus~4.8), not by a medically-trained author. We do not have the clinical
-expertise to independently confirm them, so they should be read as
-model-generated assessments awaiting review by qualified clinicians
-(\S\ref{sec:limitations}).
-
-\subsection{HealthBench, decomposed: the gap is completeness, not harm}
-
-HealthBench's \texttt{weighted\_met} nets reward criteria against
-penalty (``should-not'') criteria, so we split the two. The positive
-score---completeness, how much required guidance the answer contains---rises
-monotonically with model capability (Gemma~4 0.18--0.23, Gemma~3n
-0.26--0.29, Qwen 0.31--0.41), and both prompts raise it within each tier. The
-penalty rate is by contrast strikingly flat ($\sim$0.34--0.39) across all
-nine cells: on this rubric's negative axis neither generator nor prompt moves
-active harm much. So the \texttt{weighted\_met} ordering is a
-\emph{completeness} ranking, not a safety one---which is why the ``3n is less
-safe'' signal must be read from the targeted Kenya safety probe (the
-dangerous count) and oracle faithfulness (\S\ref{sec:generator}), not from
-HealthBench penalties.
+Opus~4.8). The author does not have the clinical expertise to independently
+confirm them, so they should be read as model-generated assessments awaiting
+review by qualified clinicians (\S\ref{sec:limitations}).
 
 \subsection{The capability ceiling: the lever is grounding, not the prompt}
 
