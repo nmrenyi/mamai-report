@@ -12,7 +12,7 @@
 
 MAM-AI is an Android application that answers a nurse-midwife's clinical
 question entirely on-device: embedding, retrieval, and generation all run on
-the phone, and no query ever leaves it. This is forced by the deployment
+the device, and no query ever leaves it. This is forced by the deployment
 context---health facilities in Zanzibar cannot assume connectivity, and data
 costs make online tools unreliable---and it has the side benefit that
 patient-related queries are never transmitted off the device.
@@ -27,46 +27,6 @@ produces a streamed answer with inline citations back to the source
 passages. Every stage runs locally against a pre-computed, versioned
 knowledge base (Section~\ref{sec:corpus}); the application is fully offline
 after a one-time model download.
-
-\begin{figure}[t]
-\centering
-\resizebox{\columnwidth}{!}{%
-\begin{tikzpicture}[
-  font=\footnotesize,
-  every node/.style={align=center},
-  stage/.style={draw, rounded corners, minimum height=1.05cm,
-    minimum width=1.7cm, fill=black!4, inner sep=2pt},
-  endpoint/.style={draw, rounded corners, minimum height=1.05cm,
-    minimum width=1.4cm, fill=black!12, inner sep=2pt},
-  flow/.style={-{Latex[length=2mm]}, thick, black!55},
-]
-  \node[endpoint] (q) {\textbf{Query}\\[1pt]\scriptsize clinical\\\scriptsize question};
-  \node[stage, right=3.5mm of q] (e) {\textbf{1. Embed}\\[1pt]\scriptsize EmbeddingGemma\\\scriptsize 300M};
-  \node[stage, right=3.5mm of e] (r) {\textbf{2. Retrieve}\\[1pt]\scriptsize top-3 chunks};
-  \node[stage, right=3.5mm of r] (a) {\textbf{3. Augment}\\[1pt]\scriptsize prompt + context};
-  \node[stage, right=3.5mm of a] (g) {\textbf{4. Generate}\\[1pt]\scriptsize Gemma 4 E4B\\\scriptsize int4};
-  \node[endpoint, right=3.5mm of g] (ans) {\textbf{Answer}\\[1pt]\scriptsize with citations\\\scriptsize [1] [2] [3]};
-  \draw[flow] (q)--(e); \draw[flow] (e)--(r); \draw[flow] (r)--(a);
-  \draw[flow] (a)--(g); \draw[flow] (g)--(ans);
-  \node[draw, dashed, rounded corners, fill=black!6, below=9mm of r,
-    minimum width=6cm, inner sep=4pt] (kb)
-    {\textbf{On-device knowledge base}\\[1pt]\scriptsize
-     87 guideline documents \,\textbullet\, 63{,}650 chunks
-     \,\textbullet\, SQLite vector store};
-  \draw[flow, dashed] (kb)--(r);
-  \begin{scope}[on background layer]
-    \node[draw, dotted, rounded corners, inner sep=5mm, fit=(q)(ans)(kb),
-      label={[font=\scriptsize\itshape]above:Runs 100\% on-device --- fully offline}] {};
-  \end{scope}
-\end{tikzpicture}%
-}
-\caption{The on-device RAG pipeline. The query is embedded with
-EmbeddingGemma and matched against an on-device guideline corpus; the top-3
-passages are added to the prompt before Gemma~4~E4B generates a cited
-answer. Every stage runs on the phone, and the application is fully offline
-after a one-time model download.}
-\label{fig:pipeline}
-\end{figure}
 
 \subsection{Models}
 

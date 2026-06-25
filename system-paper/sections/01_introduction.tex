@@ -16,20 +16,63 @@ the guidelines are long, and looking something up online is unreliable where
 connectivity is intermittent and mobile data costly.
 
 We present MAM-AI, a medical question-answering assistant that runs entirely
-on an Android phone. The nurse-midwife's question is embedded and matched
+on an Android device. The nurse-midwife's question is embedded and matched
 against an on-device store of guideline passages; the most relevant passages
 are added to the prompt; and an on-device language model generates an answer
 grounded in those passages, with citations to the source
-(Section~\ref{sec:system-design}). Because every stage runs locally, the
-system needs no connectivity after a one-time setup, and no patient-related
-query leaves the device. The generator and embedder are off-the-shelf open
-models; our contribution is the system around them, the curated knowledge
-base, and the evaluation that determines how it should be configured.
+(Figure~\ref{fig:pipeline}; Section~\ref{sec:system-design}). Because every
+stage runs locally, the system needs no connectivity after a one-time setup,
+and no patient-related query leaves the device. The generator and embedder
+are off-the-shelf open models; our contribution is the system around them,
+the curated knowledge base, and the evaluation that determines how it should
+be configured.
+
+\begin{figure}[h!]
+\centering
+\resizebox{\columnwidth}{!}{%
+\begin{tikzpicture}[
+  font=\footnotesize,
+  every node/.style={align=center},
+  stage/.style={draw, rounded corners, minimum height=1.05cm,
+    minimum width=1.7cm, fill=black!4, inner sep=2pt},
+  endpoint/.style={draw, rounded corners, minimum height=1.05cm,
+    minimum width=1.4cm, fill=black!12, inner sep=2pt},
+  flow/.style={-{Latex[length=2mm]}, thick, black!55},
+]
+  \node[endpoint] (q) {\textbf{Query}\\[1pt]\scriptsize clinical\\\scriptsize question};
+  \node[stage, right=3.5mm of q] (e) {\textbf{1. Embed}\\[1pt]\scriptsize EmbeddingGemma\\\scriptsize 300M};
+  \node[stage, right=3.5mm of e] (r) {\textbf{2. Retrieve}\\[1pt]\scriptsize top-3 chunks};
+  \node[stage, right=3.5mm of r] (a) {\textbf{3. Augment}\\[1pt]\scriptsize prompt + context};
+  \node[stage, right=3.5mm of a] (g) {\textbf{4. Generate}\\[1pt]\scriptsize Gemma 4 E4B\\\scriptsize int4};
+  \node[endpoint, right=3.5mm of g] (ans) {\textbf{Answer}\\[1pt]\scriptsize with citations\\\scriptsize [1] [2] [3]};
+  \draw[flow] (q)--(e); \draw[flow] (e)--(r); \draw[flow] (r)--(a);
+  \draw[flow] (a)--(g); \draw[flow] (g)--(ans);
+  \node[draw, dashed, rounded corners, fill=black!6, below=9mm of r,
+    minimum width=6cm, inner sep=4pt] (kb)
+    {\textbf{On-device knowledge base}\\[1pt]\scriptsize
+     87 guideline documents \,\textbullet\, 63{,}650 chunks
+     \,\textbullet\, SQLite vector store};
+  \draw[flow, dashed] (kb)--(r);
+  \begin{scope}[on background layer]
+    \node[draw, dotted, rounded corners, inner sep=5mm, fit=(q)(ans)(kb),
+      label={[font=\scriptsize\itshape]above:Runs 100\% on-device --- fully offline}] {};
+  \end{scope}
+\end{tikzpicture}%
+}
+\caption{The on-device RAG pipeline. The query is embedded with
+EmbeddingGemma and matched against an on-device guideline corpus; the top-3
+passages are added to the prompt before Gemma~4~E4B generates a cited
+answer. Every stage runs on the device, and the application is fully offline
+after a one-time model download.}
+\label{fig:pipeline}
+\end{figure}
 
 Safety is the governing constraint throughout---wrong advice can cause direct
 harm---and we are explicit that MAM-AI is a thoroughly evaluated research
 prototype, not a fielded product: a planned field test could not proceed this
-cycle, so we report no point-of-care outcomes. The evaluation is layered
+cycle, so we have no data on how the system performs in real clinical use;
+all our evidence comes from benchmarks and LLM-judge scoring. The evaluation
+is layered
 (end-to-end, then retriever and generator in isolation, then latency) and
 yields three findings, against the intuitive story, that structure the paper.
 \emph{First}, a redesigned system prompt is the largest single lever on
