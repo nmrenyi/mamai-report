@@ -104,17 +104,10 @@ isolation, then latency---and yields three findings that structure the paper:
   \item A deployable on-device medical RAG system for nurse-midwives in a
   low-connectivity setting, running fully offline on commodity Android
   hardware (Section~\ref{sec:system-design}).
-  \item A layered evaluation---end-to-end, retriever, generator, latency---on
-  two purpose-made benchmarks and a validated LLM judge, applied to the exact
-  deployed configuration (Sections~\ref{sec:methodology}--\ref{sec:latency}).
-  \item Findings that localize the failure mode: a prompt redesign that fixes
-  over-deflection; evidence that on-device retrieval is solved but does not
-  translate into better answers; and a faithfulness result showing the
-  deployed small model matches a frontier model, so generator-side grounding,
-  not retrieval or prompting, is the open problem.
-  \item An on-device latency characterization on real hardware, including a
-  root-caused FP16-GPU decoding failure beyond roughly 5{,}000 tokens of
-  context that sets the deployed context ceiling (Section~\ref{sec:latency}).
+  \item A layered evaluation---end-to-end, retriever, generator, and
+  latency---on two purpose-made benchmarks and a validated LLM judge, applied
+  to the exact deployed configuration, which yields the three findings above
+  (Sections~\ref{sec:methodology}--\ref{sec:latency}).
 \end{itemize}
 
 The system, knowledge-base pipeline, benchmarks, and evaluation harness are
