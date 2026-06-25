@@ -10,9 +10,12 @@ deflection/scope-fix prompt of \S\ref{sec:system-prompt}), and \mbox{+G1+G2}
 (G1 plus a consultation-workflow structure). Every cell uses the deployed
 RAG pipeline (EmbeddingGemma top-3, bundle v0.3.0) and is scored on the two
 open-ended tracks---Kenya vignettes and HealthBench-oss---by the validated
-gpt-oss-120b judge. Table~\ref{tab:matrix} is the result; the same matrix
-under oracle context, which isolates faithfulness, is analysed in
-\S\ref{sec:generator}.
+gpt-oss-120b judge. We score on these open-ended tracks because they match
+the deployment task; multiple-choice is only a control, and there adding RAG
+slightly \emph{lowers} accuracy (53.7\%~$\to$~51.9\% over 23{,}241 items)
+because the maternal corpus is off-topic for broad USMLE-style questions.
+Table~\ref{tab:matrix} is the result; the same matrix under oracle context,
+which isolates faithfulness, is analysed in \S\ref{sec:generator}.
 
 \begin{table}[t]
 \caption{End-to-end matrix (the deployed +RAG configuration): three
@@ -185,16 +188,6 @@ on a request for more clinical substance \emph{without} inventing
 unsupported claims. That reframes the on-device goal: the lever is
 generator-side RAG-grounding---moving the small models toward the Qwen
 corner---not further prompt tuning or retrieval swaps (\S\ref{sec:discussion}).
-
-\subsection{Multiple-choice as a negative control}
-
-On multiple-choice the deployed model shows the opposite of the open-ended
-result: across 23{,}241 MCQ items, adding RAG \emph{lowers} accuracy from
-53.7\% to 51.9\% ($-1.8$ points). This is not a deployment failure but a
-domain mismatch---the maternal/neonatal corpus is off-topic for broad
-USMLE-style questions, so retrieved chunks distract more than they help. It
-confirms that the deployment-relevant signal is the open-ended tracks above,
-where retrieval has on-topic material to contribute, not multiple-choice.
 
 \subsection{Model Size [PENDING -- new experiment]}
 % TODO (results announced 2026-06-25, not yet run): a model-size ablation to
