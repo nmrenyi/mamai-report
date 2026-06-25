@@ -90,13 +90,13 @@ isolation, then latency---and yields three findings that structure the paper:
   context, and in the corpus's coverage and quality for the question at
   hand---not in retrieval itself.
 
-  \item \textbf{The generator is the decisive component, and faithfulness
-  decides which one.} Model choice dominates the results---an unconstrained
-  frontier model far outperforms the on-device options---and among same-size
-  on-device candidates the deciding axis is faithfulness: we deploy the model
+  \item \textbf{The generator matters most, and faithfulness decides which
+  model we deploy.} Model choice dominates the results---an unconstrained
+  frontier model far outperforms the on-device options---and between the two
+  same-size on-device candidates we choose on faithfulness: we deploy the one
   that is as faithful to its sources as the frontier model and about twice as
-  faithful as a more-helpful but unsafe alternative, making deployment a
-  safety-versus-usefulness choice.
+  faithful as the other, more-helpful but less safe, candidate. Deployment is
+  thus a safety-versus-usefulness choice.
 \end{enumerate}
 
 \paragraph{Contributions.}
