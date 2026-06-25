@@ -68,8 +68,10 @@ benchmark separates retrievers; Paper 1 frames it as the evaluation of the
 deployed EmbeddingGemma config against alternatives.
 
 **Knowledge base / corpus (decided 2026-06-25).** The **system paper owns
-the full knowledge-base treatment** — its own section (kept after the
-evaluation, per the webpage order), illustrated like the renyi.ch webpage
+the full knowledge-base treatment** — its own section placed right after
+System Design (so the full system is described before it is evaluated;
+this deviates from the webpage, which put it after the evaluation),
+illustrated like the renyi.ch webpage
 (source-family table, construction pipeline, a sample chunk). The benchmarks
 paper gives only a brief corpus description for context and cross-references
 Paper 1. Source-disclosure posture: neutral surface (name openly-available
