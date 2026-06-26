@@ -248,11 +248,34 @@ and safer---no trade-off along the size axis, unlike the generator
 \emph{choice} of \S\ref{sec:helpful-safe}, where Gemma~3n bought helpfulness at
 a safety cost.
 
-\emph{Precision barely matters at the deployed size.} Dequantising the 4B from
-int4 (Q4\_0) to Q8 to BF16 is flat on Kenya (recall 0.328/0.331/0.320) and
-worth only $+0.017$ on HealthBench---so int4 on-device deployment sacrifices
-almost nothing, and a server would gain far more from a larger model than from
-higher precision.
+\emph{Precision barely matters at the deployed size.} The ladder above holds
+quantization fixed at the deployed int4; a separate ablation that instead
+holds size fixed at 4B and varies precision (Table~\ref{tab:precision}) shows
+that dequantising from int4 (Q4\_0) to Q8 to BF16 is flat on Kenya (recall
+0.328/0.331/0.320) and worth only $+0.017$ on HealthBench---so int4 on-device
+deployment sacrifices almost nothing, and a server would gain far more from a
+larger model than from higher precision.
+
+\begin{table}[t]
+\caption{Quantization ablation at the deployed 4B generator (Gemma~4~E4B, G1
+prompt, no retrieval, same gpt-oss-120b judge): int4 (Q4\_0, the deployed
+weights) vs.\ Q8 vs.\ BF16. Quality is flat across precisions---int4
+sacrifices almost nothing---so on-device deployment loses little to
+quantization, and model capacity matters far more than precision.
+\texttt{w\_met} is the HealthBench-oss \texttt{weighted\_met}.}
+\label{tab:precision}
+\centering
+\small
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+Gemma~4 E4B variant & \makecell{Kenya\\recall $\uparrow$} & \makecell{Harm\\rate $\downarrow$} & \makecell{HB\\\texttt{w\_met} $\uparrow$} \\
+\midrule
+Q4\_0 (int4, deployed) & 0.328 & 0.164 & 0.054 \\
+Q8\_0 & 0.331 & 0.157 & 0.067 \\
+BF16 & 0.320 & 0.154 & 0.071 \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \emph{The prompt is not the lever either---capability decides its sign.} The
 same lesson appears from the prompt side in the matrix
