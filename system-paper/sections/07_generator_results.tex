@@ -198,23 +198,32 @@ failures. A second, \emph{calibrated} estimate corrects for those misses by
 re-judging a 50-answer sample of Lynx-PASS cases per arm with gpt-5 and
 extrapolating the miss rate across the $\sim$2{,}800 PASS answers. Because it
 multiplies a 50-sample rate across the whole population, it is noisy, with wide
-confidence intervals---we report the categorized rate, not this one. One
-calibrated number is worth flagging precisely because it looks alarming out of
-context: Gemma~4~+G1+G2 calibrates to $53.9\%$, far above its neighbours. This
-is a measurement artifact---an effect of how the rate is estimated---not a real
-drop in how faithfully the model grounds its answers. Three things stack up.
-The G1+G2 consultation template makes answers $\sim$60\% longer (median
-$1{,}193$ vs.\ $742$ characters); the calibration rubric judges strictly
-against the \emph{narrow} top-3 context only, so clinically-sound elaboration
-that is correct but simply absent from those three passages is counted as an
-``unsupported addition''; and the estimate then scales one unusually strict
-50-answer sample across the whole $\sim$2{,}800-answer population. The number
-therefore reflects long answers exceeding a deliberately narrow context, not
-Gemma~4 inventing false claims at scale: the full-population
+confidence intervals---we report the categorized rate, not this one.
+
+One calibrated number is worth flagging precisely because it looks alarming out
+of context: Gemma~4~+G1+G2 calibrates to $53.9\%$, far above its neighbours.
+This is a \emph{measurement} artifact---an effect of how the rate is
+estimated---not a real drop in how faithfully the model grounds its answers.
+Three things stack up:
+\begin{itemize}\setlength{\itemsep}{2pt}
+  \item \textbf{Longer answers.} The G1+G2 consultation template makes answers
+  $\sim$60\% longer (median $1{,}193$ vs.\ $742$ characters), giving more
+  surface to exceed the context.
+  \item \textbf{A deliberately narrow yardstick.} The calibration rubric judges
+  strictly against the top-3 context only, so clinically-sound elaboration that
+  is correct but simply absent from those three passages is counted as an
+  ``unsupported addition.''
+  \item \textbf{A small sample, amplified.} The estimate scales one unusually
+  strict 50-answer draw across the whole $\sim$2{,}800-answer population.
+\end{itemize}
+The number therefore reflects long answers exceeding a deliberately narrow
+context, not Gemma~4 inventing false claims at scale: the full-population
 \emph{categorized} rate for that same cell is $3.55\%$---still second-lowest in
-the matrix. The calibrated column does corroborate the two qualitative facts
-above (Gemma~3n $>$ Gemma~4 at every arm; prompts push the rate up), but only
-with wider error bars; its magnitude is not reliable, and we do not lean on it.
+the matrix.
+
+The calibrated column does corroborate the two qualitative facts above
+(Gemma~3n $>$ Gemma~4 at every arm; prompts push the rate up), but only with
+wider error bars; its magnitude is not reliable, and we do not lean on it.
 
 \subsection{Implication: faithfulness is a generator property}
 \label{sec:faith-implication}
