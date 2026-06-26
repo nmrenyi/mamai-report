@@ -1,28 +1,42 @@
 \section{Limitations}
 \label{sec:limitations}
 
-% Mirror the webpage's honest limitations list; this is a thoroughly-
-% evaluated research prototype, not a deployed product.
-% - No user testing yet: a funding lag meant the planned field test with
-%   nurse-midwives did not happen this cycle; no real-world point-of-care
-%   data. Pre-deployment.
-% - Not fully clinician-verified: shaped by clinician input (the deflection
-%   fix came from it) but clinical correctness is not fully verified; the
-%   evaluation relies on LLM judges, not a human gold standard.
-% - English only: the deployment context (Zanzibar/Tanzania) is Swahili-
-%   speaking, but the system, knowledge base, and evaluation are English-
-%   only (the earlier Swahili prompt was withdrawn as unvalidated). A real
-%   deployment gap.
-% - RAG does not yet pay off on the small generator: better retrieval does
-%   not reach the answers, and added context is net-neutral-to-negative.
-%   Teaching the generator to use context (generator-side grounding) is the
-%   central open problem, not a solved one.
-% - Latency on a single flagship device (Snapdragon 8 Elite); the cheaper
-%   MediaTek phones that dominate the target market are untested and will be
-%   slower; battery drain and sustained thermal throttling not yet profiled.
-% - Corpus coverage: the corpus was not expanded this cycle; licensing
-%   limits some high-value textbooks.
-% - Contamination caveat: MedMCQA / MedQA-USMLE likely in pretraining (MCQ is
-%   a negative control here, not a headline).
-% - Benchmark caveats (LLM-written queries flatter dense retrievers; single
-%   judge) are detailed in the companion paper [cite paper2].
+MAM-AI is a thoroughly evaluated research prototype, not a fielded product: all
+our evidence is benchmark behaviour scored by LLM judges, and several gaps bound
+what that evidence can claim.
+
+\begin{itemize}\setlength{\itemsep}{3pt}
+  \item \textbf{No field test, and no real users.} A lag in project funding
+  meant the planned study with Zanzibar nurse-midwives could not proceed this
+  cycle, so there is no point-of-care data on how the system performs in real
+  clinical use.
+
+  \item \textbf{Not clinician-verified.} Clinical correctness is not
+  established by humans: every quality, safety, and faithfulness number comes
+  from LLM judges---calibrated against physicians (\S\ref{sec:judge}) but not a
+  gold standard---and even the dangerous-answer determinations are
+  model-generated, awaiting review by qualified clinicians.
+
+  \item \textbf{English only.} The system, knowledge base, and evaluation are
+  entirely in English, while the deployment setting is Swahili-speaking and the
+  bilingual prompt was withdrawn as unvalidated (\S\ref{sec:system-prompt});
+  Swahili support remains an open deployment gap.
+
+  \item \textbf{Retrieval does not yet improve answers.} On the small on-device
+  generator, better retrieval does not reach the answers and added context is
+  net-neutral-to-negative (\S\ref{sec:retrieval-results}); we retain retrieval
+  for traceability and per-query specificity, not for average quality, and
+  closing this gap---generator-side grounding---is unsolved
+  (\S\ref{sec:discussion}).
+
+  \item \textbf{Latency measured on a single device.} All timings come from one
+  flagship (Snapdragon~8 Elite); the lower-cost MediaTek hardware likely used in
+  the field is untested and will be slower---possibly past budget on the shipped
+  CPU path---and battery drain and sustained thermal throttling on a warm ward
+  are not yet profiled (\S\ref{sec:latency-pending}).
+
+  \item \textbf{Corpus coverage and quality.} The corpus was not expanded this
+  cycle, so coverage gaps remain; it contains internal contradictions between
+  sources (\S\ref{sec:discussion}); and licensing limits some high-value
+  reference texts.
+\end{itemize}
