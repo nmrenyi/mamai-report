@@ -252,14 +252,32 @@ none (deployed) & 0.485 & 0.269 & 0.125 & $-0.004$ & 0.173 & 0.371 \\
 \end{tabular}
 \end{table}
 
-\subsection{It is not the corpus}
+\subsection{The corpus is mostly, not wholly, sufficient}
 \label{sec:retr-corpus}
 
-Nor is the corpus the gap. A coverage audit finds a relevant chunk present
-for $\sim$96\% of Kenya queries at the lenient bar and $\sim$89\% at the
-strict bar; only $\sim$11\% are genuinely absent. The chain
-retrieval~$\to$~corpus is therefore intact, and the answer breaks at the last
-step---the generator's use of what it is handed.
+Nor is the corpus the \emph{primary} gap. A coverage audit pooling the top-20
+of all seven retrievers---their union, so a test of corpus reachability rather
+than of any single retriever---finds a relevant chunk present for $96.5\%$ of
+Kenya queries at the lenient bar and $89.4\%$ at the strict bar; only $10.6\%$
+are genuinely absent from the corpus. For most queries, then, a complete
+answer is both in the corpus and retrievable, and the break is at the last
+step---the generator's use of what it is handed. This is the prompt- and
+retriever-independent counterpart to the bake-off and the faithfulness
+analysis (\S\ref{sec:generator}): the binding constraint is the generator.
+
+Two corpus limits nonetheless remain, as genuine but secondary constraints.
+First, the $10.6\%$ of queries with no relevant chunk anywhere are unreachable
+by any retriever or generator---a hard content gap that only corpus expansion
+can close. Second, even when a relevant chunk is present its quality is often
+modest: the deployed retriever's top-3 carries a mean relevance grade of just
+$2.13/6$ (Gecko $1.44/6$), so the corpus tends to supply topical rather than
+complete-and-specific support for these nurse-written vignettes. An earlier
+reading took this low absolute relevance (mean grade $1.49/6$) as evidence
+that the corpus was itself the deeper bottleneck; the union audit reframes
+it---the content is mostly reachable at depth-20, so the low top-3 grade
+reflects ranking and depth, not absence. Corpus expansion therefore stays a
+worthwhile but lower-priority lever (\S\ref{sec:discussion}), behind closing
+the generator's grounding gap.
 
 \subsection{No usable confidence gate}
 \label{sec:retr-gate}
@@ -349,7 +367,7 @@ the retrieval score.
 \medskip
 Every retrieval lever points the same way. The deployed retriever is strong
 and competes with the cloud; a better embedder and a fine-tuned reranker both
-win offline; the corpus covers the questions; and no confidence gate can
+win offline; the corpus covers most questions; and no confidence gate can
 sidestep the bad cases---yet end-to-end answers do not move. The binding
 constraint is the small on-device generator's ability to turn retrieved
 context into better answers, which we examine directly next
