@@ -82,14 +82,16 @@ isolation, then latency---and yields three findings that structure the paper:
   questions; a redesigned prompt cut that to roughly 3\% and about doubled the
   correct guidance that answers carry, with no increase in unsafe answers.
 
-  \item \textbf{On-device retrieval is strong, but it does not reach the
-  answers.} A 300M on-device embedder retrieves nearly as well as cloud
+  \item \textbf{On-device retrieval is strong, but \emph{ranking} is not the
+  lever.} A 300M on-device embedder retrieves nearly as well as cloud
   systems---third of seven retrievers, within a few points of the best---yet
   adding its context to the small generator is net-neutral to slightly
-  negative, and neither a better embedder nor a fine-tuned reranker changes
-  that. The bottleneck lies downstream of ranking: in how well the small
-  generator uses retrieved context---not in retrieval itself, and not (as a
-  coverage audit confirms) in the corpus.
+  negative on average, and neither a better embedder nor a fine-tuned reranker
+  changes that. Two things do govern answer quality: how well the small
+  generator uses the context it is handed, and---decisively, per query---the
+  coverage, specificity, and curation of the corpus, since a small faithful
+  model is only as good as the chunk it receives. The remaining headroom is in
+  the generator and the corpus, not in re-ranking.
 
   \item \textbf{The generator matters most, and faithfulness decides which
   model we deploy.} Model capability dominates the results: a size ladder shows
