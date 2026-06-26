@@ -80,11 +80,12 @@ isolation, then latency---and yields three findings that structure the paper:
   \item \textbf{A redesigned system prompt is a major lever on answer
   quality.} The base model deflected (``see a doctor'') on about a third of
   questions; a redesigned prompt cut that to roughly 3\% and about doubled the
-  correct guidance that answers carry, with no increase in unsafe answers.
+  correct guidance that answers carry, with almost no increase in unsafe
+  answers and no genuine dangerous ones.
 
   \item \textbf{On-device retrieval is strong, but \emph{ranking} is not the
   lever.} A 300M on-device embedder retrieves nearly as well as cloud
-  systems---third of seven retrievers, within a few points of the best---yet
+  systems---third of seven retrievers, single-digit points behind the best---yet
   adding its context to the small generator is net-neutral to slightly
   negative on average, and neither a better embedder nor a fine-tuned reranker
   changes that. Two things do govern answer quality: how well the small
