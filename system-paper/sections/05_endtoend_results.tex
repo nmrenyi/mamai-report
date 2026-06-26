@@ -176,20 +176,7 @@ Opus~4.8). The author does not have the clinical expertise to independently
 confirm them, so they should be read as model-generated assessments awaiting
 review by qualified clinicians (\S\ref{sec:limitations}).
 
-\subsection{The capability ceiling: the lever is grounding, not the prompt}
-
-The Qwen-397B row shows what the same prompt does as capability rises. The
-identical +G1+G2 prompt \emph{hurts} Gemma~3n (dangerous $4\to15$), is
-\emph{neutral} on Gemma~4 ($0\to0$), and is \emph{pure upside} on Qwen---the
-best cell in the matrix on every axis at once: recall climbs from 0.295 to
-0.553, potentially-harmful falls to 4.2\%, and dangerous stays at zero. The
-prompts were never the problem; what varies is whether the generator can act
-on a request for more clinical substance \emph{without} inventing
-unsupported claims. That reframes the on-device goal: the lever is
-generator-side RAG-grounding---moving the small models toward the Qwen
-corner---not further prompt tuning or retrieval swaps (\S\ref{sec:discussion}).
-
-\subsection{Model size is the dominant lever---up to a point}
+\subsection{Generator capability is the dominant lever---up to a point}
 \label{sec:model-size}
 
 To test directly whether generator \emph{capability}---not the prompt, not
@@ -267,9 +254,20 @@ worth only $+0.017$ on HealthBench---so int4 on-device deployment sacrifices
 almost nothing, and a server would gain far more from a larger model than from
 higher precision.
 
-Together these sharpen finding~3: the binding lever is generator capability.
-The deployed 4B-int4 is a safe floor; the single biggest available upgrade is
-a $\sim$30B server-class model ($\sim$5$\times$ HealthBench, $+0.14$ Kenya
-recall, harm halved), with little reason to go past it. On-device, neither
-higher precision nor---as \S\ref{sec:retrieval-results} shows---a better
-embedder moves open-ended quality much.
+\emph{The prompt is not the lever either---capability decides its sign.} The
+same lesson appears from the prompt side in the matrix
+(Table~\ref{tab:matrix}): the identical +G1+G2 prompt \emph{hurts} Gemma~3n
+(dangerous $4\to15$), is \emph{neutral} on Gemma~4 ($0\to0$), and is
+\emph{pure upside} on Qwen-397B---the best cell on every axis at once (recall
+$0.295\to0.553$, potentially-harmful down to 4.2\%, dangerous at zero). What
+varies is not the prompt but whether the generator can act on a request for
+more clinical substance \emph{without} inventing unsupported claims.
+
+Together these sharpen finding~3: the binding lever is generator capability,
+not the prompt, the quantization precision, or the retriever. The deployed
+4B-int4 is a safe floor; the single biggest available upgrade is a $\sim$30B
+server-class model ($\sim$5$\times$ HealthBench, $+0.14$ Kenya recall, harm
+halved), with little reason to go past it. On-device, where a larger model is
+not an option, the lever is therefore generator-side RAG-grounding---moving
+the small model toward the Qwen corner---rather than further prompt tuning,
+higher precision, or retrieval swaps (\S\ref{sec:discussion}).
