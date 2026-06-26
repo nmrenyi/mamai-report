@@ -114,18 +114,18 @@ HealthBench stay flat (Figure~\ref{fig:retr-converts}).
   symbolic x coords={no-RAG, Gecko, Emb.Gemma, +MiniLM, +mxbai},
   xtick=data, enlarge x limits=0.13,
   tick label style={font=\footnotesize}, label style={font=\footnotesize},
-  grid=both, grid style={black!8}, area legend,
+  grid=both, grid style={black!8},
   title style={font=\footnotesize\bfseries, yshift=-1ex},
 ]
 % --- Panel a: offline retrieval quality ---
-\nextgroupplot[ybar, bar width=5.5pt, title={Offline retrieval quality}, ylabel={precision@3},
+\nextgroupplot[ybar, bar width=5.5pt, area legend, title={Offline retrieval quality}, ylabel={precision@3},
   ymin=0, ymax=0.88, ytick={0,0.2,0.4,0.6,0.8}]
   \addplot[fill=mamteal!80, draw=mamteal!60] coordinates {
     (no-RAG,0)(Gecko,0.485)(Emb.Gemma,0.784)(+MiniLM,0.720)(+mxbai,0.794)}; \label{p:bench}
   \addplot[fill=mamteal!28, draw=mamteal!45] coordinates {
     (no-RAG,0)(Gecko,0.270)(Emb.Gemma,0.396)(+MiniLM,0.244)(+mxbai,0.279)}; \label{p:kenyap}
 % --- Panel b: end-to-end answers ---
-\nextgroupplot[ybar, bar width=4pt, title={End-to-end answers}, ylabel={answer score},
+\nextgroupplot[ybar, bar width=4pt, area legend, title={End-to-end answers}, ylabel={answer score},
   ymin=-0.04, ymax=0.42, ytick={0,0.1,0.2,0.3,0.4}]
   \addplot[fill=mamamber!88, draw=mamamber!70] coordinates {
     (no-RAG,0.178)(Gecko,0.125)(Emb.Gemma,0.126)(+MiniLM,0.118)(+mxbai,0.125)}; \label{p:recall}
