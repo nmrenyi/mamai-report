@@ -7,9 +7,13 @@ suspect---a 300M embedder on a phone against cloud systems---yet on-device
 retrieval is essentially solved (\S\ref{sec:retrieval-results}): EmbeddingGemma
 ranks third of seven and the corpus holds a relevant passage for the large
 majority of queries. The weak link is downstream, where it is least expected:
-the small generator does not turn good retrieval into better answers. This
-section traces that finding to its causes, lays out the levers that follow, and
-draws the deployment lessons.
+the small generator does not turn good retrieval into better answers. That we
+can place the weak link there at all is a consequence of the evaluation design:
+isolating the generator under oracle context, apart from live retrieval
+(\S\ref{sec:generator}), separates a retrieval problem from a generation one,
+where an end-to-end score alone would have blamed the retriever. This section
+traces the finding to its causes, lays out the levers that follow, and draws out
+what it means for deployment.
 
 \subsection{The bottleneck has moved from retrieval to grounding}
 
@@ -179,15 +183,3 @@ validation on the lower-cost hardware of the field, and above all a study with
 nurse-midwives in place of LLM-judge proxies---which we treat as limitations
 (\S\ref{sec:limitations}) rather than open research questions.
 
-\subsection{Lessons for low-resource clinical deployment}
-
-Three takeaways generalise. First, \emph{method}: evaluating the generator under
-oracle context, separately from live retrieval, is what localised the
-bottleneck; an end-to-end score alone would have blamed the retriever, exactly
-the wrong target. Second, \emph{feasibility}: a fully offline, source-cited
-medical assistant runs on commodity Android hardware today---the binding
-constraints are memory and generation-grounding, not on-device retrieval, which
-is solved. Third, \emph{honesty}: MAM-AI is a thoroughly evaluated research
-prototype, not a fielded product, and the distance between strong benchmark
-behaviour and safe clinical use is precisely what the open questions above mark
-out.
