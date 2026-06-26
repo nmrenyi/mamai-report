@@ -241,9 +241,12 @@ is the deciding evidence behind deploying Gemma~4: it is the candidate that is
 as faithful as a frontier model while remaining small enough to run on the
 phone.
 
-The deficit is structural. No prompt in this study closes Gemma~3n's gap;
-\mbox{+G1}/\mbox{+G2} modestly widen it, and the gap is roughly $4\times$ the
-prompt effect. So the path to a more faithful---and therefore safely more
+The deficit is structural. No prompt in this study brings Gemma~3n's
+faithfulness up to Gemma~4's: the two deflection-fix prompts in fact nudge
+3n's hallucination rate slightly higher ($6.26\to6.72\%$), so they
+\emph{widen} the gap between the two models rather than close it. That
+model-to-model gap ($\sim$3.5 points) is roughly $4\times$ the most any prompt
+shifts the rate within a single model. So the path to a more faithful---and therefore safely more
 helpful---on-device model is generator-side work: RAG-grounding or fine-tuning
 the generator to use only what it retrieves, not further prompt engineering or
 retrieval swaps. This is the same lever the size ladder
