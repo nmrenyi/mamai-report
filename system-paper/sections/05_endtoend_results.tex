@@ -254,13 +254,16 @@ and safer---no trade-off along the size axis, unlike the generator
 \emph{choice} of \S\ref{sec:helpful-safe}, where Gemma~3n bought helpfulness at
 a safety cost.
 
-\emph{Precision barely matters at the deployed size.} The ladder above holds
-quantization fixed at the deployed int4; a separate ablation that instead
-holds size fixed at 4B and varies precision (Table~\ref{tab:precision}) shows
-that dequantising from int4 (Q4\_0) to Q8 to BF16 is flat on Kenya (recall
-0.328/0.331/0.320) and worth only $+0.017$ on HealthBench---so int4 on-device
-deployment sacrifices almost nothing, and a server would gain far more from a
-larger model than from higher precision.
+\emph{Precision barely matters at the deployed size.} The ladder runs each
+model at a deployment-realistic precision---int4 (Q4\_0) for the on-device
+2--4B rungs, bf16 or FP8 for the larger server-class rungs---so reading it as
+a clean \emph{size} comparison requires precision itself to be a minor factor.
+A separate ablation at fixed 4B confirms it (Table~\ref{tab:precision}):
+dequantising from int4 (Q4\_0) to Q8 to BF16 is flat on Kenya (recall
+0.328/0.331/0.320) and worth only $+0.017$ on HealthBench. So int4 on-device
+deployment sacrifices almost nothing, the ladder's size effect is not an
+artefact of the small models being more aggressively quantized, and a server
+gains far more from a larger model than from higher precision.
 
 \begin{table}[t]
 \caption{Quantization ablation at the deployed 4B generator (Gemma~4~E4B, G1
