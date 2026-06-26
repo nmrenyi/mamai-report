@@ -12,10 +12,12 @@ what that evidence can claim.
   clinical use.
 
   \item \textbf{Not clinician-verified.} Clinical correctness is not
-  established by humans: every quality, safety, and faithfulness number comes
-  from LLM judges---calibrated against physicians (\S\ref{sec:judge}) but not a
-  gold standard---and even the dangerous-answer determinations are
-  model-generated, awaiting review by qualified clinicians.
+  established by humans. Every quality, safety, and faithfulness number comes
+  from LLM judges; the rubric judge's agreement with physicians was measured
+  only on a third-party benchmark's physician-labelled data (HealthBench,
+  \S\ref{sec:judge}), not on clinicians reviewing MAM-AI's own answers. The
+  dangerous-answer determinations are likewise model-generated, awaiting review
+  by qualified clinicians.
 
   \item \textbf{English only.} The system, knowledge base, and evaluation are
   entirely in English, while the deployment setting is Swahili-speaking and the
