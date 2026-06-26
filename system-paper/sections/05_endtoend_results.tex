@@ -225,10 +225,14 @@ stand out.
     (2,0.370)(4,0.371)(26.5,0.337)(27.8,0.336)(32.7,0.323)(36,0.335)(125,0.352)(397,0.330)};
   \label{p:pen}
 \end{groupplot}
-% single shared legend row, centred below both panels
-\node[anchor=north, font=\scriptsize, yshift=-0.3cm] at (current bounding box.south)
-  {\ref{p:recall}~key-fact recall\quad\ref{p:harm}~harm rate\quad
-   \ref{p:pos}~Positive\quad\ref{p:wmet}~weighted\_met\quad\ref{p:pen}~Penalty};
+% two boxed legend groups (Kenya | HealthBench), centred as a pair below both panels
+\node[anchor=north, font=\scriptsize, inner sep=0pt, yshift=-0.32cm]
+  at (current bounding box.south) {%
+  \setlength{\fboxsep}{3pt}\setlength{\fboxrule}{0.4pt}%
+  \fcolorbox{black!30}{white}{\textbf{Kenya:}\enspace\ref{p:recall}~key-fact recall\enspace\ref{p:harm}~harm rate}%
+  \enspace
+  \fcolorbox{black!30}{white}{\textbf{HealthBench:}\enspace\ref{p:pos}~Positive\enspace\ref{p:wmet}~weighted\_met\enspace\ref{p:pen}~Penalty}%
+};
 \end{tikzpicture}
 \caption{Generator size is the dominant lever, up to $\sim$30B (deployed G1
 prompt, \emph{no} retrieval; same gpt-oss-120b judge; dotted line = deployed
