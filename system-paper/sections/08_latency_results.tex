@@ -275,7 +275,11 @@ E4B needs a \textbf{6\,GB-RAM} phone and E2B a \textbf{4\,GB} one. Storage is
 secondary but real: the install is the $\sim$193\,MB app, the $3.66$\,GB E4B
 weights ($2.59$\,GB for E2B), and the $\sim$260\,MB knowledge base (embedder
 plus the $63{,}650$-passage index), so $\sim$6\,GB free for E4B and $\sim$5\,GB
-for E2B, downloaded once over Wi-Fi and then fully offline.
+for E2B. These assets are obtained once---downloaded over Wi-Fi or
+\emph{sideloaded} onto the device directly (USB or memory card), which needs no
+connectivity at all---after which the system runs fully offline. Sideloading
+matters for the deployment setting: it lets the install reach a low-connectivity
+site without ever requiring each device to pull $\sim$4\,GB over the network.
 
 \paragraph{GPU availability.} The $\sim$19\,s deployed number assumes a working
 GPU, and LiteRT-LM's OpenCL backend is reliable \emph{only} on Qualcomm Adreno.
