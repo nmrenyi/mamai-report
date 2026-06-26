@@ -303,6 +303,8 @@ not the prompt, the quantization precision, or the retriever. The deployed
 4B-int4 is a safe floor; the single biggest available upgrade is a $\sim$30B
 server-class model ($\sim$5$\times$ HealthBench, $+0.14$ Kenya recall, harm
 halved), with little reason to go past it. On-device, where a larger model is
-not an option, the lever is therefore generator-side RAG-grounding---moving
-the small model toward the Qwen corner---rather than further prompt tuning,
-higher precision, or retrieval swaps (\S\ref{sec:discussion}).
+not an option, the remaining lever is therefore generator-side
+RAG-grounding: fine-tuning the small model to do what only the frontier model
+currently does---give specific clinical guidance while keeping every claim
+grounded in its retrieved sources---rather than further prompt tuning, higher
+precision, or retrieval swaps (\S\ref{sec:discussion}).
