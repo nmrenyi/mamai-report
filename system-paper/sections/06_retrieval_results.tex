@@ -80,12 +80,10 @@ weighted variants (wHR, wP) track the same ordering (see text).}
 \label{fig:retrievers}
 \end{figure}
 
-The deployed retriever lands in the top tier---third of seven, between two
-cloud embedders, within $\sim$8 points of precision of the best (voyage). A
-300M model running on the phone competes with cloud retrieval, and it
-improves on the earlier on-device Gecko by $+30.7$ points of lenient
-precision (0.784 vs.\ 0.477), closing essentially the whole on-device gap.
-The threshold-free weighted precision tells the same story (EmbeddingGemma
+A 300M model running on the phone competes with cloud retrieval: the deployed
+EmbeddingGemma improves on the earlier on-device Gecko by $+30.7$ points of
+lenient precision (0.784 vs.\ 0.477), closing essentially the whole on-device
+gap. The threshold-free weighted precision tells the same story (EmbeddingGemma
 $\text{wP}=0.619$ vs.\ Gecko $0.393$, voyage $0.682$), as do both Hit-Rate
 variants. One honest caveat is in Hit Rate at the strict bar, not in
 precision: even the best retriever carries a complete, specific ($\ge5$)
@@ -183,18 +181,21 @@ against multi-billion-parameter Qwen3-Reranker references and fine-tuned two
 of them in-domain on 158{,}993 judge-graded (query, chunk) pairs
 (\emph{fine-tuning, not size, was the lever}: the 23M MiniLM-L6 beats an
 $8\times$-larger zero-shot model and ships int8 on-device). Both lift
-\emph{benchmark} precision sharply, from 0.485 to 0.72--0.79---yet the gain
-does not transfer: on the Kenya queries retrieval precision moves only to
+\emph{benchmark} precision sharply, from 0.485 to 0.72--0.79%
+\footnote{The reranker arms are scored on the reranker study's held-out split,
+where the Gecko first stage scores 0.485; on the full mamaretrieval set
+(Figure~\ref{fig:retrievers}) Gecko scores 0.477. Both are lenient P@3 and the
+gap is within noise.}---yet the gain does not transfer: on the Kenya queries retrieval precision moves only to
 0.24--0.28 and key-fact recall stays at 0.12 (net HealthBench $\approx0$). The lesson is methodological: retriever
 changes must be validated on the deployment queries, not the benchmark alone,
 and we ship no reranker.
 
 Why do the retrieval gains not convert? The information is not missing:
-precision rises, so it is retrieved; the corpus holds it
+precision rises, so it is retrieved; the corpus usually holds it
 (\S\ref{sec:retr-corpus}); and it cannot be gated away
-(\S\ref{sec:retr-gate}). The break is downstream, in the small generator's
-response behaviour---which the prompt matrix (\S\ref{sec:endtoend}) already
-exposed and better context does not change. It declines to engage, or engages
+(\S\ref{sec:retr-gate}). On average, then, the break is downstream, in the
+small generator's response behaviour---which the prompt matrix
+(\S\ref{sec:endtoend}) already exposed and better context does not change. It declines to engage, or engages
 without committing to specific guidance (``see a doctor''); for such answers,
 no improvement in the retrieved chunk can raise key-fact recall. (A subtler,
 metric-level contributor: retrieval precision rewards \emph{topical}
@@ -371,9 +372,8 @@ Each bar is the AUC of an EmbeddingGemma cosine statistic at separating
 relevant ($\ge3$) from irrelevant Kenya chunks ($n=6{,}228$ judged top-20
 pairs)---the chance it ranks a relevant chunk above an irrelevant one, where
 $1.0$ is perfect and $0.5$ is a coin flip. All four fall below the
-conventional $0.80$ viability bar, and the relative-margin rule is near chance. These are pure retrieval-relevance
-metrics, independent of the generator and prompt; the same four statistics
-left the earlier Gecko retriever ungateable too.}
+conventional $0.80$ viability bar, the relative-margin rule near chance; the
+same statistics left the earlier Gecko retriever ungateable too.}
 \label{fig:gate-auc}
 \end{figure}
 
@@ -431,15 +431,13 @@ retrieval score.
 % (fig:gate-auc) are prompt/generator-independent and need no re-run.
 
 \medskip
-The retrieval picture, then, has two levers, not one. The deployed retriever
-is strong and competes with the cloud; a better embedder and a fine-tuned
-reranker both win offline yet move no \emph{average} answer; and no confidence
-gate can sidestep the bad cases. What does move answers is, on average, the
-small on-device generator's ability to turn retrieved context into better
-answers (\S\ref{sec:generator})---and, per query, the coverage, specificity,
-and curation of the corpus itself (\S\ref{sec:retr-corpus}), because a faithful
-small model can only be as good as the chunk it is handed---which in turn
-depends on how the query is phrased. The remedies---grounding the generator,
-improving the corpus, and rewriting the query so a nurse's wording reaches the
-right chunk---are complementary, and we take them up in the discussion
-(\S\ref{sec:discussion}).
+Retrieval, then, is not the bottleneck---but neither is it a single lever. The
+deployed retriever is strong; a better embedder and a fine-tuned reranker win
+offline yet move no \emph{average} answer; and no confidence gate can salvage
+the weak cases. What moves answers is, on average, the small generator's
+ability to use the context it is handed (\S\ref{sec:generator}) and, per query,
+the coverage, specificity, and curation of the corpus
+(\S\ref{sec:retr-corpus})---since a faithful small model is only as good as the
+chunk it receives, and that chunk depends on how the query is phrased.
+Grounding the generator, improving the corpus, and rewriting the query are
+complementary remedies, taken up in the discussion (\S\ref{sec:discussion}).
