@@ -145,15 +145,18 @@ and the CPU has far less of it, while CPU \emph{generation} stays flat like the
 GPU's. This is what makes the GPU/CPU split, not the retrieval depth, the
 decisive latency variable.
 
-\paragraph{The smaller generator unlocks the no-GPU tier.} Halving the
-generator to E2B gives a consistent $\sim$2.3$\times$ prefill speedup and
-$\sim$1.5$\times$ (GPU) to $\sim$2$\times$ (CPU) total speedup---enough that
-\emph{E2B on CPU} ($\sim$14--37\,s across $k\le15$) fits the budget at every
-depth, where E4B on CPU did not. The decode speedup is smaller than the
-parameter-count cut because GPU decode is memory-bandwidth-bound rather than
-compute-bound, so a smaller model helps less than its size suggests; prefill,
-which is compute-bound, tracks the cut closely. The practical consequence is in
-\S\ref{sec:devices}: E2B is the path onto phones without a reliable GPU.
+\paragraph{The smaller generator opens the low-cost device tier.} The unlock
+from halving the generator to E2B is \emph{memory}, not speed. At the deployed
+$k=3$, even E4B on CPU ($\sim$43\,s on our flagship) fits the 60\,s budget, so a
+missing GPU does not by itself rule out the deployed model. What rules it out is
+RAM: E2B halves the runtime footprint ($\sim$3.3 to $\sim$1.7\,GB), dropping the
+device floor from 6\,GB to 4\,GB and reaching the cheaper phones that cannot
+load E4B at all (\S\ref{sec:devices}). E2B is also faster---$\sim$2.3$\times$ on
+prefill and $\sim$1.5$\times$ (GPU) to $\sim$2$\times$ (CPU) on total, the
+decode gain smaller because GPU decode is memory-bandwidth- rather than
+compute-bound---which buys latency headroom on the slower mid-tier CPUs where
+E4B could exceed budget, though that hardware is not yet measured
+(\S\ref{sec:latency-pending}).
 
 \subsection{The FP16-GPU context wall}
 \label{sec:context-wall}
