@@ -1,41 +1,251 @@
 \section{On-Device Latency}
 \label{sec:latency}
 
-% Source: mamai/evaluation/reports/latency_report_v2.md (2026-05-17) and
-% maxnumtoken_investigation.md. All measurements on real Android hardware
-% (Snapdragon 8 Elite / OnePlus); battery, sustained thermal, and
-% Zanzibar-representative MediaTek hardware are pending -- disclose the
-% single-device scope.
+The preceding sections establish that the system answers \emph{well}; this one
+establishes that it answers \emph{fast enough}, on the phone, with no network.
+At the deployed configuration---Gemma~4~E4B on the GPU, top-3 retrieval---a
+full answer returns in a median of \textbf{$\sim$19\,s}, with the first token
+in $\sim$1\,s and generation at $\sim$13~tokens/s, entirely offline. That is
+inside the field budget we set ourselves (a query should resolve well under a
+minute) with room to spare. The rest of this section traces where the time
+goes, surfaces one precision bug that bounds how much context we can admit, and
+maps which phones can run the system at all---the binding deployment
+constraint, it turns out, is not speed but memory and GPU availability on the
+low-cost hardware that dominates the target market.
 
-\subsection{Methodology}
-% 54 runs per model x backend x k configuration (18 query types x 3
-% repeats), 10 s thermal cooldown between runs; k in {0,1,3,5,7,10,15,20};
-% artifact fingerprints (SHA-256) recorded for reproducibility.
+\subsection{Setup}
+\label{sec:latency-setup}
 
-\subsection{End-to-End Latency by Backend and Retrieval Depth}
-% E4B: GPU 13--25 s (k <= 15), CPU 28--90 s -- GPU 2--3.5x faster.
-% E2B: GPU 8--18 s, CPU 13--40 s.
-% At the deployed configuration (E4B, k=3): GPU ~19 s, CPU ~43 s median.
-% E2B as the sub-$120-device option (4 GB RAM floor) -- quality
-% comparison pending.
+All numbers are measured on real hardware: an OnePlus tablet (Snapdragon~8
+Elite, 16\,GB RAM, Android~15) running LiteRT-LM 0.11.0. We sweep three axes
+that matter for deployment---generator size (Gemma~4 E4B vs the smaller E2B),
+compute backend (GPU via OpenCL on the Adreno; CPU via XNNPACK), and retrieval
+depth $k\in\{0,1,3,5,7,10,15,20\}$---and time every cell over 18 query types
+$\times$ 3 repeats ($54$ runs), with a 10\,s cooldown between runs for thermal
+stability. We separate three quantities: \emph{time-to-first-token} (TTFT, the
+prefill pass over the prompt, excluding retrieval), \emph{decode} (first to
+last generated token), and \emph{total query} (retrieval $+$ TTFT $+$ decode,
+what the user waits). Each benchmark records the SHA-256 fingerprint of the
+loaded model artifact so a reviewer can verify which weights produced which
+timing. The deployed embedder changed after this sweep (Gecko~$\to$
+EmbeddingGemma; \S\ref{sec:system-design}), but that affects only the retrieval
+term, which is excluded from TTFT and is sub-second next to generation; the
+generator---which dominates the total---is unchanged, so the timings below
+stand.
 
-\subsection{The FP16-GPU Context Wall}
-% Deterministic decode failure (asterisk repetition loop) at ~5,000
-% total context tokens on FP16 GPU attention; root-caused to precision
-% asymmetry between GPU and CPU paths, not a model-artifact defect.
-% FP32-GPU fallback verified clean past 5,000 tokens at ~25% TTFT cost.
-% Deployment ceiling set to 4,096 tokens (~900-token safety margin).
-% Give this finding space -- it is novel and load-bearing for anyone
-% deploying LiteRT-LM-class runtimes at longer contexts.
+\subsection{Latency by backend and retrieval depth}
+\label{sec:latency-sweep}
 
-\subsection{Device Compatibility and Market Mapping}
-% Hardware floors: E4B 6 GB RAM / E2B 4 GB RAM; arm64 2022+ chipsets.
-% Market tiers (sub-$100 E2B-only ... $250+ E4B optimal). Validated on
-% Adreno (Snapdragon) only; MediaTek/Mali GPU reliability unmeasured --
-% the relevant gap for Zanzibar-representative hardware.
+Figure~\ref{fig:latency-k} is the headline. Three things stand out.
 
-\subsection{Pending Measurements}
-% [pending] Battery drain per session; sustained-load thermal
-% throttling profile; multi-device comparison on a Zanzibar-
-% representative MediaTek device (procurement pending). Scope these as
-% future revisions rather than holding the report.
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+  width=\columnwidth, height=5.6cm,
+  xlabel={Retrieval depth $k$ (passages in context)},
+  ylabel={Median total query (s)},
+  xmin=-0.6, xmax=15.6, ymin=0, ymax=92,
+  xtick={0,1,3,5,7,10,15}, xticklabels={0,1,3,5,7,10,15},
+  ytick={0,20,40,60,80},
+  grid=both, grid style={black!8},
+  tick label style={font=\footnotesize}, label style={font=\footnotesize},
+  legend style={font=\footnotesize, at={(0.5,-0.26)}, anchor=north,
+    legend columns=2, draw=black!30, /tikz/every even column/.append style={column sep=10pt}},
+]
+  % 60s field budget
+  \draw[red!55, dashed, thick] (axis cs:-0.6,60) -- (axis cs:15.6,60);
+  \node[font=\scriptsize, text=red!60, anchor=south east] at (axis cs:15.6,60) {60\,s field budget};
+  % deployed k=3 marker (E4B GPU)
+  \draw[black!35, dotted, thick] (axis cs:3,0) -- (axis cs:3,92);
+  \node[font=\scriptsize, text=black!55, rotate=90, anchor=south] at (axis cs:3,46) {deployed ($k{=}3$)};
+  \addplot[mamteal, very thick, mark=*, mark size=1.7pt] coordinates {
+    (0,14.4)(1,14.1)(3,19.1)(5,19.6)(7,22.9)(10,22.4)(15,24.4)};
+  \addplot[mamteal, very thick, densely dashed, mark=square*, mark size=1.5pt] coordinates {
+    (0,28.0)(1,30.3)(3,42.7)(5,60.2)(7,62.3)(10,69.4)(15,84.9)};
+  \addplot[mamamber, very thick, mark=triangle*, mark size=2pt] coordinates {
+    (0,8.7)(1,11.7)(3,14.3)(5,11.6)(7,15.2)(10,15.6)(15,13.1)};
+  \addplot[mamamber, very thick, densely dashed, mark=diamond*, mark size=1.8pt] coordinates {
+    (0,13.9)(1,15.8)(3,20.6)(5,27.2)(7,28.5)(10,26.3)(15,36.8)};
+  \legend{E4B GPU (deployed), E4B CPU, E2B GPU, E2B CPU}
+\end{axis}
+\end{tikzpicture}
+\caption{Median total query latency vs.\ retrieval depth on the Snapdragon~8
+Elite, by generator and backend (lower is better; $k=20$ omitted---see
+\S\ref{sec:context-wall}). The deployed E4B-GPU path (solid teal) stays
+$14$--$24$\,s across all depths, far under the 60\,s field budget. On CPU the
+E4B generator (dashed teal) crosses the budget past $k{\approx}5$, while the
+smaller E2B (amber) keeps every depth comfortably inside it on either backend.}
+\label{fig:latency-k}
+\end{figure}
+
+\paragraph{The deployed path has wide headroom.} Gemma~4~E4B on the GPU stays
+between $14$ and $24$\,s of total latency across \emph{every} retrieval depth up
+to $k=15$---roughly a third of the 60\,s budget at the deployed $k=3$
+($\sim$19\,s). Latency barely grows with $k$ because, on the GPU, the cost is
+dominated by \emph{decode}, not by the prompt: TTFT rises only from $\sim$1\,s
+at $k=3$ to $\sim$3.5\,s at $k=15$, while decode---a near-constant
+$\sim$13--18\,s---sets the floor. Adding retrieved context is close to free on
+the GPU.
+
+\paragraph{CPU is the real fork in the road.} Without a usable GPU, the same
+E4B generator runs $2$--$3.5\times$ slower ($28$--$85$\,s over the same range)
+and crosses the 60\,s budget past $k{\approx}5$. The gap is almost entirely
+prefill: CPU TTFT balloons from $\sim$13\,s ($k=0$) to $\sim$55\,s ($k=15$),
+because prefill is compute-bound and the CPU has far less of it. This is what
+makes the GPU/CPU split, not the retrieval depth, the decisive latency
+variable.
+
+\paragraph{The smaller generator unlocks the no-GPU tier.} Halving the
+generator to E2B gives a consistent $\sim$2.3$\times$ prefill speedup and
+$\sim$1.5$\times$ (GPU) to $\sim$2$\times$ (CPU) total speedup---enough that
+\emph{E2B on CPU} ($\sim$14--37\,s across $k\le15$) fits the budget at every
+depth, where E4B on CPU did not. The decode speedup is smaller than the
+parameter-count cut because GPU decode is memory-bandwidth-bound rather than
+compute-bound, so a smaller model helps less than its size suggests; prefill,
+which is compute-bound, tracks the cut closely. The practical consequence is in
+\S\ref{sec:devices}: E2B is the path onto phones without a reliable GPU.
+
+\subsection{The FP16-GPU context wall}
+\label{sec:context-wall}
+
+We cap the model's total context at $4{,}096$ tokens. That cap is not a memory
+or latency limit---it is a workaround for a precision bug we found, and it is
+worth documenting because it will bite anyone deploying a LiteRT-LM-class
+runtime at longer context.
+
+On Android, the GPU text-decoder path defaults to FP16 activations (the CPU
+path uses FP32); this is a runtime choice, not a knob in our code. Past a total
+context of $\sim$5{,}000 tokens, FP16 GPU decode \emph{deterministically}
+collapses into a degenerate repetition loop (a stream of \texttt{*}
+characters)---the output silently becomes garbage. The same prompt decoded on
+the FP32 CPU path stays clean, which isolates the cause as the GPU's FP16
+precision, not the prompt, the model artifact, or retrieval
+(Figure~\ref{fig:context-wall}). Forcing the GPU to FP32 also removes the
+cliff, confirming it directly. The fix costs latency: FP32 prefill is
+$2.1$--$2.5\times$ slower (prefill is compute-bound, and FP16 doubles Adreno
+arithmetic throughput), though decode---bandwidth-bound---is essentially
+unchanged, for a net $\sim$21--34\% slower total query at $k=10$--$15$.
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[font=\footnotesize]
+  % scale: 1000 tokens = 1.28cm
+  \def\sx{0.00128}
+  \fill[mamteal!22]   (0,0) rectangle (5000*\sx,0.62);
+  \fill[mamamber!35]  (4096*\sx,0) rectangle (5000*\sx,0.62);
+  \fill[red!22]       (5000*\sx,0) rectangle (6200*\sx,0.62);
+  \draw[black!45] (0,0) rectangle (6200*\sx,0.62);
+  % shipped cap line
+  \draw[mamteal!80!black, very thick] (4096*\sx,-0.08) -- (4096*\sx,0.78);
+  \draw[red!65!black, very thick] (5000*\sx,-0.08) -- (5000*\sx,0.78);
+  % zone labels
+  \node[text=mamteal!50!black, font=\scriptsize] at (2048*\sx,0.31) {clean (shipped)};
+  \node[text=mamamber!50!black, font=\scriptsize, rotate=90] at (4548*\sx,0.31) {margin};
+  \node[text=red!55!black, font=\scriptsize] at (5600*\sx,0.31) {collapse};
+  % axis ticks
+  \foreach \t in {0,2000,4096,5000,6000}{
+    \draw[black!40] (\t*\sx,-0.08) -- (\t*\sx,-0.16);
+  }
+  \node[font=\scriptsize, anchor=north] at (0,-0.18) {0};
+  \node[font=\scriptsize, anchor=north] at (2000*\sx,-0.18) {2k};
+  \node[font=\scriptsize, anchor=north, text=mamteal!60!black] at (4096*\sx,-0.18) {\textbf{4{,}096}};
+  \node[font=\scriptsize, anchor=north, text=red!60!black] at (5000*\sx,-0.18) {$\sim$5{,}000};
+  \node[font=\scriptsize, anchor=north] at (6000*\sx,-0.18) {6k};
+  \node[font=\scriptsize, anchor=north] at (3100*\sx,-0.52) {total context (tokens)};
+  % annotations above
+  \node[text=mamteal!55!black, font=\scriptsize, anchor=south, align=center] at (4096*\sx,0.82)
+    {ship cap\\\scriptsize(longer prompts rejected)};
+  \node[text=red!60!black, font=\scriptsize, anchor=south, align=center] at (5000*\sx,1.30)
+    {FP16 GPU cliff\\\scriptsize(decode collapses)};
+  \draw[->, red!55!black] (5000*\sx,1.28) -- (5000*\sx,0.80);
+  % fp32 extends arrow
+  \draw[->, black!55] (6000*\sx,0.95) -- (6700*\sx,0.95);
+  \node[font=\scriptsize, text=black!55, anchor=west] at (6700*\sx,0.95) {FP32 GPU};
+\end{tikzpicture}
+\caption{The FP16-GPU context wall. The shipped $4{,}096$-token cap (teal) sits
+$\sim$900 tokens below the $\sim$5{,}000-token cliff (red) past which FP16 GPU
+decode deterministically collapses; the margin (amber) is the safety buffer.
+The CPU FP32 path has no cliff, and forcing the GPU to FP32 extends the clean
+zone at $\sim$25\% added latency.}
+\label{fig:context-wall}
+\end{figure}
+
+The $4{,}096$ cap therefore buys a $\sim$900-token safety margin below the
+cliff on the fast FP16 path. It is also why $k=20$ is absent from
+Figure~\ref{fig:latency-k}: at that depth the 8 longest of 18 query types
+produce prompts exceeding $4{,}096$ tokens and the runtime rejects them outright
+(a fixed 24 of 54 runs in every $k=20$ cell), so a $k=20$ median would be
+computed only over the queries short enough to survive---a survivorship
+artifact rather than a real measurement. For deployments that need longer
+context, the FP32 GPU path is the clean fallback at modest cost; on the deployed
+FP16 path, $4{,}096$ tokens is the safe ceiling.
+
+\subsection{Device compatibility and market reality}
+\label{sec:devices}
+
+Latency is comfortable on a flagship; the harder question is which phones can
+run the system at all. Two floors bind, and both point the same way
+(Table~\ref{tab:devices}).
+
+\begin{table}[t]
+\caption{Deployment floors and the target-market device tiers. The binding
+constraints are RAM (the generator's runtime footprint) and GPU availability
+(reliable only on Qualcomm Adreno). E4B needs a 6\,GB-RAM phone; E2B halves the
+footprint to reach the 4\,GB tier that dominates the low-cost market, at an
+answer-quality cost not yet measured (\S\ref{sec:limitations}). GPU columns:
+\checkmark\ Adreno (reliable), $\sim$ Mali (often silent OpenCL failure, plan
+CPU-only).}
+\label{tab:devices}
+\centering
+\small
+\setlength{\tabcolsep}{4.5pt}
+\begin{tabular}{@{}lrccc@{}}
+\toprule
+Device tier (retail) & RAM & \makecell{E4B\\(6\,GB)} & \makecell{E2B\\(4\,GB)} & \makecell{GPU\\likely?} \\
+\midrule
+Sub-\$100 entry (Unisoc / Helio)      & 2--4\,GB & --        & $\sim$    & -- \\
+\$100--150 low-mid (Helio G99, Dim.\ 6080) & 6\,GB    & tight     & \checkmark & $\sim$ \\
+\$150--250 mid (Dimensity 7050+)      & 8\,GB    & \checkmark & \checkmark & $\sim$ \\
+\$250+ upper-mid / flagship (Snapdragon) & 8--16\,GB & \checkmark & \checkmark & \checkmark \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Memory.} The generator's runtime footprint is the hard floor:
+$\sim$3.3\,GB for E4B, $\sim$1.7\,GB for E2B. With Android and the app on top,
+E4B needs a \textbf{6\,GB-RAM} phone and E2B a \textbf{4\,GB} one. Storage is
+secondary but real: the install is the $\sim$193\,MB app, the $3.66$\,GB E4B
+weights ($2.59$\,GB for E2B), and the $\sim$260\,MB knowledge base (embedder
+plus the $63{,}650$-passage index), so $\sim$6\,GB free for E4B and $\sim$5\,GB
+for E2B, downloaded once over Wi-Fi and then fully offline.
+
+\paragraph{GPU availability.} The $\sim$19\,s deployed number assumes a working
+GPU, and LiteRT-LM's OpenCL backend is reliable \emph{only} on Qualcomm Adreno.
+On the ARM Mali GPUs that ship in most MediaTek phones---the bulk of the
+low-cost African fleet---the backend often fails silently at the first
+inference and the app falls back to CPU. The honest planning assumption is
+therefore \emph{CPU-first} on the target hardware: budget for E4B-CPU
+($\sim$43\,s at $k=3$, still inside budget) or, on RAM-constrained 4\,GB
+devices, E2B-CPU ($\sim$21\,s). The GPU's $\sim$19\,s is the best case where an
+Adreno is present, not the field default.
+
+Taken together, the deployment-viable floor is roughly a \$120, 6\,GB,
+64-bit-Android-8+ phone for E4B, which E2B lowers to $\sim$\$100 and 4\,GB---at
+a quality cost that must be measured before any E2B rollout.
+
+\subsection{What we have not measured}
+\label{sec:latency-pending}
+
+Two gaps bound these results, both disclosed rather than closed. First, every
+number here comes from a \emph{single flagship} device with an Adreno GPU; the
+mid-tier MediaTek hardware that represents most of the deployment fleet is
+untested, and its CPU-only path will be slower than the Snapdragon~8 Elite CPU
+rows above (we extrapolate $\sim$2$\times$ from published compute gaps, but have
+not measured it). Second, we report steady-state latency only: per-session
+battery drain and sustained-load thermal throttling---both of which matter for a
+clinician using the app repeatedly through a shift---are not yet characterized.
+We scope these as the first follow-up measurements (\S\ref{sec:limitations})
+rather than reasons to withhold the result, since the load-bearing
+conclusion---interactive, fully offline latency at the deployed
+configuration---holds on the hardware we did measure.
