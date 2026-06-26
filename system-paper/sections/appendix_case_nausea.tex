@@ -1,0 +1,141 @@
+\section{Case Study: When Retrieval Decides the Answer}
+\label{app:case-nausea}
+\setlength{\emergencystretch}{2em}
+
+This appendix records the full transcripts behind Figure~\ref{fig:case-nausea}
+(\S\ref{sec:retr-corpus}): two near-identical queries whose answers diverge
+because retrieval handed the generator different chunks. The system's
+\emph{queries} and \emph{generated answers} are reproduced verbatim, since
+they are the deployed system's own input and output. The retrieved chunks are
+\emph{summarised}, not quoted: commercial source titles are withheld and
+replaced with neutral labels (full per-document provenance lives in the corpus
+manifest in the open repository), and the chunk text itself is paraphrased to
+respect licensing. The crux is that two of the chunks come from the
+\emph{same} book (``reference text~A'')---one its definition, the other its
+management protocol.
+
+\subsection*{Case A --- query says ``severe nausea''}
+
+\noindent\textbf{Query (verbatim).} \emph{``A 20-year-old woman, Gravida~1,
+currently in her second trimester of pregnancy with an estimated due date of
+15 September, is suffering from severe nausea. What are the recommended
+treatment options?''}
+
+\smallskip
+\noindent\textbf{Retrieved top-3 (summarised).}
+\begin{enumerate}\setlength{\itemsep}{1.5pt}
+  \item \emph{Reference text~A --- the management section.} The
+  on-point chunk: for moderate vomiting or suspected hyperemesis, admit to
+  hospital; urinalysis (ketones, bilirubin, protein, glucose) and a midstream
+  urine culture to exclude pyelonephritis; \emph{named} antiemetics regarded
+  as safe in pregnancy (promethazine, prochlorperazine, metoclopramide) and
+  corticosteroids; liver and renal bloods (AST, ALT, urea, electrolytes);
+  ultrasound to exclude molar and multiple pregnancy; and monitoring of
+  weight, temperature, pulse, blood pressure, and fetal heart rate.
+  \item \emph{NICE antenatal care guideline (2021), p.27 --- recommendations.}
+  Reassure that mild-to-moderate nausea and vomiting is common and usually
+  resolves by 16--20 weeks, and suggest ginger as a non-pharmacological
+  option.
+  \item \emph{NICE antenatal care guideline (2021), p.56 --- rationale.}
+  Hyperemesis can have serious consequences and may need hospital care; this
+  guideline covers only nausea/vomiting management, not comprehensive
+  hyperemesis care.
+\end{enumerate}
+
+\smallskip
+\noindent\textbf{Generated answer (verbatim).}
+\begin{quote}\small
+Severe nausea in pregnancy needs careful management.
+\begin{itemize}\setlength{\itemsep}{0pt}
+  \item \textbf{Mild to moderate nausea:} Reassure the woman that this is
+  common. Suggest trying \textbf{ginger} as a non-drug option~[3].
+  \item \textbf{Severe nausea (Hyperemesis Gravidarum):} If the nausea is
+  severe, she needs hospital care without delay~[1].
+\end{itemize}
+\emph{Hospital Care Steps:}
+\begin{enumerate}\setlength{\itemsep}{0pt}
+  \item Monitor her \textbf{weight, temperature, pulse, and blood pressure}
+  frequently~[1].
+  \item Check her \textbf{fetal heart rate} regularly~[1].
+  \item Perform a \textbf{urinalysis} for ketones, bilirubin, protein, and
+  glucose~[1].
+  \item Send a \textbf{midstream urine specimen} for culture to check for
+  infection~[1].
+  \item Blood tests for \textbf{liver and kidney function} (AST, ALT, urea,
+  electrolytes) are needed~[1].
+  \item An \textbf{ultrasound scan} may be used to rule out other causes~[1].
+\end{enumerate}
+\emph{Medication Options:}
+\begin{itemize}\setlength{\itemsep}{0pt}
+  \item Antihistamines like \textbf{promethazine hydrochloride,
+  prochlorperazine (Stemetil), metoclopramide (Maxolon, Primperan)}, or
+  corticosteroids like \textbf{methylprednisolone} may be used to control
+  symptoms~[1].
+\end{itemize}
+Please consult a doctor or senior clinician for the final treatment plan.
+\end{quote}
+
+\subsection*{Case B --- query says ``hyperemesis gravidarum''}
+
+\noindent\textbf{Query (verbatim).} \emph{``A 20-year-old woman, Gravida~1,
+currently in her second trimester of pregnancy with an estimated due date of
+15 September, is suffering from hyperemesis gravidarum. What are the
+recommended treatment options?''} (The same patient and condition as Case~A;
+only the wording differs.)
+
+\smallskip
+\noindent\textbf{Retrieved top-3 (summarised).}
+\begin{enumerate}\setlength{\itemsep}{1.5pt}
+  \item \emph{Reference text~B --- a general management section.}
+  Management exists but is generic: admit for investigations and rehydration;
+  ``an antiemetic'' is given, \emph{without naming a drug}; intravenous fluids
+  (e.g.\ Hartmann's); vitamin~B12, thiamine, vitamin~C, folic acid, and iron;
+  strict fluid balance, then oral and solid food after 24~hours; prednisolone
+  if weight loss exceeds 5\%.
+  \item \emph{Reference text~C --- a student study-exercise.} Not
+  clinical guidance at all: a textbook activity asking the reader to
+  \emph{find out} what hyperemesis means, its incidence, who is at risk, and
+  how it is recognised and treated. A passage that should never be retrieved
+  for a clinical query.
+  \item \emph{Reference text~A --- the definition section} (from the
+  \emph{same} book as the management text retrieved in Case~A). Definition and
+  epidemiology only: hyperemesis as pathological unremitting vomiting, its
+  prevalence and risk factors, diagnosis by exclusion, a leading cause of
+  admission, and a possible \emph{Helicobacter pylori} link---no management
+  protocol.
+\end{enumerate}
+
+\smallskip
+\noindent\textbf{Generated answer (verbatim).}
+\begin{quote}\small
+Hyperemesis gravidarum is severe, continuous vomiting during pregnancy. For
+this woman, the recommended treatment options include:
+\begin{itemize}\setlength{\itemsep}{0pt}
+  \item \textbf{Hospital Admission:} She usually needs to be admitted for
+  tests and rehydration.
+  \item \textbf{Fluid and Electrolyte Replacement:} Give intravenous fluids,
+  such as Hartmann's solution.
+  \item \textbf{Medication:} An \textbf{antiemetic} will be given.
+  \item \textbf{Supplements:} Give Vitamin B12, thiamine, Vitamin C, folic
+  acid, and iron to prevent problems.
+  \item \textbf{Monitoring:} Watch her condition closely and keep her fluid
+  balance strict until she is rehydrated.
+  \item \textbf{Diet:} Start oral fluids when vomiting stops for 24 hours.
+  Then, slowly introduce solid food.
+\end{itemize}
+If she loses more than 5\% of her pre-pregnancy weight, a doctor may consider
+\textbf{prednisolone}~[2]. Please consult a doctor for the exact treatment
+plan and medication doses.
+\end{quote}
+
+\smallskip
+\noindent\textbf{Takeaway.} The two queries describe the same patient and the
+same condition; only the wording differs. Case~A surfaced the management page
+and produced a specific, actionable answer with named drugs and a full workup;
+Case~B surfaced the \emph{definition section} of the same book, a generic
+management page whose antiemetic is unnamed, and a student study-exercise, and
+the answer collapsed to ``an antiemetic will be given.'' The corpus held the
+right management page in both cases---a small, faithful generator reproduced
+whatever it was handed. This is the per-query face of \S\ref{sec:retr-corpus}:
+corpus coverage, specificity, curation, and query phrasing decide deployment
+quality.

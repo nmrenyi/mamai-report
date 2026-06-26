@@ -233,10 +233,11 @@ Figure~\ref{fig:case-nausea} shows the effect at full strength: two queries
 describing the \emph{same} patient and the \emph{same} condition---differing
 only in whether they say ``severe nausea'' or ``hyperemesis gravidarum''---%
 retrieve different top-3 bundles and produce very different answers. The corpus
-held the right management page in both cases; for one query retrieval surfaced
-it, for the other it surfaced the adjacent \emph{definition} page plus a
-textbook study-exercise, and the answer quality tracked the chunk, not the
-question.
+held the right management text in both cases; for one query retrieval surfaced
+it, for the other it surfaced the \emph{definition} section of the same book
+plus a textbook study-exercise, and the answer quality tracked the chunk, not
+the question. Appendix~\ref{app:case-nausea} gives the full transcripts---both
+queries, their retrieved chunks, and the generated answers.
 
 \begin{figure}[H]
 \footnotesize
@@ -282,7 +283,8 @@ a thinner workup.
 retrieved chunks, not the question (hyperemesis gravidarum \emph{is} severe
 nausea/vomiting of pregnancy). The corpus held the right management page both
 times; the faithful small generator reproduced whatever was retrieved. Source
-titles withheld; chunk roles labelled.}
+titles withheld; chunk roles labelled. Full transcripts---queries, retrieved
+chunks, and answers---are in Appendix~\ref{app:case-nausea}.}
 \label{fig:case-nausea}
 \end{figure}
 
