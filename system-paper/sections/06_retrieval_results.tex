@@ -114,7 +114,7 @@ HealthBench stay flat (Figure~\ref{fig:retr-converts}).
   symbolic x coords={no-RAG, Gecko, Emb.Gemma, +MiniLM, +mxbai},
   xtick=data, enlarge x limits=0.13,
   tick label style={font=\footnotesize}, label style={font=\footnotesize},
-  grid=both, grid style={black!8},
+  grid=both, grid style={black!8}, area legend,
   title style={font=\footnotesize\bfseries, yshift=-1ex},
 ]
 % --- Panel a: offline retrieval quality ---
@@ -125,34 +125,39 @@ HealthBench stay flat (Figure~\ref{fig:retr-converts}).
   \addplot[fill=mamteal!28, draw=mamteal!45] coordinates {
     (no-RAG,0)(Gecko,0.270)(Emb.Gemma,0.396)(+MiniLM,0.244)(+mxbai,0.279)}; \label{p:kenyap}
 % --- Panel b: end-to-end answers ---
-\nextgroupplot[ybar, bar width=5.5pt, title={End-to-end answers}, ylabel={answer score},
-  ymin=0, ymax=0.24, ytick={0,0.1,0.2}]
+\nextgroupplot[ybar, bar width=4pt, title={End-to-end answers}, ylabel={answer score},
+  ymin=-0.04, ymax=0.42, ytick={0,0.1,0.2,0.3,0.4}]
   \addplot[fill=mamamber!88, draw=mamamber!70] coordinates {
     (no-RAG,0.178)(Gecko,0.125)(Emb.Gemma,0.126)(+MiniLM,0.118)(+mxbai,0.125)}; \label{p:recall}
+  \addplot[fill=violet!72, draw=violet!55] coordinates {
+    (no-RAG,0.003)(Gecko,-0.004)(Emb.Gemma,0.012)(+MiniLM,-0.004)(+mxbai,0.002)}; \label{p:wmet}
   \addplot[fill=blue!55!black, draw=blue!45!black] coordinates {
-    (no-RAG,0.184)(Gecko,0.175)(Emb.Gemma,0.189)(+MiniLM,0.179)(+mxbai,0.182)}; \label{p:hb}
+    (no-RAG,0.184)(Gecko,0.175)(Emb.Gemma,0.189)(+MiniLM,0.179)(+mxbai,0.182)}; \label{p:pos}
+  \addplot[fill=red!62!black, draw=red!50!black] coordinates {
+    (no-RAG,0.379)(Gecko,0.372)(Emb.Gemma,0.368)(+MiniLM,0.378)(+mxbai,0.374)}; \label{p:pen}
 \end{groupplot}
-% two boxed legend groups (retrieval | answers), centred as a pair below both panels
+% single boxed legend, two grouped rows, centred below both panels
 \node[anchor=north, font=\scriptsize, inner sep=0pt, yshift=-0.3cm]
   at (current bounding box.south) {%
-  \setlength{\fboxsep}{3pt}\setlength{\fboxrule}{0.4pt}%
-  \fcolorbox{black!30}{white}{\textbf{Retrieval P@3:}\enspace\ref{p:bench}~benchmark\enspace\ref{p:kenyap}~Kenya}%
-  \enspace
-  \fcolorbox{black!30}{white}{\textbf{Answers:}\enspace\ref{p:recall}~key-fact recall\enspace\ref{p:hb}~HealthBench}%
+  \setlength{\fboxsep}{4pt}\setlength{\fboxrule}{0.4pt}%
+  \fcolorbox{black!30}{white}{\shortstack{%
+  \textbf{Retrieval P@3:}\enspace\ref{p:bench}~mamaretrieval\enspace\ref{p:kenyap}~Kenya\\[2.5pt]%
+  \textbf{Answers:}\enspace\ref{p:recall}~key-fact recall\enspace\ref{p:wmet}~weighted\_met\enspace\ref{p:pos}~Positive\enspace\ref{p:pen}~Penalty}}%
 };
 \end{tikzpicture}
 \caption{Better retrieval does not reach the answers (baseline Gemma~4).
 \textbf{Top, offline retrieval:} precision@3 on the mamaretrieval benchmark
-(dark) and on the Kenya queries (light). Upgrading Gecko$\to$EmbeddingGemma
-and adding either fine-tuned reranker (on the Gecko stage) each push benchmark
-P@3 from 0.49 to 0.72--0.79; but only the embedder also lifts \emph{Kenya}
-retrieval P@3---the rerankers' benchmark gain does not transfer to the
-deployment queries. \textbf{Bottom, end-to-end answers:} Kenya key-fact recall
-and HealthBench completeness (Positive) stay flat across every intervention,
-and no retrieval at all (no-RAG) is best on recall. The net HealthBench
-\texttt{weighted\_met} is $\approx0$ throughout (completeness offset by a flat
-$\sim$0.37 penalty). \emph{+MiniLM}, \emph{+mxbai} are the two fine-tuned
-rerankers on Gecko.}
+(dark) and on the Kenya queries (light). Upgrading Gecko$\to$EmbeddingGemma,
+and adding either fine-tuned reranker \emph{on the Gecko first stage}
+(\emph{+MiniLM}, \emph{+mxbai}), each push mamaretrieval P@3 from 0.49 to
+0.72--0.79; but only the embedder also lifts \emph{Kenya} retrieval P@3---the
+rerankers' benchmark gain does not transfer to the deployment queries.
+\textbf{Bottom, end-to-end answers:} Kenya key-fact recall and the full
+HealthBench breakdown---the net \texttt{weighted\_met} with its completeness
+(Positive) and penalty components. All stay flat across every intervention,
+and no retrieval at all (no-RAG) is best on recall. The net
+\texttt{weighted\_met} sits near zero throughout---a separately-normalized
+score, not the literal Positive minus Penalty.}
 \label{fig:retr-converts}
 \end{figure}
 
