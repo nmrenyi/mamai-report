@@ -238,8 +238,8 @@ it, for the other it surfaced the adjacent \emph{definition} page plus a
 textbook study-exercise, and the answer quality tracked the chunk, not the
 question.
 
-\begin{figure}[t]
-\small
+\begin{figure}[H]
+\footnotesize
 \begin{minipage}[t]{0.475\columnwidth}
 {\centering\colorbox{mamteal!15}{\textbf{Case A: ``severe nausea''}}\par}
 \smallskip
@@ -279,45 +279,49 @@ prochlorperazine, metoclopramide---and corticosteroids; full workup
 a thinner workup.
 \end{minipage}
 \caption{Two near-identical queries, very different answers---driven by the
-retrieved chunks, not the question. Both describe the \emph{same} patient and
-the \emph{same} condition (hyperemesis gravidarum \emph{is} severe
-nausea/vomiting of pregnancy), but the wording surfaces different top-3
-chunks. ``Severe nausea'' retrieves the management page and yields a specific,
-actionable answer; ``hyperemesis gravidarum'' retrieves the adjacent
-\emph{definition} page of the same text plus a textbook study-exercise, and
-the answer collapses to ``an antiemetic will be given.'' The corpus held the
-right management page in both cases---a faithful small generator reproduced
-whatever it was handed. Source titles are withheld; chunk roles are labelled.}
+retrieved chunks, not the question (hyperemesis gravidarum \emph{is} severe
+nausea/vomiting of pregnancy). The corpus held the right management page both
+times; the faithful small generator reproduced whatever was retrieved. Source
+titles withheld; chunk roles labelled.}
 \label{fig:case-nausea}
 \end{figure}
 
 Corpus coverage and quality are therefore a \emph{first-class} lever on
 deployment quality, co-equal with generator grounding---not the secondary
-caveat a high average coverage might suggest. Three things it governs
-directly. \emph{Coverage:} the $10.6\%$ of queries with no relevant chunk
-anywhere are a hard ceiling no retriever or generator can lift---only corpus
-expansion can. \emph{Specificity:} present content is often only topical (the
-deployed top-3 averages a relevance grade of just $2.13/6$; Gecko $1.44/6$),
-supplying the topic but not the actionable detail. \emph{Curation:} the corpus
-still holds passages that should never reach a clinical query---in
-Figure~\ref{fig:case-nausea} a student study-exercise ranked among the top-3
-``guidelines,'' above the real management text. This also explains why a
-better \emph{embedder} did not move the average (\S\ref{sec:retr-converts}):
-re-ranking the same pool cannot chunk the actionable content, filter the
-study-exercises, or add the missing tenth---that is corpus work, and a large
-share of the remaining deployment headroom sits there (\S\ref{sec:discussion}).
+caveat a high average coverage might suggest. Three corpus properties govern
+answer quality directly:
+\begin{itemize}\setlength{\itemsep}{1pt}
+  \item \textbf{Coverage.} The $10.6\%$ of queries with no relevant chunk
+  anywhere are a hard ceiling no retriever or generator can lift---only corpus
+  expansion can.
+  \item \textbf{Specificity.} Present content is often only topical (the
+  deployed top-3 averages a relevance grade of just $2.13/6$; Gecko $1.44/6$),
+  supplying the topic but not the actionable detail.
+  \item \textbf{Curation.} The corpus still holds passages that should never
+  reach a clinical query---in Figure~\ref{fig:case-nausea} a student
+  study-exercise ranked among the top-3 ``guidelines,'' above the real
+  management text.
+\end{itemize}
+This also explains why a better \emph{embedder} did not move the average
+(\S\ref{sec:retr-converts}): re-ranking the same pool cannot chunk the
+actionable content, filter the study-exercises, or add the missing tenth---%
+that is corpus work, and a large share of the remaining deployment headroom
+sits there (\S\ref{sec:discussion}).
 
-A further lever sits with the user. The two queries in
-Figure~\ref{fig:case-nausea} differ only in wording---a lay description
-(``severe nausea'') versus the clinical term (``hyperemesis gravidarum'') for
-the same presentation---so how a nurse phrases a case is itself a determinant
-of the answer: the same situation, described differently, retrieves a
-different bundle. This cuts two ways at no model cost. System-side, a
-query-rewriting or normalisation step can map a nurse's phrasing onto the
-vocabulary the corpus indexes---expanding ``hyperemesis gravidarum'' so it
-also fetches the management text that ``severe nausea'' found. User-side,
-brief guidance on how to describe a case sharpens retrieval directly. We take
-query rewriting up as a near-term lever in \S\ref{sec:discussion}.
+A further lever sits with the user: how a nurse phrases a case decides what is
+retrieved. The two queries in Figure~\ref{fig:case-nausea} differ only in
+wording---a lay description (``severe nausea'') versus the clinical term
+(``hyperemesis gravidarum'') for the same presentation---yet retrieve
+different bundles. Two mitigations follow, at no model cost:
+\begin{itemize}\setlength{\itemsep}{1pt}
+  \item \textbf{System-side.} A query-rewriting or normalisation step maps a
+  nurse's phrasing onto the vocabulary the corpus indexes---expanding
+  ``hyperemesis gravidarum'' so it also fetches the management text that
+  ``severe nausea'' found.
+  \item \textbf{User-side.} Brief guidance on how to describe a case sharpens
+  retrieval directly.
+\end{itemize}
+We take query rewriting up as a near-term lever in \S\ref{sec:discussion}.
 
 \subsection{No usable confidence gate}
 \label{sec:retr-gate}
