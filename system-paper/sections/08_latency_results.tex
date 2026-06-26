@@ -9,8 +9,10 @@ higher hardware bar (\S\ref{sec:devices}). At the deployed top-3 depth, Gemma~4
 E4B returns a full answer in a median of \textbf{$\sim$43\,s} on the shipped CPU
 path and \textbf{$\sim$19\,s} where a compatible GPU is available (first token
 in $\sim$1\,s, generation at $\sim$13~tokens/s). Both fit the field budget we
-set ourselves (a query should resolve well under a minute)---the GPU with wide
-headroom, the CPU with a comfortable margin---and both run entirely offline. The
+set ourselves (a query should resolve well under a minute) on this flagship and
+run entirely offline---the GPU with wide headroom, the CPU with a tighter margin
+that shrinks further on the cheaper hardware typical of the field
+(\S\ref{sec:devices}). The
 rest of this section traces where the time goes, surfaces one precision bug that
 bounds how much context we can admit, and sets out what a device needs to run it
 at all---the binding deployment constraint, it turns out, is not speed but
@@ -75,7 +77,7 @@ Figure~\ref{fig:latency-k} is the headline. Three things stand out.
   % 60s field budget
   \draw[red!55, dashed, thick] (axis cs:-0.6,60) -- (axis cs:15.6,60);
   \node[font=\scriptsize, text=red!60, anchor=south east] at (axis cs:15.6,60) {60\,s field budget};
-  % deployed k=3 marker (E4B GPU)
+  % deployed retrieval-depth marker (top-3; backend-agnostic)
   \draw[black!35, dotted, thick] (axis cs:3,0) -- (axis cs:3,92);
   \node[font=\scriptsize, text=black!55, rotate=90, anchor=south] at (axis cs:3,46) {deployed ($k{=}3$)};
   \addplot[mamteal, very thick, mark=*, mark size=1.7pt] coordinates {
@@ -212,7 +214,7 @@ unchanged, for a net $\sim$21--34\% slower total query at $k=10$--$15$.
   \draw[mamteal!80!black, very thick] (4096*\sx,-0.08) -- (4096*\sx,0.78);
   \draw[red!65!black, very thick] (5000*\sx,-0.08) -- (5000*\sx,0.78);
   % zone labels
-  \node[text=mamteal!50!black, font=\scriptsize] at (2048*\sx,0.31) {clean (shipped)};
+  \node[text=mamteal!50!black, font=\scriptsize] at (2048*\sx,0.31) {clean (within cap)};
   \node[text=mamamber!50!black, font=\scriptsize, rotate=90] at (4548*\sx,0.31) {margin};
   \node[text=red!55!black, font=\scriptsize] at (5600*\sx,0.31) {collapse};
   % axis ticks
@@ -323,5 +325,5 @@ battery drain and sustained-load thermal throttling---both of which matter for a
 clinician using the app repeatedly through a shift---are not yet characterized.
 We scope these as the first follow-up measurements (\S\ref{sec:limitations})
 rather than reasons to withhold the result, since the load-bearing
-conclusion---interactive, fully offline latency at the deployed
-configuration---holds on the hardware we did measure.
+conclusion---fully offline answers within the field budget---holds on the
+hardware we did measure.
