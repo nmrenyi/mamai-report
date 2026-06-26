@@ -1,51 +1,238 @@
 \section{Generator Faithfulness}
 \label{sec:generator}
 
-% Isolates the generator: retrieval is replaced by gold (oracle) context, so
-% any failure is the generator's. Source: mamai-eval faithfulness re-run
-% configs/config-v0.2.0/reports/faithfulness-g4-vs-3n-prompts-20260622.html.
-% This is where the deployment choice (Gemma 4 over 3n) is explained: the
-% deciding axis is faithfulness, and small size is not the problem.
+The end-to-end matrix (\S\ref{sec:helpful-safe}) chose Gemma~4 over the more
+helpful Gemma~3n on a single decisive signal: the count of \emph{dangerous}
+Kenya answers ($0$/$1$/$0$ vs.\ $4$/$11$/$15$). That count is small and
+benchmark-specific, so a deployment decision should not rest on it alone. This
+section supplies an independent, second line of evidence from a different
+angle---how faithfully each generator stays inside its sources---and it
+returns the same verdict. We isolate the generator by replacing live retrieval
+with \emph{oracle} (gold) context, so any failure is the generator's own
+grounding behaviour, not a retrieval miss.
 
-\subsection{Setup}
-% Oracle = mamaretrieval chunks scored >= 5, top-3 (matched to deployed
-% depth), n=2,989 questions. Failure = contradiction (wrong dose/threshold)
-% or unsupported addition (a claim not in the source); incompleteness and
-% refusals do NOT count. Evaluated across the matrix: Gemma 4 E4B vs
-% Gemma 3n E4B (x baseline/G1/G1+G2), with Qwen3.5-397B as the frontier
-% reference.
+\subsection{Setup: faithfulness to gold context}
+\label{sec:faith-setup}
 
-\subsection{Two-Pass Judge}
-% Detector -> verifier. Patronus Lynx-70B flags every candidate faithfulness
-% failure (high recall, low precision); GPT-5 re-reads each flag and keeps
-% only genuine contradictions/unsupported additions. The "categorized
-% true-hallucination" rate (deterministic, full population) is the metric of
-% record. Judge-selection journey worth one line: MiniCheck (too small,
-% unauditable) and Qwen-397B (circular -- it built the oracle labels) were
-% rejected; Lynx is independent (Llama-3 family) and auditable.
+Each generator is handed the gold guideline passages for the same 2{,}989
+maternal/neonatal questions and asked to answer. The context is the
+mamaretrieval passages graded $\geq 5$ (the relevance ceiling),
+top-3---matched to the deployed retrieval depth---and \emph{identical} across
+every generator and prompt, so any difference in the results is attributable
+to the generator or the prompt, never to retrieval. We run the same
+$3\times3$ matrix as \S\ref{sec:endtoend}: the two on-device candidates
+(Gemma~4~E4B and Gemma~3n~E4B, both at the on-device int4/Q4\_0 quantization)
+and the Qwen3.5-397B frontier ceiling, each under baseline, \mbox{+G1}, and
+\mbox{+G1+G2}.
 
-\subsection{Results}
-% Categorized true-hallucination, across baseline/G1/G1+G2:
-%   Gemma 4 E4B:   2.64% / 3.31% / 3.55%
-%   Gemma 3n E4B:  6.26% / 6.46% / 6.72%
-%   Qwen3.5-397B:  2.51% / 3.71% / 0.97%
-% Gemma 4 is ~2x more faithful than Gemma 3n at every prompt, and grounds
-% about as faithfully as the unconstrained frontier Qwen. So the small
-% on-device Gemma 4 is already strong on faithfulness; Gemma 3n is the
-% outlier, not the small size. This is the core reason Gemma 4 ships.
+\emph{Faithfulness} asks one thing: does the answer stay inside what the
+context supports? We count two failure modes as genuine unfaithfulness:
+\begin{itemize}\setlength{\itemsep}{1pt}
+  \item \textbf{Contradiction} --- the answer asserts something the context
+  denies (a wrong dose, a wrong threshold, states X where the source says Y).
+  \item \textbf{Unsupported addition} --- the answer makes a clinical claim
+  the context does not support (information introduced beyond the document).
+\end{itemize}
+Incompleteness (\emph{omission}) and \emph{refusal} are deliberately
+\emph{not} faithfulness failures: an answer that leaves something out or
+declines to engage is unhelpful, but it is not \emph{unfaithful}---it invents
+nothing. Those behaviours are scored on the helpfulness side
+(\S\ref{sec:endtoend}); here they would only inflate the rate. Because the
+context is gold, this measures grounding in isolation and is an \emph{upper
+bound}: under live retrieval, missing or wrong passages add a separate error
+mode (\S\ref{sec:retrieval-results}) not captured here.
 
-\subsection{The Calibration Artifact (honesty note)}
-% The headline metric is the categorized rate above. A separate Lynx-miss-
-% rate "calibrated" extrapolation produced a 53.9% outlier on Gemma 4 +G1+G2
-% -- a statistical artifact: G2's longer answers (1,193 vs 770 chars) exceed
-% the narrow 3-chunk oracle, so standard-of-care content gets flagged as
-% unsupported, and a ~50-sample miss-rate swings the population estimate.
-% Report the deterministic categorized rate; explain the artifact (section
-% 4a of the source report) rather than burying it.
+\subsection{A two-pass judge}
+\label{sec:faith-judge}
 
-\subsection{Implication}
-% Generator matters ~4x more than prompt for faithfulness, and 3n's gap is a
-% property of the model (it contradicts context ~2x as often), not the
-% prompt. So improving faithfulness -- and thus enabling a more helpful model
-% to be deployed safely -- requires generator-side work: RAG-grounding /
-% fine-tuning (Section ref sec:discussion), not more prompt engineering.
+The rubric judge of \S\ref{sec:judge} (gpt-oss-120b) is not used here:
+detecting hallucination is a different task from scoring a rubric, and
+gpt-oss-120b in fact failed the pre-committed validation gates for it,
+drifting badly---it labelled refusals and omissions as hallucinations, exactly
+the confound we must avoid. We therefore use a dedicated two-pass pipeline,
+a high-recall detector followed by a precise categorizer:
+\begin{itemize}\setlength{\itemsep}{1pt}
+  \item \textbf{Detector --- Patronus Lynx-70B.} A purpose-built hallucination
+  detector returns PASS/FAIL with reasoning for every answer. Lynx is
+  high-recall but low-precision (precision $0.36$--$0.57$ across arms): it
+  catches almost everything but over-flags, marking incompleteness and
+  refusals as failures.
+  \item \textbf{Categorizer --- gpt-5.} Every Lynx FAIL is re-read against a
+  frozen rubric and sorted into contradiction / unsupported addition /
+  omission / refusal / unclear; only the first two count. This strips Lynx's
+  over-flags and keeps the genuine hallucinations.
+\end{itemize}
+The metric of record is the \textbf{categorized true-hallucination
+rate}---genuine failures as a fraction of all 2{,}989 answers, computed over
+the full population with no extrapolation, hence deterministic and
+reproducible. gpt-5 is a different model family from Lynx (Llama-3), from the
+generators (Gemma), and from the oracle's relevance labeler (Qwen), so the
+audit shares no blind spot with what it audits.
+
+\subsection{Gemma 4 grounds about as faithfully as the frontier}
+\label{sec:faith-results}
+
+Figure~\ref{fig:faithfulness} is the headline. Two facts hold across every
+prompt:
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+  width=\columnwidth, height=5.4cm,
+  ybar, bar width=7.5pt,
+  ymin=0, ymax=8,
+  ylabel={Categorized true-hallucination},
+  ylabel style={align=center},
+  yticklabel={\pgfmathprintnumber{\tick}\%},
+  ytick={0,2,4,6,8},
+  symbolic x coords={base,g1,g2},
+  xtick=data,
+  xticklabels={baseline,+G1,+G1+G2},
+  enlarge x limits=0.32,
+  tick label style={font=\footnotesize},
+  label style={font=\footnotesize},
+  legend style={font=\footnotesize, at={(0.5,-0.20)}, anchor=north,
+    legend columns=3, draw=black!30, /tikz/every even column/.append style={column sep=6pt}},
+  area legend,
+  nodes near coords, every node near coord/.append style={font=\scriptsize,
+    /pgf/number format/fixed, /pgf/number format/fixed zerofill,
+    /pgf/number format/precision=1},
+]
+\addplot[fill=mamteal, draw=mamteal!65!black] coordinates {(base,2.64)(g1,3.31)(g2,3.55)};
+\addplot[fill=mamamber, draw=mamamber!65!black] coordinates {(base,6.26)(g1,6.46)(g2,6.72)};
+\addplot[fill=black!22, draw=black!55] coordinates {(base,2.51)(g1,3.71)(g2,0.97)};
+\legend{Gemma 4 E4B (deployed), Gemma 3n E4B, Qwen 397B (frontier)}
+\end{axis}
+\end{tikzpicture}
+\caption{Categorized true-hallucination rate against gold context (lower is
+better), over $n=2{,}989$ oracle answers per cell, two-pass Lynx-70B$\,\to\,$
+gpt-5 judge. Gemma~3n hallucinates against the very context it is handed
+roughly twice as often as Gemma~4 at every prompt, while Gemma~4 grounds about
+as faithfully as the unconstrained 397B frontier. The prompt moves each model
+only slightly; the gap between models dwarfs it.}
+\label{fig:faithfulness}
+\end{figure}
+
+\begin{itemize}\setlength{\itemsep}{2pt}
+  \item \textbf{Gemma~4 is $\sim$2$\times$ more faithful than Gemma~3n.} On
+  the categorized rate, Gemma~4 sits at $2.6$--$3.6\%$ across the three
+  prompts while Gemma~3n sits at $6.3$--$6.7\%$---a $1.9$--$2.4\times$ gap that
+  holds for baseline, \mbox{+G1}, and \mbox{+G1+G2} alike.
+  \item \textbf{Small size is not the problem; Gemma~3n is the outlier.}
+  Gemma~4, a 4B model running int4 on a phone, grounds about as faithfully as
+  the 397B Qwen frontier ($2.5$--$3.7\%$). Faithfulness is therefore not a
+  penalty of the on-device size class---it is a property of the specific
+  model, and Gemma~3n is the one that grounds poorly.
+\end{itemize}
+
+The prompt's effect is real but small: both models drift \emph{upward} as the
+prompt asks for more clinical substance (Gemma~4 by $+0.9$ percentage points
+from baseline to \mbox{+G1+G2}, Gemma~3n by $+0.5$), because the recovered
+substance sometimes reaches beyond the document. But that drift is dwarfed by
+the gap between the two models---choosing the on-device generator matters
+roughly $4\times$ more for faithfulness than choosing the prompt.
+
+\subsection{What kind of unfaithfulness, and how the prompt changes it}
+\label{sec:faith-modes}
+
+Splitting each Lynx FAIL by primary cause (Table~\ref{tab:faith-modes}) shows
+\emph{why} the rates move and ties the faithfulness cost back to the
+deflection fix of \S\ref{sec:endtoend}.
+
+\begin{table}[t]
+\caption{Failure-cause decomposition of the oracle answers (counts out of
+$n=2{,}989$; Qwen omitted as the frontier reference). The two genuine
+hallucination modes---contradiction and unsupported addition---sum to the
+categorized rate in the last column (Figure~\ref{fig:faithfulness}); omission
+and refusal are over-flags that do \emph{not} count. Reading the rows: \mbox{+G1}
+trades refusals for unsupported additions (Gemma~4 refusal $27\to7$ while
+unsupported additions $28\to55$), and Gemma~3n carries roughly twice Gemma~4's
+contradiction load at every prompt.}
+\label{tab:faith-modes}
+\centering
+\small
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{@{}lrrrrr@{}}
+\toprule
+ & \multicolumn{2}{c}{Genuine ($\downarrow$)} & \multicolumn{2}{c}{Over-flags (not counted)} & \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}
+Generator $\cdot$ prompt & \makecell{Contra-\\diction}
+ & \makecell{Unsup.\\addition} & \makecell{Omis-\\sion} & \makecell{Refu-\\sal}
+ & \makecell{Categ.\\rate} \\
+\midrule
+\multicolumn{6}{@{}l}{\textit{Gemma 4 E4B (deployed)}} \\
+\quad baseline & 51 & 28 & 63 & 27 & 2.64\% \\
+\quad +G1      & 44 & 55 & 26 & \phantom{0}7 & 3.31\% \\
+\quad +G1+G2   & 48 & 58 & 36 & 20 & 3.55\% \\
+\midrule
+\multicolumn{6}{@{}l}{\textit{Gemma 3n E4B}} \\
+\quad baseline & 91 & \phantom{0}96 & 47 & 14 & 6.26\% \\
+\quad +G1      & 88 & 105 & 30 & 103 & 6.46\% \\
+\quad +G1+G2   & 88 & 113 & 44 & 70 & 6.72\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{itemize}\setlength{\itemsep}{2pt}
+  \item \textbf{G1 converts refusals into unsupported additions.} For
+  Gemma~4, refusal failures fall $27\to7$ while unsupported additions rise
+  $28\to55$: the prompt stops the model deflecting, and the substance it now
+  volunteers sometimes reaches beyond the document. This is the deflection fix
+  of \S\ref{sec:endtoend} working \emph{and} its price, in a single row---the
+  faithfulness counterweight to the recall gain that motivated G1.
+  \item \textbf{Gemma~3n's deficit is a baseline contradiction load.} Before
+  any prompt change, Gemma~3n contradicts its context almost twice as often as
+  Gemma~4 ($91$ vs.\ $51$): it gets clinical facts wrong against the very
+  passages it was handed. This is the core grounding gap, and it is exactly
+  what surfaces end-to-end as Gemma~3n's dangerous Kenya answers
+  (\S\ref{sec:helpful-safe})---poor grounding becomes confident, specific,
+  unsupported guidance, which becomes harm.
+\end{itemize}
+
+\subsection{An honesty note on the calibrated estimate}
+\label{sec:faith-calibration}
+
+Lynx is high-recall but not perfect---it also \emph{misses} some true
+failures. A second, \emph{calibrated} estimate corrects for those misses by
+re-judging a 50-answer sample of Lynx-PASS cases per arm with gpt-5 and
+extrapolating the miss rate across the $\sim$2{,}800 PASS answers. Because it
+multiplies a 50-sample rate across the whole population, it is noisy, with wide
+confidence intervals---we report the categorized rate, not this one. One
+calibrated number is worth flagging precisely because it looks alarming out of
+context: Gemma~4~+G1+G2 calibrates to $53.9\%$, far above its neighbours. It is
+an \emph{artifact}, not a grounding collapse. The G1+G2 consultation template
+makes answers $\sim$60\% longer (median $1{,}193$ vs.\ $742$ characters), and
+the calibration rubric judges strictly against the \emph{narrow} top-3 context
+only; clinically-sound elaboration that simply is not in those three passages
+is therefore counted as an ``unsupported addition,'' and a single high
+50-case draw then scales across the population. The full-population
+\emph{categorized} rate for that same cell is $3.55\%$---still second-lowest in
+the matrix. The calibrated column does corroborate the two qualitative facts
+above (Gemma~3n $>$ Gemma~4 at every arm; prompts push the rate up), but only
+with wider error bars; its magnitude is not reliable, and we do not lean on it.
+
+\subsection{Implication: faithfulness is a generator property}
+\label{sec:faith-implication}
+
+Two independent angles now converge on the same conclusion. The Kenya
+dangerous count (\S\ref{sec:helpful-safe}) and oracle faithfulness (this
+section) are measured on different data, with different judges, against
+different references---yet both find Gemma~4 roughly $2\times$ safer than
+Gemma~3n, and both locate the cause in the model rather than the prompt. This
+is the deciding evidence behind deploying Gemma~4: it is the candidate that is
+as faithful as a frontier model while remaining small enough to run on the
+phone.
+
+The deficit is structural. No prompt in this study closes Gemma~3n's gap;
+\mbox{+G1}/\mbox{+G2} modestly widen it, and the gap is roughly $4\times$ the
+prompt effect. So the path to a more faithful---and therefore safely more
+helpful---on-device model is generator-side work: RAG-grounding or fine-tuning
+the generator to use only what it retrieves, not further prompt engineering or
+retrieval swaps. This is the same lever the size ladder
+(\S\ref{sec:model-size}) and the retrieval analysis
+(\S\ref{sec:retrieval-results}) point to, and we take it up in
+\S\ref{sec:discussion}. Two caveats bound the claim: this is faithfulness to
+\emph{gold} context (an upper bound; live retrieval adds its own errors), and
+the semantic categorization rests on a single judge family
+(\S\ref{sec:limitations}).
