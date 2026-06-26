@@ -146,65 +146,20 @@ to answer.
 sources, and they do not always agree---an issue we met concretely. Auditing the
 faithfulness failures (\S\ref{sec:generator}) surfaced 16 cases in which two
 retrieved passages give conflicting advice on the same clinical question, each
-verified verbatim against its source; Table~\ref{tab:contradictions} lists a
-representative set, traceable to source and page. They are not edge cases: among
-them are the re-dosing window for emergency contraception, the cervical
-dilatation that defines active labour, and the intravenous dose of a uterotonic
-for postpartum haemorrhage. When sources diverge like this, what should the
-system do---prefer the local or most recent protocol, surface both with their
-provenance, or flag the conflict to the clinician? Citations make the divergence
-visible---the system already shows its sources---but choosing a behaviour, and
-validating it clinically, is open for any assistant grounded in a heterogeneous
-guideline base.
-
-\begin{table}[t]
-\caption{Corpus self-contradictions surfaced by the faithfulness audit
-(\S\ref{sec:generator}): clinical questions for which two \emph{retrieved}
-guideline passages give conflicting advice. Sixteen cases were confirmed by
-substring-verified audit; seven cross-guideline examples are shown, each
-traceable to source and page---open sources named, commercial reference titles
-withheld as ``ref.'' per \S\ref{sec:corpus}, with full per-passage provenance and
-content-hash chunk IDs in the bundle manifest. Identifiers \texttt{q\_*} index
-the mamaretrieval queries that surfaced each conflict.}
-\label{tab:contradictions}
-\centering
-\footnotesize
-\setlength{\tabcolsep}{4pt}
-\renewcommand{\arraystretch}{1.12}
-\begin{tabular}{@{}p{0.30\columnwidth}p{0.29\columnwidth}p{0.29\columnwidth}@{}}
-\toprule
-Clinical question & One passage states & A conflicting passage \\
-\midrule
-Re-dosing emergency contraception after vomiting\newline{\scriptsize\ttfamily q\_00459}
- & within \textbf{3\,h}\newline{\scriptsize Hesperian, p.318}
- & within \textbf{2\,h}\newline{\scriptsize WHO contraception, p.74} \\
-\addlinespace
-Cervical dilatation defining active labour\newline{\scriptsize\ttfamily q\_00560}
- & \textbf{4\,cm}\newline{\scriptsize WHO modules, p.65}
- & \textbf{5\,cm}\newline{\scriptsize WHO Labour Care, p.10} \\
-\addlinespace
-Time to diagnose retained placenta\newline{\scriptsize\ttfamily q\_00761}
- & \textbf{1\,h} after birth\newline{\scriptsize WHO modules, p.78}
- & \textbf{30/60\,min}\newline{\scriptsize NICE intrapartum, p.69} \\
-\addlinespace
-IV ergometrine dose for postpartum haemorrhage\newline{\scriptsize\ttfamily q\_03090}
- & \textbf{0.2\,mg}\newline{\scriptsize WHO preg-care, p.31}
- & \textbf{0.25--0.5\,mg}\newline{\scriptsize ref., p.419} \\
-\addlinespace
-When to stop aspirin pre-eclampsia prophylaxis\newline{\scriptsize\ttfamily q\_03002}
- & at \textbf{36 weeks}\newline{\scriptsize MSF, p.72}
- & at \textbf{delivery}\newline{\scriptsize WHO preg-care, p.105} \\
-\addlinespace
-Favourable Bishop score for induction\newline{\scriptsize\ttfamily q\_00846}
- & score \textbf{$\geq$8}\newline{\scriptsize ref., p.114}
- & score \textbf{$\geq$6}\newline{\scriptsize MSF, p.148} \\
-\addlinespace
-Newborn weight-loss alarm threshold\newline{\scriptsize\ttfamily q\_02218}
- & \textbf{$>$7\%}\newline{\scriptsize ref., p.801}
- & \textbf{$>$10\%}\newline{\scriptsize NICE nutrition, p.28} \\
-\bottomrule
-\end{tabular}
-\end{table}
+verified verbatim against its source. They are not edge cases: a field reference
+re-doses emergency contraception after vomiting within \emph{three} hours where
+WHO says \emph{two}; one WHO document starts the active phase of labour at
+4\,cm dilatation where another starts it at 5\,cm; one source calls a placenta
+retained after one hour where NICE uses 30/60 minutes.
+Appendix~\ref{app:contradictions} reproduces the full retrieved context for
+three such cases with the conflicting statements highlighted---the model is
+handed both in a single prompt, so whichever it follows can be faulted against
+the other. When sources diverge like this, what should the system do---prefer
+the local or most recent protocol, surface both with their provenance, or flag
+the conflict to the clinician? Citations make the divergence visible---the
+system already shows its sources---but choosing a behaviour, and validating it
+clinically, is open for any assistant grounded in a heterogeneous guideline
+base.
 
 \paragraph{Knowing when to abstain.} A deployable assistant needs a principled
 way to decline, rather than guess, on a query the corpus cannot support. The

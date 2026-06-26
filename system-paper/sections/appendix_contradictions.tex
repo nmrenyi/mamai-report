@@ -1,0 +1,59 @@
+\section{Corpus Self-Contradictions}
+\label{app:contradictions}
+\setlength{\emergencystretch}{2em}
+
+This appendix expands \S\ref{sec:discussion} (conflicting guidance) with the full retrieved context behind three of the 16 confirmed corpus self-contradictions. For each query we reproduce the top-3 passages the model received \emph{verbatim}, with the two conflicting statements highlighted; all three cases involve openly available sources, named with page numbers (full per-passage provenance, including content-hash chunk IDs, is in the bundle manifest). The point is that the model is handed both statements in a single context: whichever it follows, a faithful answer can be faulted against the other.
+
+\subsection*{Re-dosing emergency contraception after vomiting}
+\noindent\textbf{Query.} \emph{How should high-dose emergency contraceptive pills be dosed and managed if vomiting occurs?}
+\smallskip
+\noindent\textbf{Retrieved context (verbatim; conflicting statements highlighted).}
+\begin{quote}\footnotesize
+\textbf{How to give emergency contraceptive pills}\\
+Most birth control pills contain ethinyl estradiol (estrogen) and levonorgestrel (progestin). The number of pills you take depends on how much ethinyl estradiol the pill contains.\\
+\textbullet\ give 100 mcg (micrograms) ethinyl estradiol by mouth. Then 12 hours later, give another 100 mcg.\\
+\textbf{Using high-dose pills (with 50 mcg ethinyl estradiol)}\\
+\textbullet\ give 2 pills. Then 12 hours later, give 2 more pills.\\
+Emergency pills can give women headaches or severe nausea. Women can try eating something at the same time as taking the pills. \hl{If a woman vomits within 3 hours of taking the pills, she should take the same dose again.}\\
+\textbf{3. Explain what to do about side effects}\\
+\textbullet\ Nausea:\\
+\textbullet\ Routine use of anti-nausea medications is not recommended.\\
+\textbullet\ Women who have had nausea with previous ECP use or with the first dose of a 2-dose regimen can take anti-nausea medication such as 25–50 mg meclizine hydrochloride (such as Agyrax, Antivert, Bonine, Postafene) one-half to one hour before taking ECPs.\\
+\textbullet\ Vomiting:\\
+\textbullet\ \hl{If the woman vomits within 2 hours after taking progestin-only or combined ECPs, she should take another dose.} If she vomits within 3 hours of taking ulipristal acetate ECPs, she should take another dose. (She can use antinausea medication with this repeat dose, as above.) If vomiting continues, she can take a repeat dose of progestin-only or combined ECPs by placing the pills high in her vagina. If vomiting occurs more than 2 hours after taking progestin-only or combined ECPs, or 3 hours after taking UPA-ECPs, then she does not need to take any extra pills.
+\end{quote}
+\noindent\textbf{The conflict.} A says re-dose if vomiting occurs within 3 hours of ECPs; B says re-dose if vomiting occurs within 2 hours of progestin-only or combined ECPs (which include the high-dose 50-mcg pills described in the same context).\ \emph{Sources:} Hesperian, p.318\ vs.\ WHO contraception, p.74.
+
+\subsection*{The cervical dilatation that starts active labour}
+\noindent\textbf{Query.} \emph{At what cervical dilation should partograph plotting commence?}
+\smallskip
+\noindent\textbf{Retrieved context (verbatim; conflicting statements highlighted).}
+\begin{quote}\footnotesize
+\textbf{Progress of labour}\\
+Cervical dilatation The first stage of labour is divided into the latent and active phases.\\
+The latent phase at the onset of labour lasts until cervical dilatation is 4 cm and is accompanied by effacement of the cervix. The latent phase may last up to 8 hours, although it is usually completed more quickly than this. Although regular assessments of maternal and fetal well-being and a record of all findings should be made, these are not plotted on the partograph (using modified version) until labour enters active phase.\\
+\hl{The active phase of the first stage of labour starts when the cervix is 4 cm dilated} and is completed at full dilatation, i.e. 10 cm. Progress in this phase is approximately 1 cm per hour and often quicker in multigravidae.\\
+\textbf{When should the LCG be initiated?}\\
+\hl{Documentation on the LCG of the well-being of the woman and her baby as well as progression of labour should be initiated when the woman enters active phase of the first stage of labour (5 cm or more cervical dilatation)}, regardless of her parity and membranes status.\\
+Although the LCG should not be initiated in the latent phase of labour, it is expected that women and their babies are monitored and receive labour care and support during the latent stage. Detailed guidance on care for women in the latent phase of labour can be found in Pregnancy, childbirth, postpartum and newborn care: a guide for essential practice (10).\\
+\textbf{When should the LCG be initiated?}\\
+When women have entered the active phase of the first stage of labour (i.e. cervical dilatation of 5 cm or more).
+\end{quote}
+\noindent\textbf{The conflict.} A defines active phase (and partograph plotting trigger) as 4 cm dilatation; B defines it as 5 cm or more.\ \emph{Sources:} WHO midwifery modules, p.65\ vs.\ WHO Labour Care Guide, p.10.
+
+\subsection*{How long after birth a placenta is ``retained''}
+\noindent\textbf{Query.} \emph{How long after birth is a placenta considered retained?}
+\smallskip
+\noindent\textbf{Retrieved context (verbatim; conflicting statements highlighted).}
+\begin{quote}\footnotesize
+\textbf{PROLONGED THIRD STAGE}\\
+The risk of PPH is linked with a prolonged third stage of labour. The third stage is considered prolonged when it exceeds 30 minutes with active management, and up to 1 hour with physiological management (NICE 2007). The risk of PPH increases significantly with time, possibly doubling after 10 minutes (Magann et al 2005).\\
+The incidence of retained placenta is approximately 3.3\% (Weeks 2008). A retained placenta may be partially or completely separated but trapped in the cervix or lower uterine segment. In this situation, bleeding will occur from the placental site. If the retained placenta is completely adherent to the uterine wall, there may be no bleeding.\\
+\textbf{haemorrhage bleeding.}\\
+If the bleeding is atonic it is important to find out if the placenta has been delivered or not. When the third stage is managed actively, the placenta is normally delivered within 5–10 minutes of birth of the baby. It takes longer to separate and deliver during physiological management, 20–30 minutes.\\
+\hl{The students should remember that the placenta is retained if it has not been delivered within one hour of the delivery of the baby.}\\
+If the placenta has not been delivered, is there bleeding?\\
+\textbf{Prolonged third stage}\\
+1.10.20 \hl{Diagnose a prolonged third stage of labour if it is not completed within 30 minutes of the birth with active management or within 60 minutes of the birth with physiological management.} Follow the recommendations on managing a retained placenta. [2014]
+\end{quote}
+\noindent\textbf{The conflict.} A says the placenta is retained after one hour regardless of management; B says the cut-off is 30 minutes with active management and 60 minutes with physiological management.\ \emph{Sources:} WHO midwifery modules, p.78\ vs.\ NICE intrapartum, p.69.
