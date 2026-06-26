@@ -10,8 +10,8 @@ they are the deployed system's own input and output. The retrieved chunks are
 given as our own brief \emph{summaries} rather than the source text---none is
 reproduced verbatim---and \emph{all} source titles are withheld and replaced
 with neutral labels (``reference text~A''--``D''; full per-document provenance
-lives in the corpus manifest in the open repository). The crux is that two of
-the chunks come from the \emph{same} book (``reference text~A'')---one its
+lives in the corpus manifest in the project repository). The crux is that two
+of the chunks come from the \emph{same} source (``reference text~A'')---one its
 definition, the other its management protocol.
 
 \subsection*{Case A --- query says ``severe nausea''}
@@ -32,13 +32,12 @@ treatment options?''}
   corticosteroids; liver and renal bloods (AST, ALT, urea, electrolytes);
   ultrasound to exclude molar and multiple pregnancy; and monitoring of
   weight, temperature, pulse, blood pressure, and fetal heart rate.
-  \item \emph{Reference text~D (an openly-published antenatal guideline) ---
-  recommendations.} Reassure that mild-to-moderate nausea and vomiting is
-  common and usually resolves by 16--20 weeks; recognise that women have often
-  already tried remedies before seeking advice; and offer ginger as a
-  non-pharmacological option.
+  \item \emph{Reference text~D --- recommendations.} Reassure that
+  mild-to-moderate nausea and vomiting is common and usually resolves by
+  16--20 weeks; recognise that women have often already tried remedies before
+  seeking advice; and offer ginger as a non-pharmacological option.
   \item \emph{Reference text~D --- rationale.} Notes that hyperemesis can have
-  serious consequences and may need hospital care, and that this guideline
+  serious consequences and may need hospital care, and that this source
   covers only the management of nausea and vomiting, not comprehensive
   hyperemesis care.
 \end{enumerate}
@@ -94,12 +93,12 @@ only the wording differs.)
   strict fluid balance, then oral and solid food after 24~hours; prednisolone
   if weight loss exceeds 5\%.
   \item \emph{Reference text~C --- a student study-exercise.} Not
-  clinical guidance at all: a textbook activity asking the reader to
+  clinical guidance at all: an activity asking the reader to
   \emph{find out} what hyperemesis means, its incidence, who is at risk, and
   how it is recognised and treated. A passage that should never be retrieved
   for a clinical query.
   \item \emph{Reference text~A --- the definition section} (from the
-  \emph{same} book as the management text retrieved in Case~A). Definition and
+  \emph{same} source as the management section retrieved in Case~A). Definition and
   epidemiology only: hyperemesis as pathological unremitting vomiting, its
   prevalence and risk factors, diagnosis by exclusion, a leading cause of
   admission, and a possible \emph{Helicobacter pylori} link---no management
@@ -131,12 +130,13 @@ plan and medication doses.
 
 \smallskip
 \noindent\textbf{Takeaway.} The two queries describe the same patient and the
-same condition; only the wording differs. Case~A surfaced the management page
-and produced a specific, actionable answer with named drugs and a full workup;
-Case~B surfaced the \emph{definition section} of the same book, a generic
-management page whose antiemetic is unnamed, and a student study-exercise, and
-the answer collapsed to ``an antiemetic will be given.'' The corpus held the
-right management page in both cases---a small, faithful generator reproduced
+same condition; only the wording differs. Case~A surfaced the management
+section and produced a specific, actionable answer with named drugs and a full
+workup; Case~B surfaced the \emph{definition section} of the same source, a
+generic management passage whose antiemetic is unnamed, and a study-exercise,
+and the answer collapsed to ``an antiemetic will be given.'' The corpus held
+the right management section in both cases---a small, faithful generator
+reproduced
 whatever it was handed. This is the per-query face of \S\ref{sec:retr-corpus}:
 corpus coverage, specificity, curation, and query phrasing decide deployment
 quality.

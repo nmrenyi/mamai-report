@@ -234,9 +234,9 @@ describing the \emph{same} patient and the \emph{same} condition---differing
 only in whether they say ``severe nausea'' or ``hyperemesis gravidarum''---%
 retrieve different top-3 bundles and produce very different answers. The corpus
 held the right management text in both cases; for one query retrieval surfaced
-it, for the other it surfaced the \emph{definition} section of the same book
-plus a textbook study-exercise, and the answer quality tracked the chunk, not
-the question. Appendix~\ref{app:case-nausea} gives the full transcripts---both
+it, for the other it surfaced the \emph{definition} section of the same source
+plus a study-exercise, and the answer quality tracked the chunk, not the
+question. Appendix~\ref{app:case-nausea} gives the full transcripts---both
 queries, their retrieved chunks, and the generated answers.
 
 \begin{figure}[H]
@@ -249,10 +249,10 @@ nausea}; treatment options?
 
 \smallskip
 \textbf{Retrieved (top-3):}\\
-\textcolor{mamteal}{\textbf{on-point}} --- the \emph{management} page of a
-standard midwifery reference text (named drugs + full workup)\\
-\textcolor{black!45}{$\circ$}~an openly-published antenatal guideline (recommendations)\\
-\textcolor{black!45}{$\circ$}~the same open guideline (rationale)
+\textcolor{mamteal}{\textbf{on-point}} --- a \emph{management} section
+(named drugs + full workup)\\
+\textcolor{black!45}{$\circ$}~a recommendations chunk (reassurance; ginger)\\
+\textcolor{black!45}{$\circ$}~a rationale chunk
 
 \smallskip
 \textbf{Answer: specific.} Names antiemetics---promethazine,
@@ -268,11 +268,11 @@ prochlorperazine, metoclopramide---and corticosteroids; full workup
 
 \smallskip
 \textbf{Retrieved (top-3):}\\
-\textcolor{red!65!black}{\textbf{off}} --- the \emph{definition} page of the
-\emph{same} text (epidemiology only; no management)\\
-\textcolor{red!65!black}{\textbf{off}} --- a textbook \emph{study-exercise}
+\textcolor{red!65!black}{\textbf{off}} --- the \emph{definition} section of
+the \emph{same} source as Case~A's management section (epidemiology only)\\
+\textcolor{red!65!black}{\textbf{off}} --- a \emph{study-exercise}
 (``find out\ldots\ what the treatment is''; no clinical content)\\
-\textcolor{black!45}{$\circ$}~a general management page (``an antiemetic'',
+\textcolor{black!45}{$\circ$}~a general management section (``an antiemetic'',
 \emph{unnamed})
 
 \smallskip
@@ -281,10 +281,10 @@ a thinner workup.
 \end{minipage}
 \caption{Two near-identical queries, very different answers---driven by the
 retrieved chunks, not the question (hyperemesis gravidarum \emph{is} severe
-nausea/vomiting of pregnancy). The corpus held the right management page both
-times; the faithful small generator reproduced whatever was retrieved. Source
-titles withheld; chunk roles labelled. Full transcripts---queries, retrieved
-chunks, and answers---are in Appendix~\ref{app:case-nausea}.}
+nausea/vomiting of pregnancy). The corpus held the right management section
+both times; the faithful small generator reproduced whatever was retrieved.
+Sources anonymised; chunk roles labelled. Full transcripts---queries,
+retrieved chunks, and answers---are in Appendix~\ref{app:case-nausea}.}
 \label{fig:case-nausea}
 \end{figure}
 
