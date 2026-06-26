@@ -230,22 +230,24 @@ deployed retriever at the time). Each reranker re-scores the first stage's
 top-20 candidates and keeps the top-3. The three column groups are three
 separate evaluations: \emph{mamaretrieval} P@3 on the benchmark test split;
 the \emph{Kenya} deployment queries (retrieval precision and end-to-end
-key-fact recall); and \emph{HealthBench-oss}, whose \texttt{weighted\_met} we
-split into its completeness (Positive, $\uparrow$) and penalty ($\downarrow$)
-components (Gemma~4). A large benchmark gain that neither transfers to
-deployment-query retrieval nor moves answers. ``ft'' = fine-tuned in-domain.}
+key-fact recall); and \emph{HealthBench-oss}, shown as the net
+\texttt{weighted\_met} (\texttt{w\_met}, $=$ Positive $-$ Penalty) alongside
+its completeness (Positive, $\uparrow$) and penalty ($\downarrow$) components
+(Gemma~4). A large benchmark gain that neither transfers to deployment-query
+retrieval nor moves answers. ``ft'' = fine-tuned in-domain.}
 \label{tab:rerank}
 \centering
 \small
-\begin{tabular}{@{}lrrrrr@{}}
+\setlength{\tabcolsep}{4.5pt}
+\begin{tabular}{@{}lrrrrrr@{}}
 \toprule
- & mamaret. & \multicolumn{2}{c}{Kenya deployment queries} & \multicolumn{2}{c}{HealthBench-oss} \\
-\cmidrule(lr){2-2}\cmidrule(lr){3-4}\cmidrule(lr){5-6}
-Reranker on Gecko & \makecell{P@3\\$\uparrow$} & \makecell{Retr.\ P@3\\$\uparrow$} & \makecell{Key-fact\\recall $\uparrow$} & \makecell{Positive\\$\uparrow$} & \makecell{Penalty\\$\downarrow$} \\
+ & mamaret. & \multicolumn{2}{c}{Kenya deployment queries} & \multicolumn{3}{c}{HealthBench-oss} \\
+\cmidrule(lr){2-2}\cmidrule(lr){3-4}\cmidrule(lr){5-7}
+Reranker on Gecko & \makecell{P@3\\$\uparrow$} & \makecell{Retr.\ P@3\\$\uparrow$} & \makecell{Key-fact\\recall $\uparrow$} & \makecell{w\_met\\$\uparrow$} & \makecell{Positive\\$\uparrow$} & \makecell{Penalty\\$\downarrow$} \\
 \midrule
-none (deployed) & 0.485 & 0.269 & 0.125 & 0.173 & 0.371 \\
-{}+ MiniLM-L6 (ft) & 0.720 & 0.244 & 0.118 & 0.179 & 0.378 \\
-{}+ mxbai-base (ft) & 0.794 & 0.279 & 0.125 & 0.182 & 0.374 \\
+none (deployed) & 0.485 & 0.269 & 0.125 & $-0.004$ & 0.173 & 0.371 \\
+{}+ MiniLM-L6 (ft) & 0.720 & 0.244 & 0.118 & $-0.004$ & 0.179 & 0.378 \\
+{}+ mxbai-base (ft) & 0.794 & 0.279 & 0.125 & $+0.002$ & 0.182 & 0.374 \\
 \bottomrule
 \end{tabular}
 \end{table}
