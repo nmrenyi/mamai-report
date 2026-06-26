@@ -307,6 +307,18 @@ re-ranking the same pool cannot chunk the actionable content, filter the
 study-exercises, or add the missing tenth---that is corpus work, and a large
 share of the remaining deployment headroom sits there (\S\ref{sec:discussion}).
 
+A further lever sits with the user. The two queries in
+Figure~\ref{fig:case-nausea} differ only in wording---a lay description
+(``severe nausea'') versus the clinical term (``hyperemesis gravidarum'') for
+the same presentation---so how a nurse phrases a case is itself a determinant
+of the answer: the same situation, described differently, retrieves a
+different bundle. This cuts two ways at no model cost. System-side, a
+query-rewriting or normalisation step can map a nurse's phrasing onto the
+vocabulary the corpus indexes---expanding ``hyperemesis gravidarum'' so it
+also fetches the management text that ``severe nausea'' found. User-side,
+brief guidance on how to describe a case sharpens retrieval directly. We take
+query rewriting up as a near-term lever in \S\ref{sec:discussion}.
+
 \subsection{No usable confidence gate}
 \label{sec:retr-gate}
 
@@ -400,6 +412,8 @@ gate can sidestep the bad cases. What does move answers is, on average, the
 small on-device generator's ability to turn retrieved context into better
 answers (\S\ref{sec:generator})---and, per query, the coverage, specificity,
 and curation of the corpus itself (\S\ref{sec:retr-corpus}), because a faithful
-small model can only be as good as the chunk it is handed. The two remedies---%
-grounding the generator and improving the corpus---are co-equal, and we take
-both up in the discussion (\S\ref{sec:discussion}).
+small model can only be as good as the chunk it is handed---which in turn
+depends on how the query is phrased. The remedies---grounding the generator,
+improving the corpus, and rewriting the query so a nurse's wording reaches the
+right chunk---are complementary, and we take them up in the discussion
+(\S\ref{sec:discussion}).
