@@ -3,14 +3,18 @@
 
 The preceding sections establish that the system answers \emph{well}; this one
 establishes that it answers \emph{fast enough}, on the device, with no network.
-At the deployed configuration---Gemma~4~E4B on the GPU, top-3 retrieval---a
-full answer returns in a median of \textbf{$\sim$19\,s}, with the first token
-in $\sim$1\,s and generation at $\sim$13~tokens/s, entirely offline. That is
-inside the field budget we set ourselves (a query should resolve well under a
-minute) with room to spare. The rest of this section traces where the time
-goes, surfaces one precision bug that bounds how much context we can admit, and
-sets out what a device needs to run it at all---the binding deployment
-constraint, it turns out, is not speed but memory and GPU availability.
+The app ships \textbf{CPU-by-default} for broad compatibility---the safer,
+lowest-common-denominator backend---with GPU execution as an opt-in that has a
+higher hardware bar (\S\ref{sec:devices}). At the deployed top-3 depth, Gemma~4
+E4B returns a full answer in a median of \textbf{$\sim$43\,s} on the shipped CPU
+path and \textbf{$\sim$19\,s} where a compatible GPU is available (first token
+in $\sim$1\,s, generation at $\sim$13~tokens/s). Both fit the field budget we
+set ourselves (a query should resolve well under a minute)---the GPU with wide
+headroom, the CPU with a comfortable margin---and both run entirely offline. The
+rest of this section traces where the time goes, surfaces one precision bug that
+bounds how much context we can admit, and sets out what a device needs to run it
+at all---the binding deployment constraint, it turns out, is not speed but
+memory and GPU availability.
 
 \subsection{Setup}
 \label{sec:latency-setup}
@@ -37,6 +41,16 @@ it). That figure predates the Gecko~$\to$~EmbeddingGemma swap
 next to the generation that dominates the total (the $\sim$16\,s decode at the
 deployed $k{=}3$), and the deployed generator is unchanged---so the
 generation-set headline figures below stand.
+
+One further mismatch with the deployed configuration, also minor: these runs
+predate the G1 prompt (\S\ref{sec:system-prompt}) and use the earlier baseline
+prompt, which deflected on about a third of questions with short ``see a
+doctor'' replies. Because G1 cuts deflection to $\sim$3\%, the deployed system
+produces longer, more substantive answers on average, so its decode---and thus
+total latency---will run somewhat higher than measured here. Like the retriever
+change, this leaves the picture generation-dominated and within budget: the
+figures are a mild \emph{under}-estimate of the deployed system, not an
+over-estimate.
 
 \subsection{Latency by backend and retrieval depth}
 \label{sec:latency-sweep}
@@ -72,15 +86,16 @@ Figure~\ref{fig:latency-k} is the headline. Three things stand out.
     (0,8.7)(1,11.7)(3,14.3)(5,11.6)(7,15.2)(10,15.6)(15,13.1)};
   \addplot[mamamber, very thick, densely dashed, mark=diamond*, mark size=1.8pt] coordinates {
     (0,13.9)(1,15.8)(3,20.6)(5,27.2)(7,28.5)(10,26.3)(15,36.8)};
-  \legend{E4B GPU (deployed), E4B CPU, E2B GPU, E2B CPU}
+  \legend{E4B GPU (opt-in), E4B CPU (shipped), E2B GPU, E2B CPU}
 \end{axis}
 \end{tikzpicture}
 \caption{Median total query latency vs.\ retrieval depth on the Snapdragon~8
 Elite, by generator and backend (lower is better; $k=20$ omitted---see
-\S\ref{sec:context-wall}). The deployed E4B-GPU path (solid teal) stays
-$14$--$24$\,s across all depths, far under the 60\,s field budget. On CPU the
-E4B generator (dashed teal) crosses the budget past $k{\approx}5$, while the
-smaller E2B (amber) keeps every depth comfortably inside it on either backend.}
+\S\ref{sec:context-wall}). The optional E4B-GPU path (solid teal) stays
+$14$--$24$\,s across all depths, far under the 60\,s field budget; the shipped
+E4B-CPU default (dashed teal) is slower and crosses the budget past
+$k{\approx}5$, while the smaller E2B (amber) keeps every depth comfortably
+inside it on either backend.}
 \label{fig:latency-k}
 \end{figure}
 
@@ -125,7 +140,7 @@ Figure~\ref{fig:latency-k}.}
 \label{fig:latency-decomp}
 \end{figure}
 
-\paragraph{The deployed path has wide headroom.} Gemma~4~E4B on the GPU stays
+\paragraph{The GPU path has wide headroom.} Gemma~4~E4B on the GPU stays
 between $14$ and $24$\,s of total latency across \emph{every} retrieval depth up
 to $k=15$---roughly a third of the 60\,s budget at the deployed $k=3$
 ($\sim$19\,s). Latency barely grows with $k$ because, on the GPU, the cost is
@@ -135,9 +150,10 @@ $k=3$ to $\sim$3.5\,s at $k=15$, while decode---a near-constant
 $\sim$13--18\,s---sets the floor. Adding retrieved context is close to free on
 the GPU.
 
-\paragraph{CPU is the real fork in the road.} Without a usable GPU, the same
-E4B generator runs $2$--$3.5\times$ slower ($28$--$85$\,s over the same range)
-and crosses the 60\,s budget past $k{\approx}5$. The gap is almost entirely
+\paragraph{CPU is the real fork in the road.} On the CPU---the shipped
+default---the same E4B generator runs $2$--$3.5\times$ slower than on the GPU
+($28$--$85$\,s over the same range) and crosses the 60\,s budget past
+$k{\approx}5$. The gap is almost entirely
 prefill (Figure~\ref{fig:latency-decomp}, amber dashed): CPU TTFT balloons from
 $\sim$13\,s ($k=0$) to $\sim$55\,s ($k=15$), because prefill is compute-bound
 and the CPU has far less of it, while CPU \emph{generation} stays flat like the
@@ -234,8 +250,10 @@ produce prompts exceeding $4{,}096$ tokens and the runtime rejects them outright
 (a fixed 24 of 54 runs in every $k=20$ cell), so a $k=20$ median would be
 computed only over the queries short enough to survive---a survivorship
 artifact rather than a real measurement. For deployments that need longer
-context, the FP32 GPU path is the clean fallback at modest cost; on the deployed
-FP16 path, $4{,}096$ tokens is the safe ceiling.
+context, the FP32 GPU path is the clean fallback at modest cost; on the FP16 GPU
+path, $4{,}096$ tokens is the safe ceiling. The cliff is specific to FP16: the
+shipped CPU default decodes in FP32 and never hits it, so the cap is a uniform
+runtime setting that chiefly protects the GPU opt-in.
 
 \subsection{Device compatibility}
 \label{sec:devices}
@@ -281,8 +299,9 @@ Gemma~4 E2B & 4\,GB & 6\,GB & $\sim$3.5\,GB & 5\,GB \\
 \end{tabular}
 \end{table}
 
-\paragraph{GPU availability.} The $\sim$19\,s deployed latency assumes a working
-GPU, which we verified only on the Qualcomm Adreno of our test device.
+\paragraph{GPU availability.} The $\sim$19\,s figure is the opt-in GPU path, and
+assumes a working GPU---which we verified only on the Qualcomm Adreno of our
+test device.
 LiteRT-LM's GPU path uses OpenCL, whose support is inconsistent across GPU
 families: on the ARM Mali GPUs common in non-Qualcomm SoCs it is reported to
 fail silently, in which case the app falls back to CPU---a path we have not

@@ -167,7 +167,7 @@ Always ``not met'' (trivial) & 14.8 & 0\phantom{.0} & 100\phantom{.0} \\
 
 The deployed app runs on the phone, but for efficiency the open-ended
 evaluation is generated on a GPU cluster---a different runtime on different
-hardware (LiteRT-LM at FP16 on the Android GPU vs.\ a 4-bit Q4\_0
+hardware (LiteRT-LM on the device's deployed CPU backend vs.\ a 4-bit Q4\_0
 quantisation under llama.cpp on an A100). Before trusting cluster scores as a
 stand-in for the device, we re-ran the open-ended questions on the real
 device and scored both stacks with the same judge (SAQ in full, 369 per arm;
@@ -216,8 +216,8 @@ evaluation quirk, not model behaviour. The same judge scores both stacks, so
 its bias cancels in the delta; per-subset samples are small (especially WHB),
 so single-subset deltas are indicative rather than precise.
 
-A final caveat: this check fixes a single device and backend (the on-device
-GPU; \S\ref{sec:latency}). The deployed model uses the same 4-bit weights on
+A final caveat: this check fixes a single device and backend (the deployed
+on-device CPU; \S\ref{sec:latency}). The deployed model uses the same 4-bit weights on
 every phone, but the compute around them is not fixed---on-device behaviour
 can still shift with the hardware backend (CPU vs.\ GPU) and its numeric
 precision (e.g.\ the GPU's FP16 vs.\ FP32 attention) across different

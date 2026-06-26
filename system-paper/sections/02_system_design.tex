@@ -65,8 +65,10 @@ not evaluated in (Section~\ref{sec:limitations}).
 \subsection{Deployment Configuration}
 
 Retrieval depth is fixed at top-3 and the context window at 4{,}096 tokens.
-The generator defaults to CPU, with GPU execution as an opt-in that falls
-back to CPU on failure. The GPU path matters for one non-obvious reason: it
+The generator defaults to CPU---the broadly compatible, safer backend---with
+GPU execution as an opt-in: it is faster where a compatible GPU is present
+(\S\ref{sec:latency}) but has a higher hardware bar, so it is not the shipped
+default and falls back to CPU on failure. The GPU path matters for one non-obvious reason: it
 runs FP16 attention by default, which decodes correctly at the deployed
 depth but \emph{degrades deterministically past roughly 5{,}000 tokens of
 context}---the 4{,}096-token ceiling is a safety margin below that cliff
