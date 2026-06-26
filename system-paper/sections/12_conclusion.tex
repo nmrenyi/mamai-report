@@ -3,14 +3,24 @@
 
 MAM-AI shows that a fully offline, source-cited medical question-answering
 assistant can run on a commodity Android device for nurse-midwives in a
-low-connectivity setting. Its layered evaluation relocates the hard problem:
-on-device retrieval is essentially solved---a 300M embedder rivals cloud
-systems---while the binding constraints lie downstream, in the small generator's
-ability to use retrieved context faithfully and in the coverage and quality of
-the corpus it draws on. Generator capability matters too---it sets the quality
-ceiling---but in a safety-critical setting we prioritise faithfulness, deploying
-the model that grounds its answers most reliably. MAM-AI is a thoroughly
-evaluated research prototype, not a
-fielded product; closing the gap to deployment means grounding the generator,
-improving the corpus, extending to Swahili, and, above all, testing with the
-nurse-midwives it is built for.
+low-connectivity setting. Its layered evaluation relocates the hard problem.
+On-device retrieval is essentially solved: on the mamaretrieval benchmark a 300M
+embedder ranks third of seven and rivals cloud systems, so the passages the
+system needs are usually found. The small generator is what remains in
+doubt---at 4B it cannot be both helpful and safe at once: Gemma~3n answers more
+fully but commits genuine dangerous errors, while Gemma~4 is safe but less
+helpful, whereas the 397B frontier model escapes the trade-off entirely, marking
+the gap as a limit of small-model capacity rather than of the task. Corpus
+quality is decisive for the same reason: a small model carries little parametric
+medical knowledge and leans on what it retrieves, so it needs official,
+traceable guidelines and locally relevant protocols---and where the corpus holds
+the right passage the answer is specific and safe to act on, where it does not
+the answer goes vague (Figure~\ref{fig:case-nausea}).
+
+Generator capability matters---it sets the quality ceiling---but in a
+safety-critical setting we prioritise faithfulness, deploying the model that
+grounds its answers most reliably and recovering helpfulness through the prompt.
+MAM-AI is a thoroughly evaluated research prototype, not a fielded product;
+closing the gap to deployment means grounding the generator, improving the
+corpus, extending to Swahili, and, above all, testing with the nurse-midwives it
+is built for.
