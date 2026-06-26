@@ -120,7 +120,7 @@ only slightly; the gap between models dwarfs it.}
   prompts while Gemma~3n sits at $6.3$--$6.7\%$---a $1.9$--$2.4\times$ gap that
   holds for baseline, \mbox{+G1}, and \mbox{+G1+G2} alike.
   \item \textbf{Small size is not the problem; Gemma~3n is the outlier.}
-  Gemma~4, a 4B model running int4 on a phone, grounds about as faithfully as
+  Gemma~4, a 4B model running int4 on-device, grounds about as faithfully as
   the 397B Qwen frontier, whose own categorized rate spans $0.97$--$3.71\%$
   across the three prompts. Faithfulness is therefore not a penalty of the
   on-device size class---it is a property of the specific model, and Gemma~3n
@@ -131,7 +131,7 @@ The prompt's effect is real but small: both models drift \emph{upward} as the
 prompt asks for more clinical substance (Gemma~4 by $+0.9$ percentage points
 from baseline to \mbox{+G1+G2}, Gemma~3n by $+0.5$), because the recovered
 substance sometimes reaches beyond the document. But that drift is dwarfed by
-the gap between the two models: which generator runs on the phone, not which
+the gap between the two models: which generator runs on-device, not which
 prompt it carries, is what sets its faithfulness.
 
 \subsection{What kind of unfaithfulness, and how the prompt changes it}
@@ -239,8 +239,8 @@ section) are measured on different data, with different judges, against
 different references---yet both find Gemma~4 roughly $2\times$ safer than
 Gemma~3n, and both locate the cause in the model rather than the prompt. This
 is the deciding evidence behind deploying Gemma~4: it is the candidate that is
-as faithful as a frontier model while remaining small enough to run on the
-phone.
+as faithful as a frontier model while remaining small enough to run
+on-device.
 
 The deficit is structural. No prompt in this study brings Gemma~3n's
 faithfulness up to Gemma~4's: the two deflection-fix prompts in fact nudge

@@ -2,14 +2,14 @@
 \label{sec:latency}
 
 The preceding sections establish that the system answers \emph{well}; this one
-establishes that it answers \emph{fast enough}, on the phone, with no network.
+establishes that it answers \emph{fast enough}, on the device, with no network.
 At the deployed configuration---Gemma~4~E4B on the GPU, top-3 retrieval---a
 full answer returns in a median of \textbf{$\sim$19\,s}, with the first token
 in $\sim$1\,s and generation at $\sim$13~tokens/s, entirely offline. That is
 inside the field budget we set ourselves (a query should resolve well under a
 minute) with room to spare. The rest of this section traces where the time
 goes, surfaces one precision bug that bounds how much context we can admit, and
-maps which phones can run the system at all---the binding deployment
+maps which devices can run the system at all---the binding deployment
 constraint, it turns out, is not speed but memory and GPU availability on the
 low-cost hardware that dominates the target market.
 
@@ -27,11 +27,17 @@ prefill pass over the prompt, excluding retrieval), \emph{decode} (first to
 last generated token), and \emph{total query} (retrieval $+$ TTFT $+$ decode,
 what the user waits). Each benchmark records the SHA-256 fingerprint of the
 loaded model artifact so a reviewer can verify which weights produced which
-timing. The deployed embedder changed after this sweep (Gecko~$\to$
-EmbeddingGemma; \S\ref{sec:system-design}), but that affects only the retrieval
-term, which is excluded from TTFT and is sub-second next to generation; the
-generator---which dominates the total---is unchanged, so the timings below
-stand.
+timing.
+
+Retrieval---embedding the query and searching the vector store---is timed
+separately from TTFT and adds a near-constant $\sim$1.7\,s at the deployed
+depth, almost all of it the single query-embedding pass rather than the
+similarity search over the $63{,}650$-chunk index (which is negligible beside
+it). That figure predates the Gecko~$\to$~EmbeddingGemma swap
+(\S\ref{sec:system-design}) and may have shifted, but retrieval is a small slice
+next to the generation that dominates the total (the $\sim$16\,s decode at the
+deployed $k{=}3$), and the deployed generator is unchanged---so the
+generation-set headline figures below stand.
 
 \subsection{Latency by backend and retrieval depth}
 \label{sec:latency-sweep}
