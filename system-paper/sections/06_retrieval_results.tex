@@ -102,41 +102,57 @@ If retrieval quality were the binding constraint, improving it should lift
 end-to-end answers. Two independent interventions say otherwise---upgrading
 the embedder (Gecko$\to$EmbeddingGemma) and adding a fine-tuned reranker. Each
 sharply improves offline retrieval, yet neither moves the answers: across
-both, retrieval precision rises while end-to-end key-fact recall stays flat
-near the same value (Figure~\ref{fig:retr-converts}).
+both, retrieval precision rises while end-to-end Kenya key-fact recall and
+HealthBench stay flat (Figure~\ref{fig:retr-converts}).
 
 \begin{figure}[t]
 \centering
 \begin{tikzpicture}
-\begin{axis}[
-  ybar, bar width=9pt,
-  width=\columnwidth, height=5.0cm,
-  ymin=0, ymax=0.44,
-  ylabel={Kenya score}, ylabel style={font=\footnotesize},
-  symbolic x coords={no-RAG, Gecko, EmbeddingGemma, reranker},
-  xtick=data, enlarge x limits=0.16,
-  ytick={0,0.1,0.2,0.3,0.4},
+\begin{groupplot}[
+  group style={group size=1 by 2, vertical sep=1.5cm, x descriptions at=edge bottom},
+  width=\columnwidth, height=3.7cm,
+  symbolic x coords={no-RAG, Gecko, Emb.Gemma, +MiniLM, +mxbai},
+  xtick=data, enlarge x limits=0.13,
   tick label style={font=\footnotesize}, label style={font=\footnotesize},
-  legend style={font=\footnotesize, at={(0.5,-0.16)}, anchor=north,
-    legend columns=-1, draw=black!25,
-    /tikz/every even column/.append style={column sep=10pt}},
   grid=both, grid style={black!8},
+  title style={font=\footnotesize\bfseries, yshift=-1ex},
 ]
-\addplot[fill=mamteal!75, draw=mamteal!60] coordinates {
-  (no-RAG,0)(Gecko,0.270)(EmbeddingGemma,0.396)(reranker,0.279)};
-\addplot[fill=mamamber!85, draw=mamamber!70] coordinates {
-  (no-RAG,0.178)(Gecko,0.125)(EmbeddingGemma,0.126)(reranker,0.125)};
-\legend{retrieval P@3 (offline), key-fact recall (answer)}
-\end{axis}
+% --- Panel a: offline retrieval quality ---
+\nextgroupplot[ybar, bar width=5.5pt, title={Offline retrieval quality}, ylabel={precision@3},
+  ymin=0, ymax=0.88, ytick={0,0.2,0.4,0.6,0.8},
+  legend style={font=\scriptsize, draw=black!25, legend columns=-1,
+    at={(0.5,-0.24)}, anchor=north,
+    /tikz/every even column/.append style={column sep=8pt}}]
+  \addplot[fill=mamteal!80, draw=mamteal!60] coordinates {
+    (no-RAG,0)(Gecko,0.485)(Emb.Gemma,0.784)(+MiniLM,0.720)(+mxbai,0.794)};
+  \addplot[fill=mamteal!28, draw=mamteal!45] coordinates {
+    (no-RAG,0)(Gecko,0.270)(Emb.Gemma,0.396)(+MiniLM,0.244)(+mxbai,0.279)};
+  \legend{mamaretrieval (benchmark), Kenya (deployment)}
+% --- Panel b: end-to-end answers ---
+\nextgroupplot[ybar, bar width=5.5pt, title={End-to-end answers}, ylabel={answer score},
+  ymin=0, ymax=0.24, ytick={0,0.1,0.2},
+  legend style={font=\scriptsize, draw=black!25, legend columns=-1,
+    at={(0.5,-0.58)}, anchor=north,
+    /tikz/every even column/.append style={column sep=8pt}}]
+  \addplot[fill=mamamber!88, draw=mamamber!70] coordinates {
+    (no-RAG,0.178)(Gecko,0.125)(Emb.Gemma,0.126)(+MiniLM,0.118)(+mxbai,0.125)};
+  \addplot[fill=blue!55!black, draw=blue!45!black] coordinates {
+    (no-RAG,0.184)(Gecko,0.175)(Emb.Gemma,0.189)(+MiniLM,0.179)(+mxbai,0.182)};
+  \legend{Kenya key-fact recall, HealthBench completeness}
+\end{groupplot}
 \end{tikzpicture}
-\caption{Better retrieval does not reach the answers (baseline Gemma~4,
-Kenya). For each setup, offline retrieval quality (retrieval P@3, lenient,
-teal) against the end-to-end answer (key-fact recall, amber). Upgrading the
-embedder Gecko$\to$EmbeddingGemma lifts retrieval P@3 by $+0.13$, and a
-fine-tuned reranker lifts \emph{benchmark} P@3 even further
-($0.49\to0.79$, beyond this Kenya view), yet key-fact recall stays flat near
-$0.125$ throughout---and no retrieval at all (no-RAG, no teal bar) is highest
-at $0.178$. \emph{reranker} = Gecko plus the fine-tuned reranker.}
+\caption{Better retrieval does not reach the answers (baseline Gemma~4).
+\textbf{Top, offline retrieval:} precision@3 on the mamaretrieval benchmark
+(dark) and on the Kenya queries (light). Upgrading Gecko$\to$EmbeddingGemma
+and adding either fine-tuned reranker (on the Gecko stage) each push benchmark
+P@3 from 0.49 to 0.72--0.79; but only the embedder also lifts \emph{Kenya}
+retrieval P@3---the rerankers' benchmark gain does not transfer to the
+deployment queries. \textbf{Bottom, end-to-end answers:} Kenya key-fact recall
+and HealthBench completeness (Positive) stay flat across every intervention,
+and no retrieval at all (no-RAG) is best on recall. The net HealthBench
+\texttt{weighted\_met} is $\approx0$ throughout (completeness offset by a flat
+$\sim$0.37 penalty). \emph{+MiniLM}, \emph{+mxbai} are the two fine-tuned
+rerankers on Gecko.}
 \label{fig:retr-converts}
 \end{figure}
 
@@ -151,13 +167,13 @@ The reranker makes the same point from a second angle. It is a
 \emph{cross-encoder} second stage that re-scores the first stage's top-20
 (query, chunk) pairs jointly---more accurate than the bi-encoder retriever but
 too costly to run corpus-wide. We screened several deployable cross-encoders
-against multi-billion-parameter Qwen3-Reranker references and fine-tuned the
-smallest, a 23M MiniLM-L6, on 158{,}993 judge-graded (query, chunk) pairs
-(\emph{fine-tuning, not size, was the lever}: it beats an $8\times$-larger
-zero-shot model and ships int8 on-device). That lifts \emph{benchmark}
-precision from 0.485 to 0.79---yet the gain does not transfer: on the Kenya
-queries it lifts retrieval precision only to 0.279 and leaves key-fact recall
-at 0.125 (net HealthBench $\approx0$). The lesson is methodological: retriever
+against multi-billion-parameter Qwen3-Reranker references and fine-tuned two
+of them in-domain on 158{,}993 judge-graded (query, chunk) pairs
+(\emph{fine-tuning, not size, was the lever}: the 23M MiniLM-L6 beats an
+$8\times$-larger zero-shot model and ships int8 on-device). Both lift
+\emph{benchmark} precision sharply, from 0.485 to 0.72--0.79---yet the gain
+does not transfer: on the Kenya queries retrieval precision moves only to
+0.24--0.28 and key-fact recall stays at 0.12 (net HealthBench $\approx0$). The lesson is methodological: retriever
 changes must be validated on the deployment queries, not the benchmark alone,
 and we ship no reranker.
 
