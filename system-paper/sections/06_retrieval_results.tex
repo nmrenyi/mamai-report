@@ -29,51 +29,71 @@ present) and Precision (average bundle quality).
 
 \subsection{On-device retrieval is strong}
 
-Table~\ref{tab:retrievers} scores seven retrievers: the deployed on-device
+Figure~\ref{fig:retrievers} scores seven retrievers: the deployed on-device
 EmbeddingGemma-300M, the earlier on-device Gecko, three cloud embedders
 (voyage-4-large, octen, lateon), and lexical/biomedical baselines (BM25,
 MedCPT). EmbeddingGemma was added to the original six-retriever pool in a
 matched run under the same judge; the six reproduce exactly, confirming no
 drift (companion paper).
 
-\begin{table}[t]
-\caption{Retriever scoreboard on mamaretrieval ($n=3{,}185$, top-3). Hit
-Rate / Precision at lenient ($\ge3$) and strict ($\ge5$) relevance, and
-threshold-free weighted variants (wHR / wP); higher is better throughout. The
-deployed on-device retriever is in bold.}
-\label{tab:retrievers}
+\begin{figure}[t]
 \centering
-\small
-\begin{tabular}{@{}lrrrrrr@{}}
-\toprule
- & \multicolumn{2}{c}{Lenient ($\ge3$)} & \multicolumn{2}{c}{Strict ($\ge5$)} & \multicolumn{2}{c}{Weighted} \\
-\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}
-Retriever & HR & P & HR & P & wHR & wP \\
-\midrule
-voyage (cloud) & 0.996 & 0.867 & 0.753 & 0.452 & 0.860 & 0.682 \\
-octen (cloud) & 0.991 & 0.804 & 0.716 & 0.403 & 0.847 & 0.637 \\
-\textbf{EmbeddingGemma (deployed)} & 0.985 & 0.784 & 0.704 & 0.388 & 0.838 & 0.619 \\
-lateon (cloud) & 0.971 & 0.738 & 0.664 & 0.350 & 0.815 & 0.581 \\
-Gecko (former on-device) & 0.814 & 0.477 & 0.439 & 0.193 & 0.662 & 0.393 \\
-BM25 & 0.754 & 0.417 & 0.371 & 0.163 & 0.602 & 0.338 \\
-MedCPT & 0.644 & 0.334 & 0.272 & 0.112 & 0.517 & 0.277 \\
-\bottomrule
-\end{tabular}
-\end{table}
+\begin{tikzpicture}[font=\footnotesize]
+  % horizontal precision bars; x = P*5.0; lenient (light) drawn over strict (dark)
+  \fill[mamteal!8] (-2.85,4.06) rectangle (5.0,4.74); % deployed-row highlight
+  \foreach \p in {0.2,0.4,0.6,0.8}{%
+    \draw[black!12] (\p*5,0.30) -- (\p*5,6.70);%
+    \node[black!50, font=\scriptsize, below] at (\p*5,0.27) {\p};%
+  }
+  \draw[black!45] (0,0.30) -- (0,6.70);
+  \node[black!60, font=\scriptsize] at (2.2,-0.18)
+    {Precision@3 (fraction of the top-3 bundle that is relevant)};
+  % legend
+  \fill[mamteal!35] (0.0,7.02) rectangle (0.30,7.24);
+  \node[anchor=west, font=\scriptsize] at (0.36,7.13) {lenient ($\ge3$)};
+  \fill[mamteal] (2.05,7.02) rectangle (2.35,7.24);
+  \node[anchor=west, font=\scriptsize] at (2.41,7.13) {strict ($\ge5$)};
+  % rows: name / label-color / x_lenient / x_strict / P_lenient / P_strict / y
+  \foreach \nm/\col/\xl/\xs/\vl/\vs/\y in {%
+    {voyage}/black/4.335/2.260/0.867/0.452/6.30,%
+    {octen}/black/4.020/2.015/0.804/0.403/5.35,%
+    {{\bfseries EmbeddingGemma}}/mamteal/3.920/1.940/0.784/0.388/4.40,%
+    {lateon}/black/3.690/1.750/0.738/0.350/3.45,%
+    {Gecko}/mamteal/2.385/0.965/0.477/0.193/2.50,%
+    {BM25}/black!55/2.085/0.815/0.417/0.163/1.55,%
+    {MedCPT}/black!55/1.670/0.560/0.334/0.112/0.60}{%
+    \node[anchor=east, text=\col] at (-0.12,\y) {\nm};%
+    \fill[mamteal!35] (0,\y+0.04) rectangle (\xl,\y+0.30);%
+    \fill[mamteal] (0,\y-0.30) rectangle (\xs,\y-0.04);%
+    \node[anchor=west, font=\scriptsize] at (\xl+0.06,\y+0.17) {\vl};%
+    \node[anchor=west, font=\scriptsize, text=mamteal] at (\xs+0.06,\y-0.17) {\vs};%
+  }
+\end{tikzpicture}
+\caption{Retriever scoreboard on mamaretrieval ($n=3{,}185$, top-3), as top-3
+precision at the lenient ($\ge3$, light) and strict ($\ge5$, dark) relevance
+thresholds; longer is better. The deployed on-device EmbeddingGemma
+(highlighted) lands third of seven, between cloud embedders and within
+$\sim$8 points of the best (voyage), and far above the former on-device
+Gecko. On-device retrievers are labelled in teal, cloud in black,
+lexical/biomedical baselines in grey. Hit Rate and the threshold-free
+weighted variants (wHR, wP) track the same ordering (see text).}
+\label{fig:retrievers}
+\end{figure}
 
 The deployed retriever lands in the top tier---third of seven, between two
 cloud embedders, within $\sim$8 points of precision of the best (voyage). A
 300M model running on the phone competes with cloud retrieval, and it
 improves on the earlier on-device Gecko by $+30.7$ points of lenient
 precision (0.784 vs.\ 0.477), closing essentially the whole on-device gap.
-One honest caveat sits in the strict Hit Rate column of
-Table~\ref{tab:retrievers}: even at the top it is far below the lenient
-one---voyage carries a complete, specific ($\ge5$) chunk in its top-3 for
-only $\sim$75\% of queries ($\text{HR}=0.753$), and the deployed
-EmbeddingGemma for $\sim$70\% ($0.704$). At the deployed depth, then, a
-meaningful minority of queries have no fully specific chunk in the bundle---a
-gap that deeper retrieval or a broader corpus, rather than a better top-3
-embedder, would have to close.
+The threshold-free weighted precision tells the same story (EmbeddingGemma
+$\text{wP}=0.619$ vs.\ Gecko $0.393$, voyage $0.682$), as do both Hit-Rate
+variants. One honest caveat is in Hit Rate at the strict bar, not in
+precision: even the best retriever carries a complete, specific ($\ge5$)
+chunk in its top-3 for only $\sim$75\% of queries (voyage $\text{HR}=0.753$;
+deployed EmbeddingGemma $0.704$). At the deployed depth, then, a meaningful
+minority of queries have no fully specific chunk in the bundle---a gap that
+deeper retrieval or a broader corpus, rather than a better top-3 embedder,
+would have to close.
 
 \subsection{A better embedder does not reach the answers}
 
@@ -196,8 +216,9 @@ That win does not reach the user. Re-scoring the first stage's top-20 with the
 fine-tuned reranker lifts benchmark precision dramatically---from 0.485 to
 0.72, and the larger fine-tuned variant to 0.79 (Table~\ref{tab:rerank}). Yet
 across rerankers \emph{and} across all three first stages tested (Gecko,
-BM25, and their hybrid), Kenya retrieval precision stays near 0.27 and
-end-to-end key-fact recall near 0.12, with HealthBench at zero. The benchmark
+BM25, and their hybrid), Kenya retrieval precision stays near 0.27, end-to-end
+key-fact recall near 0.12, and HealthBench completeness near 0.18 against a
+flat 0.37 penalty (net \texttt{weighted\_met} $\approx0$). The benchmark
 gain does not transfer to the Kenyan vignettes---a distribution shift with a
 methodological lesson: retriever changes must be validated on the deployment
 queries, not on the benchmark alone. We do not ship the reranker.
@@ -206,23 +227,25 @@ queries, not on the benchmark alone. We do not ship the reranker.
 \caption{Reranking, shown on the Gecko first stage (one of three tested---%
 Gecko, BM25, and their RRF hybrid---all with the same outcome; Gecko was the
 deployed retriever at the time). Each reranker re-scores the first stage's
-top-20 candidates and keeps the top-3. \emph{Benchmark} P@3 is top-3
-precision on the mamaretrieval test split; the Kenya columns are retrieval
-precision, end-to-end key-fact recall, and HealthBench \texttt{weighted\_met}
-(Gemma~4). A large benchmark gain that neither transfers to deployment-query
-retrieval nor moves answers. ``ft'' = fine-tuned in-domain.}
+top-20 candidates and keeps the top-3. The three column groups are three
+separate evaluations: \emph{mamaretrieval} P@3 on the benchmark test split;
+the \emph{Kenya} deployment queries (retrieval precision and end-to-end
+key-fact recall); and \emph{HealthBench-oss}, whose \texttt{weighted\_met} we
+split into its completeness (Positive, $\uparrow$) and penalty ($\downarrow$)
+components (Gemma~4). A large benchmark gain that neither transfers to
+deployment-query retrieval nor moves answers. ``ft'' = fine-tuned in-domain.}
 \label{tab:rerank}
 \centering
 \small
-\begin{tabular}{@{}lrrrr@{}}
+\begin{tabular}{@{}lrrrrr@{}}
 \toprule
- & Benchmark & \multicolumn{3}{c}{Kenya deployment queries} \\
-\cmidrule(lr){2-2}\cmidrule(lr){3-5}
-Reranker on Gecko & \makecell{P@3\\$\uparrow$} & \makecell{Retr.\ P@3\\$\uparrow$} & \makecell{Key-fact\\recall $\uparrow$} & \makecell{Health-\\Bench $\uparrow$} \\
+ & mamaret. & \multicolumn{2}{c}{Kenya deployment queries} & \multicolumn{2}{c}{HealthBench-oss} \\
+\cmidrule(lr){2-2}\cmidrule(lr){3-4}\cmidrule(lr){5-6}
+Reranker on Gecko & \makecell{P@3\\$\uparrow$} & \makecell{Retr.\ P@3\\$\uparrow$} & \makecell{Key-fact\\recall $\uparrow$} & \makecell{Positive\\$\uparrow$} & \makecell{Penalty\\$\downarrow$} \\
 \midrule
-none (deployed) & 0.485 & 0.269 & 0.125 & $-0.004$ \\
-{}+ MiniLM-L6 (ft) & 0.720 & 0.244 & 0.118 & $-0.004$ \\
-{}+ mxbai-base (ft) & 0.794 & 0.279 & 0.125 & $+0.002$ \\
+none (deployed) & 0.485 & 0.269 & 0.125 & 0.173 & 0.371 \\
+{}+ MiniLM-L6 (ft) & 0.720 & 0.244 & 0.118 & 0.179 & 0.378 \\
+{}+ mxbai-base (ft) & 0.794 & 0.279 & 0.125 & 0.182 & 0.374 \\
 \bottomrule
 \end{tabular}
 \end{table}
