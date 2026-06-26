@@ -95,87 +95,100 @@ minority of queries have no fully specific chunk in the bundle---a gap that
 deeper retrieval or a broader corpus, rather than a better top-3 embedder,
 would have to close.
 
-\subsection{A better embedder does not reach the answers}
+\subsection{Better retrieval does not reach the answers}
+\label{sec:retr-converts}
 
-If retrieval quality were the constraint, the Gecko$\to$EmbeddingGemma
-upgrade should lift end-to-end answers. It does not (Table~\ref{tab:bakeoff}).
-On a matched comparison, the upgrade raises retrieval precision sharply
-($0.270\to0.396$, $+12.6$ points) while end-to-end key-fact recall stays flat
-($0.125\to0.126$) and the HealthBench score barely moves. More starkly, on
-this small generator \emph{no retrieval at all} scores highest on Kenya
-(0.178)---adding context, however good, does not help and slightly hurts.
+If retrieval quality were the binding constraint, improving it should lift
+end-to-end answers. Two independent interventions say otherwise---upgrading
+the embedder (Gecko$\to$EmbeddingGemma) and adding a fine-tuned reranker. Each
+sharply improves offline retrieval, yet neither moves the answers: across
+both, retrieval precision rises while end-to-end key-fact recall stays flat
+near the same value (Figure~\ref{fig:retr-converts}).
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+  ybar, bar width=9pt,
+  width=\columnwidth, height=5.0cm,
+  ymin=0, ymax=0.44,
+  ylabel={Kenya score}, ylabel style={font=\footnotesize},
+  symbolic x coords={no-RAG, Gecko, EmbeddingGemma, reranker},
+  xtick=data, enlarge x limits=0.16,
+  ytick={0,0.1,0.2,0.3,0.4},
+  tick label style={font=\footnotesize}, label style={font=\footnotesize},
+  legend style={font=\footnotesize, at={(0.5,-0.16)}, anchor=north,
+    legend columns=-1, draw=black!25,
+    /tikz/every even column/.append style={column sep=10pt}},
+  grid=both, grid style={black!8},
+]
+\addplot[fill=mamteal!75, draw=mamteal!60] coordinates {
+  (no-RAG,0)(Gecko,0.270)(EmbeddingGemma,0.396)(reranker,0.279)};
+\addplot[fill=mamamber!85, draw=mamamber!70] coordinates {
+  (no-RAG,0.178)(Gecko,0.125)(EmbeddingGemma,0.126)(reranker,0.125)};
+\legend{retrieval P@3 (offline), key-fact recall (answer)}
+\end{axis}
+\end{tikzpicture}
+\caption{Better retrieval does not reach the answers (baseline Gemma~4,
+Kenya). For each setup, offline retrieval quality (retrieval P@3, lenient,
+teal) against the end-to-end answer (key-fact recall, amber). Upgrading the
+embedder Gecko$\to$EmbeddingGemma lifts retrieval P@3 by $+0.13$, and a
+fine-tuned reranker lifts \emph{benchmark} P@3 even further
+($0.49\to0.79$, beyond this Kenya view), yet key-fact recall stays flat near
+$0.125$ throughout---and no retrieval at all (no-RAG, no teal bar) is highest
+at $0.178$. \emph{reranker} = Gecko plus the fine-tuned reranker.}
+\label{fig:retr-converts}
+\end{figure}
+
+The embedder bake-off is the cleaner of the two. Gecko$\to$EmbeddingGemma
+raises Kenya retrieval precision $0.270\to0.396$ ($+12.6$ points), but
+end-to-end key-fact recall stays flat ($0.125\to0.126$) and HealthBench barely
+moves. More starkly, \emph{no retrieval at all} scores highest on Kenya
+(recall 0.178): on this small generator, adding context---however good---does
+not help, and slightly hurts.
+
+The reranker makes the same point from a second angle. It is a
+\emph{cross-encoder} second stage that re-scores the first stage's top-20
+(query, chunk) pairs jointly---more accurate than the bi-encoder retriever but
+too costly to run corpus-wide. We screened several deployable cross-encoders
+against multi-billion-parameter Qwen3-Reranker references and fine-tuned the
+smallest, a 23M MiniLM-L6, on 158{,}993 judge-graded (query, chunk) pairs
+(\emph{fine-tuning, not size, was the lever}: it beats an $8\times$-larger
+zero-shot model and ships int8 on-device). That lifts \emph{benchmark}
+precision from 0.485 to 0.79---yet the gain does not transfer: on the Kenya
+queries it lifts retrieval precision only to 0.279 and leaves key-fact recall
+at 0.125 (net HealthBench $\approx0$). The lesson is methodological: retriever
+changes must be validated on the deployment queries, not the benchmark alone,
+and we ship no reranker.
 
 Why do the retrieval gains not convert? The information is not missing:
-precision rises, so it is retrieved, and the corpus contains it and it cannot
-be gated away (\S\ref{sec:retr-corpus}, \S\ref{sec:retr-gate}). The break is
-downstream, in the small generator's response behaviour---which the prompt
-matrix (\S\ref{sec:endtoend}) already exposed and which better context does
-not change. It declines to engage on a large share of questions, and even
-when it engages it tends to withhold specific guidance, deferring to ``see a
-doctor''; for a deflecting or non-committal answer, no improvement in the
-retrieved chunk can raise its key-fact recall. (A subtler, metric-level
-contributor: retrieval precision rewards \emph{topical} relevance, which need
-not coincide with the specific gold facts a key-fact-recall answer is scored
-on.) We isolate the generator's use of context directly in
-\S\ref{sec:generator}.
+precision rises, so it is retrieved; the corpus holds it
+(\S\ref{sec:retr-corpus}); and it cannot be gated away
+(\S\ref{sec:retr-gate}). The break is downstream, in the small generator's
+response behaviour---which the prompt matrix (\S\ref{sec:endtoend}) already
+exposed and better context does not change. It declines to engage, or engages
+without committing to specific guidance (``see a doctor''); for such answers,
+no improvement in the retrieved chunk can raise key-fact recall. (A subtler,
+metric-level contributor: retrieval precision rewards \emph{topical}
+relevance, which need not coincide with the specific gold facts key-fact
+recall scores.)
 
-One apparent bound dissolves on inspection. The bake-off above uses the
-\emph{baseline} prompt, whose 33\% deflection could be masking a retrieval
-gain that a more engaged model would show. It is not: re-running all three
-arms under the deployed G1 prompt, which cuts deflection to 3\%, leaves the
-ranking unchanged (\S\ref{sec:retr-g1} below). The broader claim---that the
-generator, not retrieval, is the binding constraint---rests also on the
-prompt-independent faithfulness analysis (\S\ref{sec:generator}).
-
-\begin{table}[t]
-\caption{Matched retrieval bake-off on Gemma~4 under the \emph{baseline}
-prompt (it predates the deployed G1 prompt; cf.\ \S\ref{sec:retr-g1}): no
-retrieval vs.\ Gecko vs.\ EmbeddingGemma, on Kenya ($n=312$) and
-HealthBench-oss ($n\approx1{,}209$). Retrieval P@3 is lenient precision on the
-Kenya queries; key-fact recall is the end-to-end answer metric;
-\texttt{weighted\_met} is shown with its positive (completeness) and penalty
-components. A separate controlled study from the prompt matrix of
-\S\ref{sec:endtoend}, so absolute numbers are not comparable to
-Table~\ref{tab:matrix}; the no-RAG HealthBench arm is from a parallel run.}
-\label{tab:bakeoff}
-\centering
-\small
-\begin{tabular}{@{}lrrrrr@{}}
-\toprule
- & \multicolumn{2}{c}{Kenya} & \multicolumn{3}{c}{HealthBench-oss} \\
-\cmidrule(lr){2-3}\cmidrule(lr){4-6}
-Setup & \makecell{Retrieval\\P@3 $\uparrow$} & \makecell{Key-fact\\recall $\uparrow$} & \makecell{weighted\_met\\$\uparrow$} & \makecell{Positive\\$\uparrow$} & \makecell{Penalty\\$\downarrow$} \\
-\midrule
-No retrieval (no-RAG) & --- & 0.178 & $+0.003$ & 0.184 & 0.379 \\
-Gecko (former) & 0.270 & 0.125 & $-0.004$ & 0.175 & 0.372 \\
-\textbf{EmbeddingGemma (deployed)} & 0.396 & 0.126 & $+0.012$ & 0.189 & 0.368 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\subsection{The same holds under the deployed G1 prompt}
-\label{sec:retr-g1}
-
-Re-running the bake-off under the deployed Gemma~4\,+\,G1 settles the
-deflection objection (Table~\ref{tab:bakeoff-g1}). With deflection fixed at
-3\%, the ranking is unchanged: \emph{no retrieval still leads} on Kenya
-(recall 0.328), and both retrievers sit below it (EmbeddingGemma 0.279, Gecko
-0.268). The better embedder again edges Gecko---$+0.011$ Kenya recall,
-$+0.009$ HealthBench \texttt{weighted\_met}---but does not reach the no-RAG
-baseline. So the earlier finding was not an artefact of the baseline's
-deflection: even when the model engages, retrieved context does not raise
-answer quality on this small generator, and slightly lowers it. The size
-ladder of \S\ref{sec:model-size} shows the same effect deepening with
-capability---the RAG penalty grows from $-0.01$ HealthBench at 4B to $-0.10$
-at 31B---consistent with the reading that the generator's parametric knowledge
-already exceeds what the retrieved context adds.
+Nor is the baseline prompt's 33\% deflection masking the gain: re-running the
+embedder bake-off under the deployed Gemma~4\,+\,G1 prompt, which cuts
+deflection to 3\%, leaves the ranking unchanged (Table~\ref{tab:bakeoff-g1}).
+No-RAG still leads (recall 0.328), EmbeddingGemma (0.279) again edges Gecko
+(0.268) but neither reaches it, and RAG stays net-negative---an effect the
+size ladder (\S\ref{sec:model-size}) shows deepening with capability (the RAG
+penalty grows from $-0.01$ HealthBench at 4B to $-0.10$ at 31B). The binding
+constraint is the generator's use of context, which we isolate next
+(\S\ref{sec:generator}).
 
 \begin{table}[t]
-\caption{Matched retrieval bake-off under the \emph{deployed} Gemma~4\,+\,G1
-prompt (cf.\ the baseline-prompt Table~\ref{tab:bakeoff}): no retrieval vs.\
-Gecko vs.\ EmbeddingGemma, on Kenya ($n=312$) and HealthBench-oss
+\caption{Embedder bake-off under the \emph{deployed} Gemma~4\,+\,G1 prompt
+(baseline-prompt counterpart in Figure~\ref{fig:retr-converts}): no retrieval
+vs.\ Gecko vs.\ EmbeddingGemma, on Kenya ($n=312$) and HealthBench-oss
 ($n\approx1{,}209$), same gpt-oss-120b judge. With deflection fixed by G1,
-no-RAG still leads and RAG remains net-negative. Kenya harm is the harm rate
+no-RAG still leads and RAG stays net-negative. Kenya harm is the harm rate
 ($\downarrow$); \texttt{weighted\_met} is shown with its positive
 (completeness) and penalty components.}
 \label{tab:bakeoff-g1}
@@ -190,64 +203,6 @@ Setup & \makecell{Key-fact\\recall $\uparrow$} & \makecell{Harm\\rate $\downarro
 No retrieval (no-RAG) & 0.328 & 0.164 & 0.054 & 0.229 & 0.371 \\
 Gecko (former) & 0.268 & 0.170 & 0.029 & 0.216 & 0.390 \\
 \textbf{EmbeddingGemma (deployed)} & 0.279 & 0.160 & 0.038 & 0.221 & 0.373 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\subsection{Reranking: an offline win that does not transfer}
-
-A reranker is a second stage over retrieval: a \emph{cross-encoder} that
-reads each (query, chunk) pair jointly and scores its relevance. It is more
-accurate than the bi-encoder retriever---which embeds query and chunk
-separately---but too costly to run over the whole corpus, so it only
-re-scores the first stage's top-20 candidates and re-picks the top-3. We
-screened several deployable cross-encoders (MiniLM-L6 at 23M, ELECTRA-base,
-bge-reranker-base, mxbai-base) against multi-billion-parameter Qwen3-Reranker
-references, and fine-tuned the smallest, MiniLM-L6, in-domain: a regression
-onto the mamaretrieval judge's normalised relevance grade ($\text{grade}/6$)
-over 158{,}993 train-split (query, chunk) pairs, two epochs, evaluated on
-held-out test queries. \emph{Fine-tuning, not size, was the lever}: the 23M
-fine-tuned model reached benchmark P@3 0.756, beating the $8\times$-larger
-zero-shot mxbai-base (0.714) and approaching the multi-billion-parameter
-references (which it exceeds at the strict cut); its int8 on-device build
-reproduces the offline scores exactly (top-3 agreement 1.000).
-
-That win does not reach the user. Re-scoring the first stage's top-20 with the
-fine-tuned reranker lifts benchmark precision dramatically---from 0.485 to
-0.72, and the larger fine-tuned variant to 0.79 (Table~\ref{tab:rerank}). Yet
-across rerankers \emph{and} across all three first stages tested (Gecko,
-BM25, and their hybrid), Kenya retrieval precision stays near 0.27, end-to-end
-key-fact recall near 0.12, and HealthBench completeness near 0.18 against a
-flat 0.37 penalty (net \texttt{weighted\_met} $\approx0$). The benchmark
-gain does not transfer to the Kenyan vignettes---a distribution shift with a
-methodological lesson: retriever changes must be validated on the deployment
-queries, not on the benchmark alone. We do not ship the reranker.
-
-\begin{table}[t]
-\caption{Reranking, shown on the Gecko first stage (one of three tested---%
-Gecko, BM25, and their RRF hybrid---all with the same outcome; Gecko was the
-deployed retriever at the time). Each reranker re-scores the first stage's
-top-20 candidates and keeps the top-3. The three column groups are three
-separate evaluations: \emph{mamaretrieval} P@3 on the benchmark test split;
-the \emph{Kenya} deployment queries (retrieval precision and end-to-end
-key-fact recall); and \emph{HealthBench-oss}, shown as the net
-\texttt{weighted\_met} (\texttt{w\_met}) alongside its two
-separately-reported components, completeness (Positive, $\uparrow$) and
-penalty ($\downarrow$) (Gemma~4). A large benchmark gain that neither transfers to deployment-query
-retrieval nor moves answers. ``ft'' = fine-tuned in-domain.}
-\label{tab:rerank}
-\centering
-\small
-\setlength{\tabcolsep}{4.5pt}
-\begin{tabular}{@{}lrrrrrr@{}}
-\toprule
- & mamaret. & \multicolumn{2}{c}{Kenya deployment queries} & \multicolumn{3}{c}{HealthBench-oss} \\
-\cmidrule(lr){2-2}\cmidrule(lr){3-4}\cmidrule(lr){5-7}
-Reranker on Gecko & \makecell{P@3\\$\uparrow$} & \makecell{Retr.\ P@3\\$\uparrow$} & \makecell{Key-fact\\recall $\uparrow$} & \makecell{w\_met\\$\uparrow$} & \makecell{Positive\\$\uparrow$} & \makecell{Penalty\\$\downarrow$} \\
-\midrule
-none (deployed) & 0.485 & 0.269 & 0.125 & $-0.004$ & 0.173 & 0.371 \\
-{}+ MiniLM-L6 (ft) & 0.720 & 0.244 & 0.118 & $-0.004$ & 0.179 & 0.378 \\
-{}+ mxbai-base (ft) & 0.794 & 0.279 & 0.125 & $+0.002$ & 0.182 & 0.374 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -354,12 +309,12 @@ whether it predicts when RAG actually \emph{helps the answer}: it does not---%
 AUC $0.50$, Pearson $-0.04$, pure chance---and a perfect oracle gate would lift
 recall only $0.297\to0.354$. This answer-side test, however, was run on
 Gemma~3n under the baseline prompt ($n=300$), not the deployed
-Gemma~4\,+\,G1, so---like the bake-off (\S\ref{sec:retr-g1})---it awaits
+Gemma~4\,+\,G1, so---like the bake-off (\S\ref{sec:retr-converts})---it awaits
 confirmation under the shipped configuration; the relevance-side verdict above
 does not depend on it. Either way, a usable confidence signal would have to
 come from the generator (answer-side confidence or self-consistency), not from
 the retrieval score.
-% TODO (with the G1 bake-off, sec:retr-g1): re-run the answer-side gate test
+% TODO (with the G1 bake-off, sec:retr-converts): re-run the answer-side gate test
 % (score -> "RAG helps") on the deployed Gemma 4 + G1, not the 06-18
 % value_gate_eg_3n run (Gemma 3n + baseline). The relevance-side AUCs
 % (fig:gate-auc) are prompt/generator-independent and need no re-run.
