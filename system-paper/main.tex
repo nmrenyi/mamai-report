@@ -71,13 +71,29 @@ for Nurses and Midwives in Zanzibar}
 \begin{document}
 
 \begin{abstract}
-% TODO: 200--300 word abstract. Cover:
-%   - deployment context (Zanzibar nurses/midwives, OBGYN/neonatal scope);
-%   - the on-device system (Gemma 4 E4B via LiteRT-LM + Gecko + SQLite);
-%   - the bottom-up evaluation methodology (retriever -> generator under
-%     oracle context -> end-to-end);
-%   - headline results across retrieval, faithfulness, end-to-end accuracy,
-%     and on-device latency on real Android hardware.
+Maternal and newborn mortality remain among the highest in sub-Saharan Africa,
+where midwife-led care is often delivered by nurses without specialist training
+and authoritative guidance is scarce at the point of care. We present MAM-AI, a
+medical question-answering assistant for nurse-midwives in Zanzibar that runs
+entirely on a commodity Android device: a clinical question is embedded with a
+300M on-device model (EmbeddingGemma), matched against a curated corpus of 87
+maternal, newborn, and OBGYN guideline documents (63{,}650 passages) in an
+on-device vector store, and answered with citations by a 4B int4 generator
+(Gemma~4~E4B) through the LiteRT-LM runtime---needing no connectivity after a
+one-time setup and sending no query off the device. We evaluate the exact
+deployed configuration with a layered, bottom-up methodology---retriever,
+generator under oracle (gold) context, end-to-end, and on-device latency---%
+scored by LLM judges validated against physician-written rubrics. Four findings
+emerge. On-device retrieval is essentially solved: the 300M embedder ranks third
+of seven retrievers and rivals cloud systems. Yet adding retrieved context does
+not improve the small generator's answers and hurts larger ones, relocating the
+bottleneck from retrieval to the generator's faithful use of context. Between
+two same-size candidates we deploy the one that is about twice as faithful to
+its sources---as faithful as a frontier model---and recover its helpfulness with
+a redesigned prompt that cuts deflection from 33\% to 3\%. On real hardware the
+system returns a cited answer in tens of seconds, fully offline. MAM-AI is a
+thoroughly evaluated, open-source research prototype, not a fielded product; the
+system, knowledge-base pipeline, benchmarks, and evaluation harness are released.
 \end{abstract}
 
 \keywords{retrieval-augmented generation, on-device inference, medical AI,
