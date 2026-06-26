@@ -109,7 +109,7 @@ HealthBench stay flat (Figure~\ref{fig:retr-converts}).
 \centering
 \begin{tikzpicture}
 \begin{groupplot}[
-  group style={group size=1 by 2, vertical sep=1.5cm, x descriptions at=edge bottom},
+  group style={group size=1 by 2, vertical sep=0.85cm, x descriptions at=edge bottom},
   width=\columnwidth, height=3.7cm,
   symbolic x coords={no-RAG, Gecko, Emb.Gemma, +MiniLM, +mxbai},
   xtick=data, enlarge x limits=0.13,
@@ -119,27 +119,27 @@ HealthBench stay flat (Figure~\ref{fig:retr-converts}).
 ]
 % --- Panel a: offline retrieval quality ---
 \nextgroupplot[ybar, bar width=5.5pt, title={Offline retrieval quality}, ylabel={precision@3},
-  ymin=0, ymax=0.88, ytick={0,0.2,0.4,0.6,0.8},
-  legend style={font=\scriptsize, draw=black!25, legend columns=-1,
-    at={(0.5,-0.24)}, anchor=north,
-    /tikz/every even column/.append style={column sep=8pt}}]
+  ymin=0, ymax=0.88, ytick={0,0.2,0.4,0.6,0.8}]
   \addplot[fill=mamteal!80, draw=mamteal!60] coordinates {
-    (no-RAG,0)(Gecko,0.485)(Emb.Gemma,0.784)(+MiniLM,0.720)(+mxbai,0.794)};
+    (no-RAG,0)(Gecko,0.485)(Emb.Gemma,0.784)(+MiniLM,0.720)(+mxbai,0.794)}; \label{p:bench}
   \addplot[fill=mamteal!28, draw=mamteal!45] coordinates {
-    (no-RAG,0)(Gecko,0.270)(Emb.Gemma,0.396)(+MiniLM,0.244)(+mxbai,0.279)};
-  \legend{mamaretrieval (benchmark), Kenya (deployment)}
+    (no-RAG,0)(Gecko,0.270)(Emb.Gemma,0.396)(+MiniLM,0.244)(+mxbai,0.279)}; \label{p:kenyap}
 % --- Panel b: end-to-end answers ---
 \nextgroupplot[ybar, bar width=5.5pt, title={End-to-end answers}, ylabel={answer score},
-  ymin=0, ymax=0.24, ytick={0,0.1,0.2},
-  legend style={font=\scriptsize, draw=black!25, legend columns=-1,
-    at={(0.5,-0.58)}, anchor=north,
-    /tikz/every even column/.append style={column sep=8pt}}]
+  ymin=0, ymax=0.24, ytick={0,0.1,0.2}]
   \addplot[fill=mamamber!88, draw=mamamber!70] coordinates {
-    (no-RAG,0.178)(Gecko,0.125)(Emb.Gemma,0.126)(+MiniLM,0.118)(+mxbai,0.125)};
+    (no-RAG,0.178)(Gecko,0.125)(Emb.Gemma,0.126)(+MiniLM,0.118)(+mxbai,0.125)}; \label{p:recall}
   \addplot[fill=blue!55!black, draw=blue!45!black] coordinates {
-    (no-RAG,0.184)(Gecko,0.175)(Emb.Gemma,0.189)(+MiniLM,0.179)(+mxbai,0.182)};
-  \legend{Kenya key-fact recall, HealthBench completeness}
+    (no-RAG,0.184)(Gecko,0.175)(Emb.Gemma,0.189)(+MiniLM,0.179)(+mxbai,0.182)}; \label{p:hb}
 \end{groupplot}
+% two boxed legend groups (retrieval | answers), centred as a pair below both panels
+\node[anchor=north, font=\scriptsize, inner sep=0pt, yshift=-0.3cm]
+  at (current bounding box.south) {%
+  \setlength{\fboxsep}{3pt}\setlength{\fboxrule}{0.4pt}%
+  \fcolorbox{black!30}{white}{\textbf{Retrieval P@3:}\enspace\ref{p:bench}~benchmark\enspace\ref{p:kenyap}~Kenya}%
+  \enspace
+  \fcolorbox{black!30}{white}{\textbf{Answers:}\enspace\ref{p:recall}~key-fact recall\enspace\ref{p:hb}~HealthBench}%
+};
 \end{tikzpicture}
 \caption{Better retrieval does not reach the answers (baseline Gemma~4).
 \textbf{Top, offline retrieval:} precision@3 on the mamaretrieval benchmark
