@@ -121,17 +121,18 @@ only slightly; the gap between models dwarfs it.}
   holds for baseline, \mbox{+G1}, and \mbox{+G1+G2} alike.
   \item \textbf{Small size is not the problem; Gemma~3n is the outlier.}
   Gemma~4, a 4B model running int4 on a phone, grounds about as faithfully as
-  the 397B Qwen frontier ($2.5$--$3.7\%$). Faithfulness is therefore not a
-  penalty of the on-device size class---it is a property of the specific
-  model, and Gemma~3n is the one that grounds poorly.
+  the 397B Qwen frontier, whose own categorized rate spans $0.97$--$3.71\%$
+  across the three prompts. Faithfulness is therefore not a penalty of the
+  on-device size class---it is a property of the specific model, and Gemma~3n
+  is the one that grounds poorly.
 \end{itemize}
 
 The prompt's effect is real but small: both models drift \emph{upward} as the
 prompt asks for more clinical substance (Gemma~4 by $+0.9$ percentage points
 from baseline to \mbox{+G1+G2}, Gemma~3n by $+0.5$), because the recovered
 substance sometimes reaches beyond the document. But that drift is dwarfed by
-the gap between the two models---choosing the on-device generator matters
-roughly $4\times$ more for faithfulness than choosing the prompt.
+the gap between the two models: which generator runs on the phone, not which
+prompt it carries, is what sets its faithfulness.
 
 \subsection{What kind of unfaithfulness, and how the prompt changes it}
 \label{sec:faith-modes}
