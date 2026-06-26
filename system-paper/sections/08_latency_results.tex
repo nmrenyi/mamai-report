@@ -238,62 +238,59 @@ artifact rather than a real measurement. For deployments that need longer
 context, the FP32 GPU path is the clean fallback at modest cost; on the deployed
 FP16 path, $4{,}096$ tokens is the safe ceiling.
 
-\subsection{Device compatibility and market reality}
+\subsection{Device compatibility}
 \label{sec:devices}
 
-Latency is comfortable on a flagship; the harder question is which phones can
-run the system at all. Two floors bind, and both point the same way
-(Table~\ref{tab:devices}).
+Latency is comfortable on a flagship; the harder question is what a device must
+provide to run the system at all. The binding constraints are not speed but
+memory, storage, and GPU availability---all properties we can state directly
+from the artifacts, without claiming which particular handsets meet them.
+
+\paragraph{Memory and storage.} The generator's runtime memory is the hard
+floor: $\sim$3.3\,GB for E4B and $\sim$1.7\,GB for E2B (the published model
+specs). Android and the app add $\sim$1.5--2\,GB on top, which sets the device
+RAM floor. Storage is the one-time install: the $\sim$193\,MB app, the model
+weights ($3.66$\,GB for E4B, $2.59$\,GB for E2B), and the $\sim$260\,MB
+knowledge base (the embedder plus the $63{,}650$-passage index)---$\sim$4.1\,GB
+of assets for E4B and $\sim$3.0\,GB for E2B. These assets are obtained
+once---downloaded over Wi-Fi or \emph{sideloaded} onto the device directly (USB
+or memory card, needing no connectivity)---after which the system runs fully
+offline; sideloading lets the install reach a low-connectivity site without
+each device pulling several gigabytes over the network. Table~\ref{tab:devices}
+gives the minimum and recommended specifications that follow.
 
 \begin{table}[t]
-\caption{Deployment floors and the target-market device tiers. The binding
-constraints are RAM (the generator's runtime footprint) and GPU availability
-(reliable only on Qualcomm Adreno). E4B needs a 6\,GB-RAM phone; E2B halves the
-footprint to reach the 4\,GB tier that dominates the low-cost market, at an
-answer-quality cost not yet measured (\S\ref{sec:limitations}). GPU columns:
-\checkmark\ Adreno (reliable), $\sim$ Mali (often silent OpenCL failure, plan
-CPU-only).}
+\caption{Minimum and recommended device specifications, derived directly from
+the model runtime footprints (plus Android/app overhead) and the install size
+(plus working headroom). The minimum is what runs; the recommended figure
+leaves headroom against OOM kills under multitasking and against future bundle
+growth. These are device \emph{requirements}; we make no claim about which
+retail devices meet them.}
 \label{tab:devices}
 \centering
 \small
-\setlength{\tabcolsep}{4.5pt}
-\begin{tabular}{@{}lrccc@{}}
+\setlength{\tabcolsep}{6pt}
+\begin{tabular}{@{}lcccc@{}}
 \toprule
-Device tier (retail) & RAM & \makecell{E4B\\(6\,GB)} & \makecell{E2B\\(4\,GB)} & \makecell{GPU\\likely?} \\
+ & \multicolumn{2}{c}{Device RAM} & \multicolumn{2}{c}{Free storage} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}
+Generator & Minimum & Recommended & Minimum & Recommended \\
 \midrule
-Sub-\$100 entry (Unisoc / Helio)      & 2--4\,GB & --        & $\sim$    & -- \\
-\$100--150 low-mid (Helio G99, Dim.\ 6080) & 6\,GB    & tight     & \checkmark & $\sim$ \\
-\$150--250 mid (Dimensity 7050+)      & 8\,GB    & \checkmark & \checkmark & $\sim$ \\
-\$250+ upper-mid / flagship (Snapdragon) & 8--16\,GB & \checkmark & \checkmark & \checkmark \\
+Gemma~4 E4B & 6\,GB & 8\,GB & $\sim$4.5\,GB & 6\,GB \\
+Gemma~4 E2B & 4\,GB & 6\,GB & $\sim$3.5\,GB & 5\,GB \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\paragraph{Memory.} The generator's runtime footprint is the hard floor:
-$\sim$3.3\,GB for E4B, $\sim$1.7\,GB for E2B. With Android and the app on top,
-E4B needs a \textbf{6\,GB-RAM} phone and E2B a \textbf{4\,GB} one. Storage is
-secondary but real: the install is the $\sim$193\,MB app, the $3.66$\,GB E4B
-weights ($2.59$\,GB for E2B), and the $\sim$260\,MB knowledge base (embedder
-plus the $63{,}650$-passage index), so $\sim$6\,GB free for E4B and $\sim$5\,GB
-for E2B. These assets are obtained once---downloaded over Wi-Fi or
-\emph{sideloaded} onto the device directly (USB or memory card), which needs no
-connectivity at all---after which the system runs fully offline. Sideloading
-matters for the deployment setting: it lets the install reach a low-connectivity
-site without ever requiring each device to pull $\sim$4\,GB over the network.
-
-\paragraph{GPU availability.} The $\sim$19\,s deployed number assumes a working
-GPU, and LiteRT-LM's OpenCL backend is reliable \emph{only} on Qualcomm Adreno.
-On the ARM Mali GPUs that ship in most MediaTek phones---the bulk of the
-low-cost African fleet---the backend often fails silently at the first
-inference and the app falls back to CPU. The honest planning assumption is
-therefore \emph{CPU-first} on the target hardware: budget for E4B-CPU
-($\sim$43\,s at $k=3$, still inside budget) or, on RAM-constrained 4\,GB
-devices, E2B-CPU ($\sim$21\,s). The GPU's $\sim$19\,s is the best case where an
-Adreno is present, not the field default.
-
-Taken together, the deployment-viable floor is roughly a \$120, 6\,GB,
-64-bit-Android-8+ phone for E4B, which E2B lowers to $\sim$\$100 and 4\,GB---at
-a quality cost that must be measured before any E2B rollout.
+\paragraph{GPU availability.} The $\sim$19\,s deployed latency assumes a working
+GPU, which we verified only on the Qualcomm Adreno of our test device.
+LiteRT-LM's GPU path uses OpenCL, whose support is inconsistent across GPU
+families: on the ARM Mali GPUs common in non-Qualcomm SoCs it is reported to
+fail silently, in which case the app falls back to CPU---a path we have not
+tested (\S\ref{sec:latency-pending}). The safe planning assumption is therefore
+CPU-first: at the deployed $k=3$, E4B on CPU ($\sim$43\,s) still meets the
+budget, and E2B on CPU ($\sim$21\,s) covers the 4\,GB devices that cannot fit
+E4B at all. The GPU's $\sim$19\,s is the best case, not a guarantee.
 
 \subsection{What we have not measured}
 \label{sec:latency-pending}
