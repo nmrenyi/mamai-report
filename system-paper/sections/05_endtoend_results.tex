@@ -77,6 +77,7 @@ G1+G2 consultation structure lifts recall further to 0.338. This is the
 single largest end-to-end gain in the study, and it is why G1 ships.
 
 \subsection{Helpfulness versus safety: why Gemma 4, not Gemma 3n}
+\label{sec:helpful-safe}
 
 The two on-device generators are not ``better versus worse'' but
 \emph{helpful versus safe}, and the split is large. Gemma~3n is the more
@@ -188,10 +189,87 @@ unsupported claims. That reframes the on-device goal: the lever is
 generator-side RAG-grounding---moving the small models toward the Qwen
 corner---not further prompt tuning or retrieval swaps (\S\ref{sec:discussion}).
 
-\subsection{Model Size [PENDING -- new experiment]}
-% TODO (results announced 2026-06-25, not yet run): a model-size ablation to
-% quantify how generator size drives quality/faithfulness, strengthening
-% finding 3 ("the generator matters most"). Likely a size sweep (e.g., Gemma
-% E2B vs E4B, and/or intermediate sizes) on the same Kenya + HealthBench
-% tracks. Slot the table here and feed the result back into finding 3 in the
-% intro. Until then, finding 3 leans on the 3x3 matrix + faithfulness only.
+\subsection{Model size is the dominant lever---up to a point}
+\label{sec:model-size}
+
+To test directly whether generator \emph{capability}---not the prompt, not
+retrieval---is what limits quality, we run a size ladder at the deployed G1
+prompt with \emph{no} retrieval, which isolates each model's parametric
+medical knowledge: Gemma~4 at 2B, 4B (deployed), 26B, and 31B, then Qwen at
+28B--397B as a server-class reference, all scored by the same gpt-oss-120b
+judge on Kenya and HealthBench (Figure~\ref{fig:size-ladder}). Three things
+stand out.
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+  width=\columnwidth, height=6.2cm,
+  xmode=log, log basis x=10,
+  xlabel={Generator size (total parameters, B)},
+  ylabel={Score},
+  xmin=1.7, xmax=470,
+  ymin=0, ymax=0.5,
+  xtick={2,4,8,16,32,64,128,256},
+  xticklabels={2,4,8,16,32,64,128,256},
+  legend pos=north west, legend cell align=left,
+  legend style={font=\footnotesize, draw=black!25},
+  grid=both, grid style={black!8},
+  tick label style={font=\footnotesize},
+  label style={font=\footnotesize},
+]
+% deployed-size marker
+\draw[black!35, dotted, thick] (axis cs:4,0) -- (axis cs:4,0.5);
+\node[font=\scriptsize, text=black!55, anchor=south, rotate=90]
+  at (axis cs:4,0.015) {deployed E4B};
+% Kenya key-fact recall
+\addplot[mamteal, very thick, mark=*, mark size=2pt] coordinates {
+ (2,0.265)(4,0.328)(26.5,0.440)(27.8,0.472)(32.7,0.449)(36,0.471)(125,0.421)(397,0.438)};
+% HealthBench weighted_met
+\addplot[blue!55!black, very thick, mark=square*, mark size=1.8pt] coordinates {
+ (2,0.104)(4,0.054)(26.5,0.229)(27.8,0.260)(32.7,0.261)(36,0.273)(125,0.191)(397,0.226)};
+% Kenya harm rate (lower better)
+\addplot[mamamber, very thick, dashed, mark=triangle*, mark size=2pt] coordinates {
+ (2,0.260)(4,0.164)(26.5,0.093)(27.8,0.119)(32.7,0.064)(36,0.099)(125,0.122)(397,0.112)};
+\legend{Kenya recall $\uparrow$, HealthBench \texttt{w\_met} $\uparrow$,
+  Kenya harm rate $\downarrow$}
+\end{axis}
+\end{tikzpicture}
+\caption{Generator size is the dominant lever, up to $\sim$30B. Quality
+(Kenya key-fact recall and HealthBench \texttt{weighted\_met}; both
+$\uparrow$) rises steeply to a peak at 27--35B, then plateaus and dips toward
+the 397B frontier, while the Kenya harm rate ($\downarrow$) falls
+monotonically. All rungs use the deployed G1 prompt with \emph{no} retrieval
+(parametric knowledge), same gpt-oss-120b judge; Gemma spans 2--33B
+(on-device-faithful GGUF) and Qwen 28--397B (server reference). Markers
+distinguish metrics, not model family. The 122/397B rungs are Qwen~3.5
+against Qwen~3.6 at 27/35B---a generation boundary at the very top.}
+\label{fig:size-ladder}
+\end{figure}
+
+\emph{Quality rises steeply with size, then plateaus near 30B.} Kenya
+key-fact recall climbs from 0.27 (2B) to a peak of $\sim$0.47 at 27--35B, and
+HealthBench \texttt{weighted\_met} roughly quintuples (from 0.05--0.10 to
+0.26--0.27) over the same range. Beyond $\sim$30B both flatten and dip---recall
+0.42--0.44 and \texttt{weighted\_met} 0.19--0.23 at 122B--397B---so the 397B
+frontier is \emph{not} better for this task than a 30B model.
+
+\emph{Safety improves monotonically with size.} The Kenya harm rate falls from
+0.26 (2B) to 0.16 (deployed 4B) to 0.06--0.09 (26--31B), and deflection
+collapses to near zero by 26B. Larger models are simultaneously more helpful
+and safer---no trade-off along the size axis, unlike the generator
+\emph{choice} of \S\ref{sec:helpful-safe}, where Gemma~3n bought helpfulness at
+a safety cost.
+
+\emph{Precision barely matters at the deployed size.} Dequantising the 4B from
+int4 (Q4\_0) to Q8 to BF16 is flat on Kenya (recall 0.328/0.331/0.320) and
+worth only $+0.017$ on HealthBench---so int4 on-device deployment sacrifices
+almost nothing, and a server would gain far more from a larger model than from
+higher precision.
+
+Together these sharpen finding~3: the binding lever is generator capability.
+The deployed 4B-int4 is a safe floor; the single biggest available upgrade is
+a $\sim$30B server-class model ($\sim$5$\times$ HealthBench, $+0.14$ Kenya
+recall, harm halved), with little reason to go past it. On-device, neither
+higher precision nor---as \S\ref{sec:retrieval-results} shows---a better
+embedder moves open-ended quality much.

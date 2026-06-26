@@ -86,18 +86,20 @@ isolation, then latency---and yields three findings that structure the paper:
   answers.} A 300M on-device embedder retrieves nearly as well as cloud
   systems---third of seven retrievers, within a few points of the best---yet
   adding its context to the small generator is net-neutral to slightly
-  negative. Since the retriever is already strong, the bottleneck lies
-  downstream of ranking: in how well the small generator uses retrieved
-  context, and in the corpus's coverage and quality for the question at
-  hand---not in retrieval itself.
+  negative, and neither a better embedder nor a fine-tuned reranker changes
+  that. The bottleneck lies downstream of ranking: in how well the small
+  generator uses retrieved context---not in retrieval itself, and not (as a
+  coverage audit confirms) in the corpus.
 
   \item \textbf{The generator matters most, and faithfulness decides which
-  model we deploy.} Model choice dominates the results---an unconstrained
-  frontier model far outperforms the on-device options---and between the two
-  same-size on-device candidates we choose on faithfulness: we deploy the one
-  that is as faithful to its sources as the frontier model and about twice as
-  faithful as the other, more-helpful but less safe, candidate. Deployment is
-  thus a safety-versus-usefulness choice.
+  model we deploy.} Model capability dominates the results: a size ladder shows
+  open-ended quality rising steeply with generator size---roughly quintupling
+  on HealthBench from the deployed 4B to a 30B server model, then plateauing
+  toward the frontier---while quantization precision and retrieval barely move
+  it. Between the two same-size on-device candidates we then choose on
+  faithfulness: we deploy the one that is as faithful to its sources as a
+  frontier model and about twice as faithful as the other, more-helpful but
+  less safe, candidate. Deployment is thus a safety-versus-usefulness choice.
 \end{enumerate}
 
 \paragraph{Contributions.}

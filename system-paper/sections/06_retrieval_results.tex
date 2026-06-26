@@ -99,13 +99,13 @@ not coincide with the specific gold facts a key-fact-recall answer is scored
 on.) We isolate the generator's use of context directly in
 \S\ref{sec:generator}.
 
-One bound on this result: the bake-off uses the \emph{baseline} prompt and
-predates the deployed G1 prompt, so the deflection above is the baseline's
-33\%. Because G1 cuts deflection to 3\% (\S\ref{sec:endtoend}), whether a
-better embedder reaches answers once the model engages is a separate
-question, which a G1 replication settles (\S\ref{sec:retr-g1}). The broader
-claim---that the generator, not retrieval, is the binding constraint---rests
-also on the prompt-independent faithfulness analysis (\S\ref{sec:generator}).
+One apparent bound dissolves on inspection. The bake-off above uses the
+\emph{baseline} prompt, whose 33\% deflection could be masking a retrieval
+gain that a more engaged model would show. It is not: re-running all three
+arms under the deployed G1 prompt, which cuts deflection to 3\%, leaves the
+ranking unchanged (\S\ref{sec:retr-g1} below). The broader claim---that the
+generator, not retrieval, is the binding constraint---rests also on the
+prompt-independent faithfulness analysis (\S\ref{sec:generator}).
 
 \begin{table}[t]
 \caption{Matched retrieval bake-off on Gemma~4 under the \emph{baseline}
@@ -133,21 +133,46 @@ Gecko (former) & 0.270 & 0.125 & $-0.004$ & 0.175 & 0.372 \\
 \end{tabular}
 \end{table}
 
-\subsection{Replication under the deployed G1 prompt [PENDING]}
+\subsection{The same holds under the deployed G1 prompt}
 \label{sec:retr-g1}
-% TODO (2026-06-25, in progress): re-run the embedder bake-off (no-RAG / Gecko
-% / EmbeddingGemma) under the DEPLOYED Gemma 4 + G1 prompt, to test whether the
-% EmbeddingGemma gain reaches answers once deflection is fixed (the table above
-% is baseline-prompt). Status of the three arms:
-%   - EmbeddingGemma + G1: HAVE -- it is the matrix g4_g1 cell
-%     (Kenya key-fact recall 0.279; HealthBench weighted_met 0.038,
-%      Positive 0.221, Penalty 0.373).
-%   - no-RAG + G1 (Gemma 4): generated; being judged on the cluster (gpt-oss-120b).
-%   - Gecko + G1 (Gemma 4): to be run by a separate agent
-%     (reuse Gecko top-3 contexts; generate with G4 + arm2_system_en.txt; score
-%      SAQ + HealthBench with gpt-oss-120b).
-% On completion: add a G1 bake-off table here and revisit intro finding 2 +
-% the "retrieval does not reach the answers" framing (currently baseline-only).
+
+Re-running the bake-off under the deployed Gemma~4\,+\,G1 settles the
+deflection objection (Table~\ref{tab:bakeoff-g1}). With deflection fixed at
+3\%, the ranking is unchanged: \emph{no retrieval still leads} on Kenya
+(recall 0.328), and both retrievers sit below it (EmbeddingGemma 0.279, Gecko
+0.268). The better embedder again edges Gecko---$+0.011$ Kenya recall,
+$+0.009$ HealthBench \texttt{weighted\_met}---but does not reach the no-RAG
+baseline. So the earlier finding was not an artefact of the baseline's
+deflection: even when the model engages, retrieved context does not raise
+answer quality on this small generator, and slightly lowers it. The size
+ladder of \S\ref{sec:model-size} shows the same effect deepening with
+capability---the RAG penalty grows from $-0.01$ HealthBench at 4B to $-0.10$
+at 31B---consistent with the reading that the generator's parametric knowledge
+already exceeds what the retrieved context adds.
+
+\begin{table}[t]
+\caption{Matched retrieval bake-off under the \emph{deployed} Gemma~4\,+\,G1
+prompt (cf.\ the baseline-prompt Table~\ref{tab:bakeoff}): no retrieval vs.\
+Gecko vs.\ EmbeddingGemma, on Kenya ($n=312$) and HealthBench-oss
+($n\approx1{,}209$), same gpt-oss-120b judge. With deflection fixed by G1,
+no-RAG still leads and RAG remains net-negative. Kenya harm is the harm rate
+($\downarrow$); \texttt{weighted\_met} is shown with its positive
+(completeness) and penalty components.}
+\label{tab:bakeoff-g1}
+\centering
+\small
+\begin{tabular}{@{}lrrrrr@{}}
+\toprule
+ & \multicolumn{2}{c}{Kenya} & \multicolumn{3}{c}{HealthBench-oss} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-6}
+Setup & \makecell{Key-fact\\recall $\uparrow$} & \makecell{Harm\\rate $\downarrow$} & \makecell{weighted\_met\\$\uparrow$} & \makecell{Positive\\$\uparrow$} & \makecell{Penalty\\$\downarrow$} \\
+\midrule
+No retrieval (no-RAG) & 0.328 & 0.164 & 0.054 & 0.229 & 0.371 \\
+Gecko (former) & 0.268 & 0.170 & 0.029 & 0.216 & 0.390 \\
+\textbf{EmbeddingGemma (deployed)} & 0.279 & 0.160 & 0.038 & 0.221 & 0.373 \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \subsection{Reranking: an offline win that does not transfer}
 
