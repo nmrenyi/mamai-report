@@ -9,9 +9,8 @@ in $\sim$1\,s and generation at $\sim$13~tokens/s, entirely offline. That is
 inside the field budget we set ourselves (a query should resolve well under a
 minute) with room to spare. The rest of this section traces where the time
 goes, surfaces one precision bug that bounds how much context we can admit, and
-maps which devices can run the system at all---the binding deployment
-constraint, it turns out, is not speed but memory and GPU availability on the
-low-cost hardware that dominates the target market.
+sets out what a device needs to run it at all---the binding deployment
+constraint, it turns out, is not speed but memory and GPU availability.
 
 \subsection{Setup}
 \label{sec:latency-setup}
@@ -145,13 +144,13 @@ and the CPU has far less of it, while CPU \emph{generation} stays flat like the
 GPU's. This is what makes the GPU/CPU split, not the retrieval depth, the
 decisive latency variable.
 
-\paragraph{The smaller generator opens the low-cost device tier.} The unlock
+\paragraph{The smaller generator lowers the hardware floor.} The unlock
 from halving the generator to E2B is \emph{memory}, not speed. At the deployed
 $k=3$, even E4B on CPU ($\sim$43\,s on our flagship) fits the 60\,s budget, so a
 missing GPU does not by itself rule out the deployed model. What rules it out is
 RAM: E2B halves the runtime footprint ($\sim$3.3 to $\sim$1.7\,GB), dropping the
-device floor from 6\,GB to 4\,GB and reaching the cheaper phones that cannot
-load E4B at all (\S\ref{sec:devices}). E2B is also faster---$\sim$2.3$\times$ on
+device RAM floor from 6\,GB to 4\,GB and so running on devices that cannot hold
+E4B at all (\S\ref{sec:devices}). E2B is also faster---$\sim$2.3$\times$ on
 prefill and $\sim$1.5$\times$ (GPU) to $\sim$2$\times$ (CPU) on total, the
 decode gain smaller because GPU decode is memory-bandwidth- rather than
 compute-bound---which buys latency headroom on the slower mid-tier CPUs where
@@ -244,7 +243,7 @@ FP16 path, $4{,}096$ tokens is the safe ceiling.
 Latency is comfortable on a flagship; the harder question is what a device must
 provide to run the system at all. The binding constraints are not speed but
 memory, storage, and GPU availability---all properties we can state directly
-from the artifacts, without claiming which particular handsets meet them.
+from the artifacts.
 
 \paragraph{Memory and storage.} The generator's runtime memory is the hard
 floor: $\sim$3.3\,GB for E4B and $\sim$1.7\,GB for E2B (the published model
@@ -297,8 +296,8 @@ E4B at all. The GPU's $\sim$19\,s is the best case, not a guarantee.
 
 Two gaps bound these results, both disclosed rather than closed. First, every
 number here comes from a \emph{single flagship} device with an Adreno GPU; the
-mid-tier MediaTek hardware that represents most of the deployment fleet is
-untested, and its CPU-only path will be slower than the Snapdragon~8 Elite CPU
+lower-cost MediaTek hardware likely to be used in the field is untested, and its
+CPU-only path will be slower than the Snapdragon~8 Elite CPU
 rows above (we extrapolate $\sim$2$\times$ from published compute gaps, but have
 not measured it). Second, we report steady-state latency only: per-session
 battery drain and sustained-load thermal throttling---both of which matter for a
