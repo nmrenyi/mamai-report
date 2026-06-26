@@ -139,10 +139,11 @@ HealthBench stay flat (Figure~\ref{fig:retr-converts}).
   \addplot[fill=mamteal!80, draw=mamteal!60] coordinates {(recall,0.126)(wmet,0.012)(pos,0.189)(pen,0.368)(recallG,0.279)(wmetG,0.038)(posG,0.221)(penG,0.373)};
   \addplot[fill=blue!55!black, draw=blue!45!black] coordinates {(recall,0.118)(wmet,-0.004)(pos,0.179)(pen,0.378)};
   \addplot[fill=violet!72, draw=violet!55] coordinates {(recall,0.125)(wmet,0.002)(pos,0.182)(pen,0.374)};
+  \coordinate (lgdc) at (rel axis cs:0.5,0); % horizontal centre of the bottom plot
 \end{groupplot}
-% legend: the five retrieval setups (single box, one row, single swatches)
-\node[anchor=north, font=\scriptsize, inner sep=0pt, yshift=-0.3cm]
-  at (current bounding box.south) {%
+% legend: the five retrieval setups (single box, one row), centred on the plot
+\node[anchor=north, font=\scriptsize, inner sep=0pt]
+  at ([yshift=-1.45cm]lgdc) {%
   \setlength{\fboxsep}{4pt}\setlength{\fboxrule}{0.4pt}%
   \fcolorbox{black!30}{white}{\textbf{Setup:}\enspace\ref{s:norag}~no-RAG\enspace\ref{s:gecko}~Gecko\enspace\ref{s:eg}~EmbeddingGemma\enspace\ref{s:minilm}~+MiniLM\enspace\ref{s:mxbai}~+mxbai}%
 };
