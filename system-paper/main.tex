@@ -3,7 +3,7 @@
 % ACM journal style (acmart, acmsmall, nonacm)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\documentclass[acmsmall,nonacm,review]{acmart}
+\documentclass[acmsmall,nonacm]{acmart}
 
 % Drop ACM-specific frames that do not apply to arXiv tech reports.
 \settopmatter{printacmref=false, printccs=false, printfolios=true}
@@ -93,8 +93,8 @@ frontier model), and recover its helpfulness with a redesigned prompt that cuts
 deflection from 33\% to 3\%. Corpus quality is decisive for the same reason: the
 small model leans on what it retrieves, so where the corpus holds the right
 passage the answer is specific and actionable, and where it does not the answer
-goes vague. On real hardware the system returns a cited answer in tens of
-seconds, fully offline. MAM-AI is a
+goes vague. On a current Android device the system returns a cited answer in tens of
+seconds, fully offline; lower-end field hardware is slower. MAM-AI is a
 thoroughly evaluated, open-source research prototype, not a fielded product; the
 system, knowledge-base pipeline, benchmarks, and evaluation harness are released.
 \end{abstract}

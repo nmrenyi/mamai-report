@@ -252,9 +252,11 @@ HealthBench \texttt{weighted\_met} roughly quintuples (from 0.05--0.10 to
 0.26--0.27) over the same range---almost all of it added completeness, as the
 Positive component climbs while the penalty stays flat
 (Figure~\ref{fig:size-ladder}, bottom). Beyond $\sim$30B both flatten and
-dip---recall 0.42--0.44 and \texttt{weighted\_met} 0.19--0.23 at
-122B--397B---so the 397B frontier is \emph{not} better for this task than a
-30B model.
+dip slightly---recall 0.42--0.44 and \texttt{weighted\_met} 0.19--0.23 at
+122B--397B---though this dip also crosses a model-generation boundary (the
+122B/397B rungs are an older Qwen generation than the 27/35B peak), so we read
+it as a plateau rather than a true decline. Either way, the 397B frontier is
+\emph{not} better for this task than a 30B model.
 
 \emph{Safety improves monotonically with size.} The Kenya harm rate falls from
 0.26 (2B) to 0.16 (deployed 4B) to 0.06--0.09 (26--31B), and deflection

@@ -44,15 +44,17 @@ next to the generation that dominates the total (the $\sim$16\,s decode at the
 deployed $k{=}3$), and the deployed generator is unchanged---so the
 generation-set headline figures below stand.
 
-One further mismatch with the deployed configuration, also minor: these runs
-predate the G1 prompt (\S\ref{sec:system-prompt}) and use the earlier baseline
-prompt, which deflected on about a third of questions with short ``see a
-doctor'' replies. Because G1 cuts deflection to $\sim$3\%, the deployed system
-produces longer, more substantive answers on average, so its decode---and thus
-total latency---will run somewhat higher than measured here. Like the retriever
-change, this leaves the picture generation-dominated and within budget: the
-figures are a mild \emph{under}-estimate of the deployed system, not an
-over-estimate.
+One further mismatch with the deployed configuration: these runs predate the G1
+prompt (\S\ref{sec:system-prompt}) and use the earlier baseline prompt, which
+deflected on about a third of questions with short ``see a doctor'' replies.
+Because G1 cuts deflection to $\sim$3\%, the deployed system produces longer,
+more substantive answers on average, so its decode---and thus total
+latency---will run higher than measured here by an amount we did not quantify.
+The picture stays generation-dominated, so these figures are best read as a
+\emph{lower bound} on deployed latency rather than an estimate of it: the budget
+margins below---already thin on the shipped CPU path and tighter still on
+lower-end hardware (\S\ref{sec:devices})---are correspondingly smaller
+under G1.
 
 \subsection{Latency by backend and retrieval depth}
 \label{sec:latency-sweep}

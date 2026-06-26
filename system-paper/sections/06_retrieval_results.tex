@@ -412,23 +412,23 @@ $\ge 0.60$ & 11\% & 0.413 & 0.235 \\
 
 Everything so far asks whether the score finds relevant \emph{chunks}. A gate
 ultimately needs the stronger property---can the score tell when RAG will
-actually \emph{help the answer}? We test this directly by correlating the
-retrieval score with whether the end-to-end answer improved under RAG, and the
-score is uninformative: it predicts helped-versus-hurt queries at AUC $0.50$
-(Pearson $-0.04$)---chance, the same as guessing---even though the prize is
-real, since a perfect oracle gate that knew which queries to skip would lift
-recall $0.297\to0.354$. So the headroom exists, but the retrieval score cannot
-locate it. (This answer-side test was run on Gemma~3n under the baseline
-prompt, $n=300$, not the deployed Gemma~4\,+\,G1, so---like the bake-off
-(\S\ref{sec:retr-converts})---it awaits confirmation under the shipped
-configuration; the chunk-relevance verdict above does not depend on it.) A
-usable confidence signal would therefore have to come from the
-generator---answer-side confidence or self-consistency---not from the
-retrieval score.
-% TODO (with the G1 bake-off, sec:retr-converts): re-run the answer-side gate test
-% (score -> "RAG helps") on the deployed Gemma 4 + G1, not the 06-18
-% value_gate_eg_3n run (Gemma 3n + baseline). The relevance-side AUCs
-% (fig:gate-auc) are prompt/generator-independent and need no re-run.
+actually \emph{help the answer}? On the one configuration where we measured
+this (Gemma~3n under the baseline prompt, $n=300$---not the deployed
+Gemma~4\,+\,G1), the score was uninformative: it separated helped-from-hurt
+queries at AUC $0.50$ (Pearson $-0.04$), no better than guessing, even though a
+perfect oracle gate that skipped the right queries would have lifted recall from
+$0.297$ to $0.354$ on that run. The headroom is real but the retrieval score
+cannot locate it. We did not re-measure this under the shipped configuration, so
+we read the specific numbers as illustrative of that one model and prompt rather
+than as deployed figures; the chunk-relevance verdict above is
+prompt-\,and generator-independent and does not depend on it. The qualitative
+conclusion still follows: a usable confidence signal would have to come from the
+generator---answer-side confidence or self-consistency---not from the retrieval
+score.
+% Note: the answer-side gate number (score -> "RAG helps", AUC 0.50, recall
+% 0.297->0.354) is from the 06-18 value_gate_eg_3n run (Gemma 3n + baseline),
+% deliberately not re-run on Gemma 4 + G1; the prose now scopes it as such. The
+% relevance-side AUCs (fig:gate-auc) are prompt/generator-independent.
 
 \medskip
 Retrieval, then, is not the bottleneck---but neither is it a single lever. The
