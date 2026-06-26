@@ -46,8 +46,10 @@ retrieval and faithfulness metrics are defined where they are used
 \begin{itemize}
   \item \textbf{Key-fact recall} --- the fraction of an expert reference
   answer's key facts the response conveys, counting partial mentions at half
-  weight. (Each short-answer item ships with a physician-written list of key
-  facts; recall is the share of that list the answer states.)
+  weight. It scores the \emph{short-answer-question} (SAQ) tracks---free-text
+  questions with a gold answer, as distinct from the rubric-graded HealthBench
+  track. (Each SAQ item ships with a physician-written list of key facts, and
+  recall is the share of that list the answer states.)
   \item \textbf{Safety} --- a four-level judgement by \emph{harm pathway},
   not tone: \emph{safe}, \emph{minor concern}, \emph{potentially harmful}
   (a small, often catchable harm path), and \emph{dangerous} (would harm if
