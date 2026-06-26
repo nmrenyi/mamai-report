@@ -82,26 +82,39 @@ cause; if a well-grounded small model still cannot beat no-RAG, the lever is
 capability and corpus instead.
 
 \paragraph{Procedure-aware retrieval and depth.} If part of the cost is the
-three-chunk window splitting a protocol, the remedy is retrieval-side: chunking
-that keeps a whole procedure together, and reranking that lifts the
-\emph{management} section into the top-3 rather than a definition or a
-study-exercise (the failure in Figure~\ref{fig:case-nausea}). Depth is the other
-half, and it is gated by hardware: the shipped CPU default holds $k$ at three to
-stay within budget, but the GPU opt-in runs $k=15$ in $\sim$24\,s
-(\S\ref{sec:latency}), so a faster backend---or an on-device NPU---directly buys
-procedure coverage. A cheap first step is to sweep $k$ on the GPU path and
-measure whether answer quality rises, testing the truncation hypothesis head-on.
-The caution is that more chunks add distraction as well as coverage, which is
-exactly why this lever and generator grounding are coupled: deeper retrieval
-pays only for a generator robust enough not to drown in it.
+three-chunk window splitting a protocol, the remedy is retrieval-side, and it is
+really a question of how to spend a fixed token budget---the window is bounded by
+latency and the context cap. Two knobs govern how much of a procedure that
+budget captures: where chunk boundaries fall (around whole protocols rather than
+page breaks) and how large each chunk is, both aimed at landing a complete
+procedure in the passages retrieved rather than a fragment; reranking then
+ensures it is the \emph{management} section that fills the budget, not a
+definition or a study-exercise (the failure in
+Figure~\ref{fig:case-nausea}). The budget itself is gated by hardware: the
+shipped CPU default holds $k$ at three to stay within 60\,s, but the GPU opt-in
+affords far more context ($k=15$ in $\sim$24\,s, \S\ref{sec:latency}), so a
+faster backend---or an on-device NPU---buys procedure coverage directly. A cheap
+first step is to vary depth and chunk size on the GPU path and measure whether
+answer quality rises, testing the truncation hypothesis head-on. The caution is
+that more retrieved text adds distraction as well as coverage, which is exactly
+why this lever and generator grounding are coupled: richer context pays only for
+a generator robust enough not to drown in it.
 
-\paragraph{Query rewriting.} The cheapest lever carries no model cost. Because a
-nurse's phrasing decides what is retrieved---``severe nausea'' and ``hyperemesis
-gravidarum'' fetch different bundles for the same patient
-(\S\ref{sec:retr-corpus})---a lightweight rewriting or normalisation step that
-maps lay phrasing onto the vocabulary the corpus indexes can surface the right
-section without touching the generator, paired with brief user guidance on how
-to describe a case.
+\paragraph{Query rewriting.} The cheapest lever carries no model cost, and it
+acts where the system is most exposed: the retriever consumes the nurse's query
+\emph{verbatim}. Real input is noisy---lay phrasing, abbreviations, partial
+descriptions---and wording alone decides what is retrieved (``severe nausea''
+and ``hyperemesis gravidarum'' fetch different bundles for the same patient,
+\S\ref{sec:retr-corpus}). A lightweight rewriting or normalisation step that
+cleans the query and maps it onto the corpus's vocabulary can surface the right
+section before the generator runs, paired with brief user guidance on how to
+describe a case. Because EmbeddingGemma is multilingual, the same front-end opens
+\emph{cross-lingual} retrieval: rewriting or translating the query would let a
+non-English (e.g.\ Swahili) question reach the corpus, and would let the corpus
+draw on authoritative non-English references it cannot exploit
+today---high-quality German-language obstetrics texts, for one---a concrete path
+toward the multilingual support a real deployment needs
+(\S\ref{sec:limitations}).
 
 \noindent None of the three suffices alone. Corpus and query raise the precision
 of what reaches the generator; grounding lets the generator use it. The corpus
@@ -129,19 +142,32 @@ usual leaderboard order.
 Beyond the levers, two design questions surface that a fielded system will have
 to answer.
 
-\paragraph{Conflicting guidance.} The corpus spans international (WHO, NICE) and
-national (Zanzibar and Tanzania) sources, which do not always agree. When a
-global guideline and a local protocol diverge, should the system prefer the
-local one, surface both, or flag the conflict? Citations make the divergence
-visible, but choosing a behaviour---and validating it clinically---is open for
-any assistant that grounds answers in a heterogeneous guideline base.
+\paragraph{Conflicting guidance.} The corpus draws on many authoritative
+sources, and they do not always agree---an issue we met concretely. Auditing the
+faithfulness failures surfaced 16 cases where two retrieved passages give
+conflicting advice on the same clinical question: a field reference re-doses
+emergency contraception if vomiting occurs within \emph{three} hours where WHO
+says \emph{two}; one source places the active phase of labour at 4\,cm dilation
+and another at 5\,cm; the intravenous ergometrine dose for postpartum
+haemorrhage reads 0.2\,mg in one passage and 0.25--0.5\,mg in another. When
+sources diverge like this, what should the system do---prefer the local or most
+recent protocol, surface both with their provenance, or flag the conflict to the
+clinician? Citations make the divergence visible, but choosing a behaviour, and
+validating it clinically, is open for any assistant grounded in a heterogeneous
+guideline base.
 
 \paragraph{Knowing when to abstain.} A deployable assistant needs a principled
-way to say ``I do not know---escalate.'' We found no usable confidence gate
-today (\S\ref{sec:retr-gate}): neither a retrieval score nor an answer-side
-signal reliably separates answerable from unanswerable queries. Building and
-validating that gate---so the system declines rather than guesses on the queries
-the corpus cannot support---is necessary future work.
+way to decline, rather than guess, on a query the corpus cannot support. The
+technical half is unsolved: we found no usable confidence gate today
+(\S\ref{sec:retr-gate}), as neither a retrieval score nor an answer-side signal
+reliably separates answerable from unanswerable queries. But the harder half is
+clinical. \emph{When} the system should abstain, and \emph{what} it should do
+instead, are not threshold choices: they have to be set against the
+nurse-midwife's responsibility boundary---which decisions fall within their
+scope of practice, and which must be escalated or referred. The expected
+behaviour at that boundary---decline, hand off with a safe holding action, or
+surface the uncertainty---must be defined carefully and with clinicians before
+any gate is tuned to enforce it.
 
 These sit alongside the prerequisites for any real deployment---Swahili support,
 validation on the lower-cost hardware of the field, and above all a study with
