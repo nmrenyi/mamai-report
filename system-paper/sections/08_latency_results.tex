@@ -168,13 +168,18 @@ runtime at longer context.
 
 On Android, the GPU text-decoder path defaults to FP16 activations (the CPU
 path uses FP32); this is a runtime choice, not a knob in our code. Past a total
-context of $\sim$5{,}000 tokens, FP16 GPU decode \emph{deterministically}
-collapses into a degenerate repetition loop (a stream of \texttt{*}
-characters)---the output silently becomes garbage. The same prompt decoded on
-the FP32 CPU path stays clean, which isolates the cause as the GPU's FP16
-precision, not the prompt, the model artifact, or retrieval
-(Figure~\ref{fig:context-wall}). Forcing the GPU to FP32 also removes the
-cliff, confirming it directly. The fix costs latency: FP32 prefill is
+context of $\sim$5{,}000 tokens, FP16 GPU decode collapses into a degenerate
+repetition loop (a stream of \texttt{*} characters) and the output silently
+becomes garbage. The collapse is \emph{deterministic}, not a stochastic glitch:
+the GPU backend decodes greedily, so a fixed prompt produces bit-for-bit
+identical garbage on every run (we confirmed bit-exact reproduction across
+repeated runs of the reference case), which rules out sampling noise and points
+to the FP16 attention math itself---once the precision error pushes the
+attention scores onto the \texttt{*} token, the model self-reinforces into the
+loop. The same prompt decoded on the FP32 CPU path stays clean, which isolates
+the cause as the GPU's FP16 precision, not the prompt, the model artifact, or
+retrieval (Figure~\ref{fig:context-wall}). Forcing the GPU to FP32 also removes
+the cliff, confirming it directly. The fix costs latency: FP32 prefill is
 $2.1$--$2.5\times$ slower (prefill is compute-bound, and FP16 doubles Adreno
 arithmetic throughput), though decode---bandwidth-bound---is essentially
 unchanged, for a net $\sim$21--34\% slower total query at $k=10$--$15$.
