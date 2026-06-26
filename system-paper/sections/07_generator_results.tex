@@ -95,9 +95,9 @@ prompt:
   legend style={font=\footnotesize, at={(0.5,-0.20)}, anchor=north,
     legend columns=3, draw=black!30, /tikz/every even column/.append style={column sep=6pt}},
   area legend,
-  nodes near coords, every node near coord/.append style={font=\scriptsize,
+  nodes near coords, every node near coord/.append style={font=\tiny,
     /pgf/number format/fixed, /pgf/number format/fixed zerofill,
-    /pgf/number format/precision=1},
+    /pgf/number format/precision=2},
 ]
 \addplot[fill=mamteal, draw=mamteal!65!black] coordinates {(base,2.64)(g1,3.31)(g2,3.55)};
 \addplot[fill=mamamber, draw=mamamber!65!black] coordinates {(base,6.26)(g1,6.46)(g2,6.72)};
@@ -157,9 +157,9 @@ contradiction load at every prompt.}
 \toprule
  & \multicolumn{2}{c}{Genuine ($\downarrow$)} & \multicolumn{2}{c}{Over-flags (not counted)} & \\
 \cmidrule(lr){2-3}\cmidrule(lr){4-5}
-Generator $\cdot$ prompt & \makecell{Contra-\\diction}
- & \makecell{Unsup.\\addition} & \makecell{Omis-\\sion} & \makecell{Refu-\\sal}
- & \makecell{Categ.\\rate} \\
+Generator $\cdot$ prompt & Contradiction
+ & \makecell{Unsupported\\addition} & Omission & Refusal
+ & \makecell{Categorized\\rate} \\
 \midrule
 \multicolumn{6}{@{}l}{\textit{Gemma 4 E4B (deployed)}} \\
 \quad baseline & 51 & 28 & 63 & 27 & 2.64\% \\
@@ -200,13 +200,17 @@ extrapolating the miss rate across the $\sim$2{,}800 PASS answers. Because it
 multiplies a 50-sample rate across the whole population, it is noisy, with wide
 confidence intervals---we report the categorized rate, not this one. One
 calibrated number is worth flagging precisely because it looks alarming out of
-context: Gemma~4~+G1+G2 calibrates to $53.9\%$, far above its neighbours. It is
-an \emph{artifact}, not a grounding collapse. The G1+G2 consultation template
-makes answers $\sim$60\% longer (median $1{,}193$ vs.\ $742$ characters), and
-the calibration rubric judges strictly against the \emph{narrow} top-3 context
-only; clinically-sound elaboration that simply is not in those three passages
-is therefore counted as an ``unsupported addition,'' and a single high
-50-case draw then scales across the population. The full-population
+context: Gemma~4~+G1+G2 calibrates to $53.9\%$, far above its neighbours. This
+is a measurement artifact---an effect of how the rate is estimated---not a real
+drop in how faithfully the model grounds its answers. Three things stack up.
+The G1+G2 consultation template makes answers $\sim$60\% longer (median
+$1{,}193$ vs.\ $742$ characters); the calibration rubric judges strictly
+against the \emph{narrow} top-3 context only, so clinically-sound elaboration
+that is correct but simply absent from those three passages is counted as an
+``unsupported addition''; and the estimate then scales one unusually strict
+50-answer sample across the whole $\sim$2{,}800-answer population. The number
+therefore reflects long answers exceeding a deliberately narrow context, not
+Gemma~4 inventing false claims at scale: the full-population
 \emph{categorized} rate for that same cell is $3.55\%$---still second-lowest in
 the matrix. The calibrated column does corroborate the two qualitative facts
 above (Gemma~3n $>$ Gemma~4 at every arm; prompts push the rate up), but only
