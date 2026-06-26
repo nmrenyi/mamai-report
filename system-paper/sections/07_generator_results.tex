@@ -141,35 +141,44 @@ Splitting each Lynx FAIL by primary cause (Table~\ref{tab:faith-modes}) shows
 deflection fix of \S\ref{sec:endtoend}.
 
 \begin{table}[t]
-\caption{Failure-cause decomposition of the oracle answers (counts out of
-$n=2{,}989$; Qwen omitted as the frontier reference). The two genuine
-hallucination modes---contradiction and unsupported addition---sum to the
-categorized rate in the last column (Figure~\ref{fig:faithfulness}); omission
-and refusal are over-flags that do \emph{not} count. Reading the rows: \mbox{+G1}
-trades refusals for unsupported additions (Gemma~4 refusal $27\to7$ while
-unsupported additions $28\to55$), and Gemma~3n carries roughly twice Gemma~4's
-contradiction load at every prompt.}
+\caption{Oracle-faithfulness detail, all nine cells (counts out of
+$n=2{,}989$). The four count columns split each Lynx FAIL by primary cause: the
+two \emph{genuine} modes---contradiction and unsupported addition---sum to the
+\emph{categorized} rate, while omission and refusal are over-flags that do
+\emph{not} count. The last column is the \emph{calibrated} extrapolation
+(\S\ref{sec:faith-calibration}): uniformly far higher and \emph{not} ordered
+like the categorized rate---Qwen is the most faithful generator by the
+categorized rate ($0.97\%$) yet posts the highest calibrated rate ($96.0\%$),
+purely because it is the most verbose. Read categorized as the metric of
+record. $^\dagger$ marks the calibrated cells most inflated by long answers
+against the narrow top-3 context.}
 \label{tab:faith-modes}
 \centering
 \small
-\setlength{\tabcolsep}{5pt}
-\begin{tabular}{@{}lrrrrr@{}}
+\setlength{\tabcolsep}{4.5pt}
+\begin{tabular}{@{}lrrrrrr@{}}
 \toprule
- & \multicolumn{2}{c}{Genuine ($\downarrow$)} & \multicolumn{2}{c}{Over-flags (not counted)} & \\
-\cmidrule(lr){2-3}\cmidrule(lr){4-5}
+ & \multicolumn{2}{c}{Genuine ($\downarrow$)} & \multicolumn{2}{c}{Over-flags}
+ & \multicolumn{2}{c}{Rate ($\downarrow$)} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}
 Generator $\cdot$ prompt & Contradiction
  & \makecell{Unsupported\\addition} & Omission & Refusal
- & \makecell{Categorized\\rate} \\
+ & Categorized & Calibrated \\
 \midrule
-\multicolumn{6}{@{}l}{\textit{Gemma 4 E4B (deployed)}} \\
-\quad baseline & 51 & 28 & 63 & 27 & 2.64\% \\
-\quad +G1      & 44 & 55 & 26 & \phantom{0}7 & 3.31\% \\
-\quad +G1+G2   & 48 & 58 & 36 & 20 & 3.55\% \\
+\multicolumn{7}{@{}l}{\textit{Gemma 4 E4B (deployed)}} \\
+\quad baseline & 51 & 28 & 63 & 27 & 2.64\% & 19.1\% \\
+\quad +G1      & 44 & 55 & 26 & \phantom{0}7 & 3.31\% & 23.1\% \\
+\quad +G1+G2   & 48 & 58 & 36 & 20 & 3.55\% & 53.9\%$^\dagger$ \\
 \midrule
-\multicolumn{6}{@{}l}{\textit{Gemma 3n E4B}} \\
-\quad baseline & 91 & \phantom{0}96 & 47 & 14 & 6.26\% \\
-\quad +G1      & 88 & 105 & 30 & 103 & 6.46\% \\
-\quad +G1+G2   & 88 & 113 & 44 & 70 & 6.72\% \\
+\multicolumn{7}{@{}l}{\textit{Gemma 3n E4B}} \\
+\quad baseline & 91 & \phantom{0}96 & 47 & 14 & 6.26\% & 27.1\% \\
+\quad +G1      & 88 & 105 & 30 & 103 & 6.46\% & 45.7\% \\
+\quad +G1+G2   & 88 & 113 & 44 & 70 & 6.72\% & 47.2\% \\
+\midrule
+\multicolumn{7}{@{}l}{\textit{Qwen3.5-397B (frontier)}} \\
+\quad baseline & 16 & 59 & \phantom{0}9 & \phantom{0}1 & 2.51\% & 48.2\%$^\dagger$ \\
+\quad +G1      & 21 & 90 & \phantom{0}8 & \phantom{0}0 & 3.71\% & 83.7\%$^\dagger$ \\
+\quad +G1+G2   & \phantom{0}7 & 22 & \phantom{0}3 & \phantom{0}1 & \textbf{0.97\%} & \textbf{96.0\%}$^\dagger$ \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -194,61 +203,25 @@ Generator $\cdot$ prompt & Contradiction
 \label{sec:faith-calibration}
 
 Lynx is high-recall but not perfect---it also \emph{misses} some true
-failures. A second, \emph{calibrated} estimate corrects for those misses by
-re-judging a 50-answer sample of Lynx-PASS cases per arm with gpt-5 and
-extrapolating the miss rate across the $\sim$2{,}800 PASS answers. We do not use
-it as the headline, but in the interest of an honest account we report it in
-full alongside the categorized rate (Table~\ref{tab:faith-calib}) rather than
-quoting only the cells that flatter the argument.
+failures. A second, \emph{calibrated} estimate (the last column of
+Table~\ref{tab:faith-modes}) corrects for those misses by re-judging a
+50-answer sample of Lynx-PASS cases per arm with gpt-5 and extrapolating the
+miss rate across the $\sim$2{,}800 PASS answers. We do not use it as the
+headline, but report it in full---for every cell, not just the flattering
+ones---because it is unreliable in magnitude and the table shows why.
 
-\begin{table}[t]
-\caption{The categorized rate (metric of record) against the calibrated
-extrapolation, for all nine cells. The calibrated column is uniformly far
-higher and---decisively---\emph{not even ordered the same way}: Qwen is the
-\emph{most} faithful generator by the categorized rate ($0.97\%$, the matrix
-low) yet posts the \emph{highest} calibrated rate ($96.0\%$, the matrix high),
-purely because it is the most verbose. A metric that ranks the most faithful
-model as the least faithful is measuring answer length, not faithfulness.
-$^\dagger$ marks the cells where the 50-sample miss rate is most inflated by
-long answers against the narrow top-3 context.}
-\label{tab:faith-calib}
-\centering
-\small
-\setlength{\tabcolsep}{6pt}
-\begin{tabular}{@{}lrr@{}}
-\toprule
-Generator $\cdot$ prompt & \makecell{Categorized\\(metric of record) $\downarrow$}
- & \makecell{Calibrated\\(noisy) $\downarrow$} \\
-\midrule
-\multicolumn{3}{@{}l}{\textit{Gemma 4 E4B (deployed)}} \\
-\quad baseline & 2.64\% & 19.1\% \\
-\quad +G1      & 3.31\% & 23.1\% \\
-\quad +G1+G2   & 3.55\% & 53.9\%$^\dagger$ \\
-\midrule
-\multicolumn{3}{@{}l}{\textit{Gemma 3n E4B}} \\
-\quad baseline & 6.26\% & 27.1\% \\
-\quad +G1      & 6.46\% & 45.7\% \\
-\quad +G1+G2   & 6.72\% & 47.2\% \\
-\midrule
-\multicolumn{3}{@{}l}{\textit{Qwen3.5-397B (frontier)}} \\
-\quad baseline & 2.51\% & 48.2\%$^\dagger$ \\
-\quad +G1      & 3.71\% & 83.7\%$^\dagger$ \\
-\quad +G1+G2   & \textbf{0.97\%} & \textbf{96.0\%}$^\dagger$ \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-The calibrated column is unreliable in magnitude everywhere, for the same
-reason in every row: it scales a 50-answer miss rate across $\sim$2{,}800
-answers, and that miss rate climbs with answer length because the rubric judges
-strictly against the \emph{narrow} top-3 context---clinically-sound elaboration
-that is simply absent from those three passages is counted as an ``unsupported
-addition.'' The clearest proof is internal to the table: Qwen earns the matrix's
-\emph{lowest} genuine-hallucination rate ($0.97\%$) and its \emph{highest}
-calibrated rate ($96.0\%$) at once, the inversion driven entirely by its being
-the most verbose generator. Our own deployed-family outlier, Gemma~4~+G1+G2 at
-$53.9\%$, is the same effect in milder form: its full-population
-\emph{categorized} rate is $3.55\%$, still second-lowest in the matrix.
+It scales a 50-answer miss rate across $\sim$2{,}800 answers, and that miss
+rate climbs with answer length, because the rubric judges strictly against the
+\emph{narrow} top-3 context: clinically-sound elaboration that is simply absent
+from those three passages is counted as an ``unsupported addition.'' The
+clearest proof is internal to the table: Qwen earns the matrix's \emph{lowest}
+genuine-hallucination rate ($0.97\%$) and its \emph{highest} calibrated rate
+($96.0\%$) at once---an inversion driven entirely by its being the most verbose
+generator. A metric that ranks the most faithful model as the least faithful is
+measuring answer length, not faithfulness. Our own deployed-family outlier,
+Gemma~4~+G1+G2 at $53.9\%$, is the same effect in milder form: its
+full-population \emph{categorized} rate is $3.55\%$, still second-lowest in the
+matrix.
 
 What the calibrated column \emph{does} robustly show, surviving its noise, is
 the two qualitative facts already in the categorized data (Gemma~3n $>$
