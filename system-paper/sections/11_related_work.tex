@@ -1,16 +1,56 @@
 \section{Related Work}
+\label{sec:related}
 
-% Groupings:
-% - On-device LLMs and inference frameworks: LiteRT-LM, MediaPipe LLM
-%   Inference, ExecuTorch, MLC LLM. Mobile-first quantization formats.
-% - Medical RAG and clinical QA systems: Meditron, MedGemma, BioGPT,
-%   MedPaLM-2, HealthBench, ClinRAG.
-% - On-device and small embeddings: Gecko, BGE-small, GTE-small;
-%   biomedical embeddings (MedCPT, BioBERT-derived).
-% - Faithfulness and hallucination evaluation: Patronus Lynx (the judge
-%   used here), MiniCheck, FActScore, FactCC, MedScore.
-% - LLM-as-judge methodology and calibration: G-Eval, judge bake-offs,
-%   physician-ground-truth meta-evaluation (HealthBench).
-% - Retrieval evaluation methodology: BEIR, RTEB, TREC-CDS, UMBRELA,
-%   DeCE.
-% - Global-health AI and deployment in low-resource settings.
+\paragraph{Clinical AI in low-resource settings.} The closest precedents to
+MAM-AI are point-of-care digital tools for frontline maternal-health workers.
+The Safe Delivery App---a smartphone job-aid with animated clinical guidance for
+birth attendants---more than doubled postpartum-haemorrhage management skills in
+a cluster-randomised trial in Ethiopia~\cite{christiansen2023safedelivery}; we
+generalise that idea from fixed content to open-ended, source-grounded question
+answering. More recently, LLM clinical decision support has been deployed in
+African primary care, reducing diagnostic and treatment errors across tens of
+thousands of visits in Kenya~\cite{korom2025clinical}. Those systems are
+cloud-served and clinician-facing in facilities; MAM-AI instead runs fully
+on-device and offline for nurse-midwives, the regime closest to MedAide, an
+offline edge-LLM medical assistant~\cite{basit2024medaide}. Pan-African medical
+QA benchmarks such as AfriMed-QA~\cite{olatunji2025afrimedqa} motivate
+evaluation for these settings, but are datasets rather than deployed systems.
+
+\paragraph{Medical language models and retrieval.} Open and frontier medical
+LLMs---among them the Gemma-based MedGemma~\cite{sellergren2025medgemma}---are
+large and server-hosted; we instead target a 4B model that runs on a phone, and
+find (\S\ref{sec:model-size}) that capability dominates quality while
+faithfulness decides which model we deploy. Retrieval-augmented clinical systems
+such as Almanac~\cite{zakka2024almanac} argue that grounding answers in cited
+sources is what makes a medical assistant trustworthy---the same motivation
+behind our traceable RAG---and medical-RAG benchmarks~\cite{xiong2024benchmarking}
+dissect retriever and generator contributions; unlike that cloud setting, we
+find the small \emph{generator}, not retrieval, to be the bottleneck. We
+evaluate on HealthBench~\cite{arora2025healthbench}, whose physician-written
+rubrics let us separate completeness from safety.
+
+\paragraph{On-device inference and quantization.} Running LLMs on commodity
+phones is enabled by mobile runtimes---Google's LiteRT-LM~\cite{litertlm2025}
+(our generator's runtime), and open engines such as llama.cpp and
+MLC-LLM---together with low-bit quantization: weight-only int4
+methods~\cite{lin2024awq} and the outlier-aware 8-bit analysis
+of~\citet{dettmers2022llmint8}, whose findings on low-precision transformer
+numerics bear directly on the FP16 attention collapse we characterise
+(\S\ref{sec:context-wall}). Where much on-device work favours sub-billion-%
+parameter models, we deploy a 4B model at int4, trading precision for capability.
+
+\paragraph{Faithfulness and judge evaluation.} Detecting whether a generation
+stays faithful to its source spans claim-level fact-checking~\cite{tang2024minicheck}
+and RAG-specific faithfulness metrics~\cite{es2024ragas}; we use Patronus
+Lynx~\cite{ravi2024lynx} as the first stage of our two-pass faithfulness
+pipeline. Our rubric and safety scores come from an LLM-as-judge, a standard but
+bias-prone practice~\cite{zheng2023judging}, so we validate the judge against
+physician labels (\S\ref{sec:judge}) rather than trust it blind.
+
+\paragraph{On-device text embeddings.} Distillation has made small embedders
+competitive with much larger ones---Gecko~\cite{lee2024gecko} and the 300M
+EmbeddingGemma~\cite{schechtervera2025embeddinggemma}, our retriever---and our
+results add evidence that an on-device embedder rivals cloud APIs on medical
+retrieval. We benchmark against general (MTEB~\cite{muennighoff2023mteb}) and
+biomedical (MedCPT~\cite{jin2023medcpt}) baselines, but with graded relevance and
+Precision@$k$ tailored to the deployment task.
