@@ -5,14 +5,15 @@
 This appendix records the full transcripts behind Figure~\ref{fig:case-nausea}
 (\S\ref{sec:retr-corpus}): two near-identical queries whose answers diverge
 because retrieval handed the generator different chunks. The system's
-\emph{queries} and \emph{generated answers} are reproduced verbatim, since
-they are the deployed system's own input and output. The retrieved chunks are
-given as our own brief \emph{summaries} rather than the source text---none is
-reproduced verbatim---and \emph{all} source titles are withheld and replaced
-with neutral labels (``reference text~A''--``D''; full per-document provenance
-lives in the corpus manifest in the project repository). The crux is that two
-of the chunks come from the \emph{same} source (``reference text~A'')---one its
-definition, the other its management protocol.
+\emph{queries} and \emph{generated answers} are reproduced verbatim, as the
+deployed system's own input and output. The retrieved chunks are reproduced as
+the \emph{actual text the model received} (lightly cleaned of PDF-extraction
+artifacts); \emph{all} source titles and page numbers are withheld and replaced
+with neutral labels (``reference text~A''--``D''), with full per-document
+provenance in the corpus manifest. The crux is that two of the chunks come from
+the \emph{same} source (``reference text~A'')---one its definition, the other
+its management protocol. Bracketed numbers \mbox{[1]--[3]} mark the retrieval
+order and match the citations in the generated answers.
 
 \subsection*{Case A --- query says ``severe nausea''}
 
@@ -22,25 +23,59 @@ currently in her second trimester of pregnancy with an estimated due date of
 treatment options?''}
 
 \smallskip
-\noindent\textbf{Retrieved top-3 (summarised).}
-\begin{enumerate}\setlength{\itemsep}{1.5pt}
-  \item \emph{Reference text~A --- the management section.} The
-  on-point chunk: for moderate vomiting or suspected hyperemesis, admit to
-  hospital; urinalysis (ketones, bilirubin, protein, glucose) and a midstream
-  urine culture to exclude pyelonephritis; \emph{named} antiemetics regarded
-  as safe in pregnancy (promethazine, prochlorperazine, metoclopramide) and
-  corticosteroids; liver and renal bloods (AST, ALT, urea, electrolytes);
-  ultrasound to exclude molar and multiple pregnancy; and monitoring of
-  weight, temperature, pulse, blood pressure, and fetal heart rate.
-  \item \emph{Reference text~D --- recommendations.} Reassure that
-  mild-to-moderate nausea and vomiting is common and usually resolves by
-  16--20 weeks; recognise that women have often already tried remedies before
-  seeking advice; and offer ginger as a non-pharmacological option.
-  \item \emph{Reference text~D --- rationale.} Notes that hyperemesis can have
-  serious consequences and may need hospital care, and that this source
-  covers only the management of nausea and vomiting, not comprehensive
-  hyperemesis care.
-\end{enumerate}
+\noindent\textbf{Retrieved top-3 (actual chunk text; sources withheld).}
+
+\smallskip
+\noindent\emph{[1] Reference text~A --- the management section.}
+\begin{quote}\footnotesize
+\textbf{Moderate vomiting and hyperemesis}
+
+If the woman is experiencing \emph{moderate} vomiting or suspected
+\emph{hyperemesis gravidarum}, the midwife should arrange for her to be admitted
+to hospital without delay. She should be cared for in a single room if possible,
+to avoid undue disturbance. A urinalysis is conducted for ketones, bilirubin,
+protein and glucose, and a midstream specimen of urine is sent for culture to
+exclude pyelonephritis.
+
+Antihistamines such as \emph{promethazine hydrochloride, prochlorperazine
+(Stemetil) metoclopramide (Maxolon, Primperan)} (Jewell \& Young 2003) or
+corticosteroids such as \emph{methylprednisolone} (Ismail \& Kenny 2007) are
+considered safe to use in pregnancy and may be utilized to control the nausea
+and vomiting.
+
+Blood tests, such as aspartate aminotransferase (AST), alanine aminotransferase
+(ALT), urea and electrolytes, are required to assess renal and liver function.
+An ultrasound scan may also be useful to eliminate hydatidiform mole and
+multiple pregnancy as probable causes. A frequent record of the woman's weight,
+temperature, pulse and blood pressure is essential to monitor her wellbeing. In
+addition, the fetal heart rate should be appropriately auscultated (depending on
+the gestation) to monitor the health of the fetus.
+\end{quote}
+
+\noindent\emph{[2] Reference text~D --- the rationale.}
+\begin{quote}\footnotesize
+\textbf{Why the committee made the recommendations}
+
+gravidarum can have serious harmful consequences, and treatment and care in
+hospital may be needed. It should be noted that this guideline only covers
+treatments to manage nausea and vomiting in pregnancy, and comprehensive
+management of hyperemesis gravidarum, which may include nutritional
+interventions, is not covered by this guideline on routine antenatal care.
+\end{quote}
+
+\noindent\emph{[3] Reference text~D --- the recommendations.}
+\begin{quote}\footnotesize
+\textbf{Nausea and vomiting}
+\begin{itemize}\setlength{\itemsep}{1pt}
+  \item 1.4.1 Reassure women that mild to moderate nausea and vomiting are
+  common in pregnancy, and are likely to resolve before 16 to 20 weeks.
+  \item 1.4.2 Recognise that by the time women seek advice from healthcare
+  professionals about nausea and vomiting in pregnancy, they may have already
+  tried a number of different interventions.
+  \item 1.4.3 For pregnant women with mild-to-moderate nausea and vomiting who
+  prefer a non-pharmacological option, suggest that they try ginger.
+\end{itemize}
+\end{quote}
 
 \smallskip
 \noindent\textbf{Generated answer (verbatim).}
@@ -84,26 +119,59 @@ recommended treatment options?''} (The same patient and condition as Case~A;
 only the wording differs.)
 
 \smallskip
-\noindent\textbf{Retrieved top-3 (summarised).}
-\begin{enumerate}\setlength{\itemsep}{1.5pt}
-  \item \emph{Reference text~B --- a general management section.}
-  Management exists but is generic: admit for investigations and rehydration;
-  ``an antiemetic'' is given, \emph{without naming a drug}; intravenous fluids
-  (e.g.\ Hartmann's); vitamin~B12, thiamine, vitamin~C, folic acid, and iron;
-  strict fluid balance, then oral and solid food after 24~hours; prednisolone
-  if weight loss exceeds 5\%.
-  \item \emph{Reference text~C --- a student study-exercise.} Not
-  clinical guidance at all: an activity asking the reader to
-  \emph{find out} what hyperemesis means, its incidence, who is at risk, and
-  how it is recognised and treated. A passage that should never be retrieved
-  for a clinical query.
-  \item \emph{Reference text~A --- the definition section} (from the
-  \emph{same} source as the management section retrieved in Case~A). Definition and
-  epidemiology only: hyperemesis as pathological unremitting vomiting, its
-  prevalence and risk factors, diagnosis by exclusion, a leading cause of
-  admission, and a possible \emph{Helicobacter pylori} link---no management
-  protocol.
-\end{enumerate}
+\noindent\textbf{Retrieved top-3 (actual chunk text; sources withheld).}
+
+\smallskip
+\noindent\emph{[1] Reference text~B --- a general management section.}
+\begin{quote}\footnotesize
+\textbf{Management}
+
+The woman is usually admitted to hospital for investigations and rehydration.
+The cause of vomiting may not be found. An \textbf{antiemetic} will be given and
+fluids and electrolytes replaced by intravenous infusion of a solution such as
+Hartmann's. Vitamin B12, thiamine, vitamin C, folic acid and iron will be needed
+to prevent complications (Farrell 2008).
+
+General observation of the woman's condition should be monitored. Strict fluid
+balance should be maintained until rehydrated. There is usually a rapid response
+to treatment and oral fluids may be recommenced when vomiting has ceased for
+24~h. Solid food should be then introduced gradually. Moran \& Taylor (2002)
+found that weight loss of more than 5\% of prepregnancy weight in women with HG
+was effectively treated with 10~mg of prednisolone three times a day. This
+shortened the stay in hospital and stopped vomiting. This treatment was
+gradually decreased and discontinued at 20 weeks of gestation.
+\end{quote}
+
+\noindent\emph{[2] Reference text~C --- a student study-exercise.}
+\begin{quote}\footnotesize
+\textbf{Activity}
+
+Find out what is meant by hyperemesis gravidarum.
+
+See if you can discover what is the incidence and who is most at risk of this
+condition.
+
+Find out how the midwife would recognize this condition, and what the treatment
+is.
+\end{quote}
+
+\noindent\emph{[3] Reference text~A --- the definition section} (from the
+\emph{same} source as the management section in Case~A).
+\begin{quote}\footnotesize
+\textbf{Hyperemesis gravidarum}
+
+\emph{Hyperemesis gravidarum} is a pathological condition characterized by
+unremitting, severe vomiting in pregnancy. It occurs in 0.3--2.0\% of
+pregnancies and is more common in women who are younger, non-smokers and
+non-Caucasian (Ismail \& Kenny 2007). It is diagnosed by exclusion (Kametas \&
+Nelson-Piercy 2008) and is a leading cause of hospital admission during
+pregnancy (Cedergren et al 2008).
+
+Studies have shown that a gastric infection caused by the \emph{Helicobacter
+pylori} bacterium may also be linked to hyperemesis gravidarum (Golberg et al
+2007). The infection responds well to antibiotic therapy, such as
+\emph{erythromycin} or \emph{clarithromycin}.
+\end{quote}
 
 \smallskip
 \noindent\textbf{Generated answer (verbatim).}
@@ -136,7 +204,6 @@ workup; Case~B surfaced the \emph{definition section} of the same source, a
 generic management passage whose antiemetic is unnamed, and a study-exercise,
 and the answer collapsed to ``an antiemetic will be given.'' The corpus held
 the right management section in both cases---a small, faithful generator
-reproduced
-whatever it was handed. This is the per-query face of \S\ref{sec:retr-corpus}:
-corpus coverage, specificity, curation, and query phrasing decide deployment
-quality.
+reproduced whatever it was handed. This is the per-query face of
+\S\ref{sec:retr-corpus}: corpus coverage, specificity, curation, and query
+phrasing decide deployment quality.
