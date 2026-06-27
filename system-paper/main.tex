@@ -48,14 +48,16 @@
 }
 
 % The author's name in Chinese is a small vector graphic (figures/renyi-cjk.pdf,
-% set in FandolSong), baked into a save-box once and placed with \usebox. This
-% keeps the paper on pdflatex (the engine arXiv uses for acmart) and is robust to
-% acmart's author handling: \usebox carries no graphicx keys (so the uppercased
-% running head can't mangle them) and contributes nothing to any PDF-string sink
-% (pdfauthor / bookmarks / hyperxmp XMP), which cannot typeset CJK glyphs.
-\newsavebox{\zhnamebox}
-\sbox{\zhnamebox}{\raisebox{-0.29ex}{\includegraphics[height=1.08em]{figures/renyi-cjk}}}
-\newcommand{\zhname}{\usebox{\zhnamebox}}
+% the glyphs set in FandolSong, image box = the font's TeX box). This keeps the
+% paper on pdflatex (the engine arXiv uses for acmart) -- no Unicode engine. The
+% size (0.933em = the glyphs' height+depth) and baseline drop (0.16em = their
+% depth) are in em, so \zhname scales to the surrounding font like a real glyph,
+% matching both the large title and the small running head. \DeclareRobustCommand
+% protects the graphicx keys from acmart's author uppercasing (which would mangle
+% height= into HEIGHT=), and hyperref strips \includegraphics from PDF-string
+% sinks (pdfauthor / bookmarks / hyperxmp XMP), so no CJK reaches them.
+\DeclareRobustCommand{\zhname}{%
+  \raisebox{-0.16em}{\includegraphics[height=0.933em]{figures/renyi-cjk}}}
 
 \bibliographystyle{ACM-Reference-Format}
 \citestyle{acmauthoryear}
