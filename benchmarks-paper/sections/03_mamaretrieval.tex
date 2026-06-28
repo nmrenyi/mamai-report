@@ -6,7 +6,7 @@ answer a clinical query, at the chunk granularity a RAG system actually
 retrieves. Building it means choosing what to retrieve over (the corpus), what
 queries to ask, how to label a (query, chunk) pair's relevance, and how to keep
 those labels trustworthy at scale. We start with the corpus, then take query
-construction, the relevance rubric, pooling, and judge calibration in turn.
+construction, the relevance rubric, pooling, and judge reliability in turn.
 
 \subsection{The guideline corpus}
 \label{sec:corpus}
@@ -243,7 +243,7 @@ against its reference, and the released pool adds a sixth retriever, so it is
 near-saturated at the top of the ranking. Only absolute coverage-sensitive
 numbers need the residual caveat (\S\ref{sec:mr-judge}).
 
-\subsection{Judge calibration and metric guidance}
+\subsection{Judge reliability and metric guidance}
 \label{sec:mr-judge}
 
 A single LLM produces every relevance label, so the benchmark is only as
@@ -259,8 +259,8 @@ benchmark reports against.
 We are deliberate about what this establishes. It is an agreement check against
 another model, not against clinicians: it shows the judge is a reasonable
 relevance classifier and that retriever \emph{rankings} are stable under it, but
-it does not make any single label ground truth. Each label is one calibrated
-opinion, and absolute, per-row numbers carry more uncertainty than relative
+it does not make any single label ground truth. Each label is one judge's
+opinion, and absolute, per-item numbers carry more uncertainty than relative
 comparisons.
 
 That uncertainty, together with the pool incompleteness of
