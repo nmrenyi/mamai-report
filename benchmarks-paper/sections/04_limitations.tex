@@ -1,10 +1,39 @@
 \section{Limitations}
 \label{sec:limitations}
 
-% DRAFTED LATER. Honest account of what the benchmarks do NOT establish:
-% - mamaretrieval: single relevance judge; LLM-query anchor-text bias;
-%   per-chunk queries only (no synthesis/adversarial); residual pool
-%   incompleteness beyond the 6-retriever top-20 union.
-% - mamabench: scope-classifier non-convergence (disclosed, net-zero);
-%   judge-calibration set inherits HealthBench's physician pool.
-% - Both: corpus-version coupling; non-commercial license propagation.
+We have flagged limits where they arise; here we collect what a user should weigh
+before relying on either benchmark.
+
+\paragraph{No human gold standard.}
+The scope of mamabench and every relevance label in mamaretrieval are decided by
+LLMs, not clinicians. We anchor them externally---cross-model agreement and prior
+labels for the scope classifier (\S\ref{sec:mamabench-scope}), a frontier
+reference model for the relevance judge (\S\ref{sec:mr-judge})---and we ship
+HealthBench's physician labels so a consumer can vet a rubric judge
+(\S\ref{sec:mamabench-calibration}). But no midwife reviewed either benchmark at
+scale, and those physician labels come from HealthBench's annotator pool, not
+midwifery specialists. Each label is best read as one calibrated opinion: model
+and retriever \emph{rankings} are robust, absolute per-item numbers less so.
+
+\paragraph{mamaretrieval queries are clean and single-chunk.}
+Every query is LLM-written from one chunk and answerable from it
+(\S\ref{sec:mr-queries}), with two consequences. First, the benchmark exercises
+single-passage retrieval: it does not test questions that can only be answered by
+combining several chunks, nor robustness to the noisy, code-switched, or mistyped
+queries a hurried nurse might enter. Second, because a query reads like its
+source chunk, dense retrievers gain an anchor-text edge that inflates their
+absolute scores---another reason to lead with the pooling-robust metrics
+(\S\ref{sec:mr-judge}).
+
+\paragraph{The relevance labels are pooled.}
+They cover the six-retriever top-20 union; a chunk no retriever surfaced is
+unjudged and counted not-relevant (\S\ref{sec:mr-pooling}). Coverage-sensitive
+metrics---Recall and Precision---carry that bias, which is why we report
+Hit~Rate and MRR first.
+
+\paragraph{Scope, language, and transfer.}
+Both benchmarks are English-only and scoped to maternal, neonatal, child, and
+reproductive health for a Zanzibar nurse-midwife setting; the numbers need not
+transfer to other languages, specialties, or care settings. A few mamabench items
+the scope classifier could not converge on are disclosed and have zero net effect
+on in-scope counts (\S\ref{sec:mamabench-scope}).

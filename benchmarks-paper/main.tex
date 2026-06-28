@@ -18,6 +18,21 @@
 \usepackage{booktabs}
 \usepackage{multirow}
 \usepackage{microtype}
+\usepackage{tablefootnote} % footnotes that survive inside table floats
+\usepackage{listings}
+% Verbatim listing style for the appendix prompt (ASCII-cleaned; long lines wrap).
+\lstset{
+  basicstyle=\ttfamily\scriptsize,
+  breaklines=true,
+  breakindent=0pt,
+  columns=fullflexible,
+  keepspaces=true,
+  showstringspaces=false,
+  frame=single,
+  framesep=4pt,
+  xleftmargin=3pt,
+  xrightmargin=3pt,
+}
 
 % The author's name in Chinese is a small vector graphic (figures/renyi-cjk.pdf,
 % the glyphs set in FandolSong, image box = the font's TeX box). This keeps the
@@ -86,12 +101,14 @@ health, OBGYN, LLM-as-judge, TREC pooling}
 \input{sections/02_mamabench}
 \input{sections/03_mamaretrieval}
 \input{sections/04_limitations}
-\input{sections/05_access}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Bibliography
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \bibliography{references}
+
+\appendix
+\input{sections/A_judge_prompt}
 
 \end{document}

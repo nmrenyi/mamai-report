@@ -2,12 +2,12 @@
 \label{sec:intro}
 
 Medical question-answering benchmarks have proliferated, but maternal,
-neonatal, and reproductive health---and the sub-Saharan, midwife-led
+neonatal, child, and reproductive health---and the sub-Saharan, midwife-led
 primary-care setting in particular---are a thin slice of them. The widely used
 sets draw on US and Indian licensing exams (MedQA~\cite{jin2021medqa},
 MedMCQA~\cite{pal2022medmcqa}) or broad clinical chat
 (HealthBench~\cite{arora2025healthbench}); AfriMed-QA~\cite{olatunji2025afrimedqa}
-is pan-African but multi-specialty. None is scoped to the obstetric, neonatal,
+is pan-African but multi-specialty. None is scoped to the maternal, neonatal, child,
 and reproductive-health questions a nurse-midwife actually asks at the point of
 care.
 
@@ -20,7 +20,14 @@ descriptions, not the short guideline chunks a deployed RAG system retrieves and
 injects into a prompt. To our knowledge there is no public chunk-level relevance
 benchmark for maternal-health guideline retrieval.
 
-We release two benchmarks that close these gaps for the domain. Both were built
+We release two benchmarks%
+\footnote{Datasets: \url{https://huggingface.co/datasets/nmrenyi/mamabench},
+\url{https://huggingface.co/datasets/nmrenyi/mamaretrieval}. Construction code:
+\url{https://github.com/nmrenyi/mamabench},
+\url{https://github.com/nmrenyi/mamaretrieval}. Released for research use; some
+sources are non-commercial (e.g.\ AfriMed-QA, CC~BY-NC-SA~4.0), with each item's
+license recorded in its per-source manifest.}
+that close these gaps for the domain. Both were built
 to supply the test data for a companion system paper~\cite{ren2026mamai}---a
 deployed, fully on-device RAG assistant for nurse-midwives in Zanzibar---but
 each is usable as a standalone instrument.
@@ -62,11 +69,8 @@ The companion system paper uses these benchmarks to evaluate the deployed system
 and reports those results; this paper documents how the benchmarks were
 \emph{built and validated}, and is what the system paper cites for their
 provenance. We do not reproduce the deployed-system evaluation here. mamabench
-is assembled from external QA sources and is corpus-independent, but
-mamaretrieval is coupled to a fixed corpus version (\S\ref{sec:corpus}): its
-chunk identities and relevance labels are pinned to guideline-corpus bundle
-v0.2.0, so the (corpus, queries, labels) triple is one versioned artifact and a
-corpus rebuild requires re-running the labelling pipeline.
+is assembled from external QA sources and is corpus-independent, whereas
+mamaretrieval is coupled to a specific corpus chunk set (\S\ref{sec:corpus}).
 Section~\ref{sec:limitations} is candid about what each benchmark does and does
-not establish, and Section~\ref{sec:access} covers the versioned, openly
-licensed release.
+not establish; the datasets and construction code are linked in the title
+footnote.

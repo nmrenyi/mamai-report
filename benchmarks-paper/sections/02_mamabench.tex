@@ -95,9 +95,10 @@ We define scope as four positive categories---\textsc{maternal},
 \textsc{sexual and reproductive health} (SRH)---plus \textsc{none}, and we
 classify
 each item by its \emph{primary clinical concept, not the patient's
-demographics}. A question about an allergic reaction that happens to involve a
-pregnant patient is \textsc{none} (the allergy is the concept); postpartum
-depression is \textsc{maternal}. The classifier is \texttt{Qwen3.6-27B-FP8}, run
+demographics}. A question about managing a wrist fracture in a patient
+who happens to be pregnant is \textsc{none}---the fracture is the concept, the
+pregnancy incidental---whereas postpartum depression is \textsc{maternal},
+because here the postpartum context \emph{is} the concept. The classifier is \texttt{Qwen3.6-27B-FP8}, run
 with reasoning enabled at temperature 0; it applies this rule to every candidate
 item and emits a structured verdict with its reasoning retained for audit.
 

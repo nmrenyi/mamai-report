@@ -1,0 +1,16 @@
+\section{Relevance-Judge Prompt}
+\label{app:judge-prompt}
+
+The prompt the relevance judge (\texttt{Qwen3.5-397B-A17B-FP8}) runs for every
+(query, chunk) pair is reproduced below: the system message carrying the
+four-dimension rubric, the structural rule, the output schema, and four worked
+examples, followed by the per-pair user template. It is the canonical prompt
+from \texttt{scripts/judge\_relevance.py} in the construction
+repository,\footnote{\url{https://github.com/nmrenyi/mamaretrieval/blob/main/scripts/judge_relevance.py}}
+and ships verbatim with the dataset as
+\texttt{audit/judge\_relevance\_prompt.txt}; its hash is pinned in the release
+manifest. The box rules and a few Unicode symbols (e.g.\ $\ge$, $\times$,
+$\mu$) are rendered in ASCII here, and long lines are wrapped to the column;
+the content is otherwise verbatim.
+
+\lstinputlisting{appendix/judge_relevance_prompt.txt}
