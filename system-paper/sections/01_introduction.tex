@@ -153,15 +153,15 @@ are described in detail in a companion paper~\cite{yi2026mamabench}.
     \scriptsize browser demo \emph{(HF\,Space)}};
   \draw[flow] (kb) -- node[lbl,right]{corpus bundle\\(v0.3.0)} (app);
   \draw[flow] (app) -- node[lbl,right]{deployed\\config} (demo);
-  % --- RIGHT: evaluation flowing leftward into the app ---
+  % --- RIGHT: evaluation harness on top, the two benchmarks below it ---
   \node[repo] (eval) at (5.6,-2.5) {\texttt{\textbf{mamai-eval}}\\[1pt]
     \scriptsize evaluation harness};
-  \node[repo] (b1) at (10.4,-1.25) {\texttt{\textbf{mamabench}}\\[1pt]
+  \node[repo] (b1) at (3.6,-5.0) {\texttt{\textbf{mamabench}}\\[1pt]
     \scriptsize QA benchmark\\\emph{(HF\,dataset)}};
-  \node[repo] (b2) at (10.4,-3.75) {\texttt{\textbf{mamaretrieval}}\\[1pt]
+  \node[repo] (b2) at (7.6,-5.0) {\texttt{\textbf{mamaretrieval}}\\[1pt]
     \scriptsize retrieval benchmark\\\emph{(HF\,dataset)}};
-  \draw[flow] (b1.west) -- node[lbl,above,pos=0.6]{test data} (eval.east);
-  \draw[flow] (b2.west) -- (eval.east);
+  \draw[flow] (b1.north) -- (eval.south);
+  \draw[flow] (b2.north) -- node[lbl,right,pos=0.55]{test data} (eval.south);
   \draw[flow] (eval) -- node[lbl,above]{evaluates} (app);
   % the two benchmarks are documented in the companion paper
   \begin{scope}[on background layer]
