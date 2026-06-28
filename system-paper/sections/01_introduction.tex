@@ -118,20 +118,37 @@ isolation, then latency---and yields three findings that structure the paper:
 
 \paragraph{Availability.}
 All components are open source and the deployed configuration has a public
-browser demo (Figure~\ref{fig:artifacts} maps how they fit together): the
-on-device app and RAG pipeline, the knowledge-base pipeline and versioned
-guideline bundle, the two benchmarks (mamabench and mamaretrieval, released as
-Hugging Face datasets with construction code), and the evaluation
-harness.\footnote{App and RAG pipeline: \url{https://github.com/nmrenyi/mamai}.
-Knowledge-base pipeline and guideline bundle:
-\url{https://github.com/nmrenyi/mamai-medical-guidelines}. Benchmarks --- mamabench:
-\url{https://huggingface.co/datasets/nmrenyi/mamabench} (code:
-\url{https://github.com/nmrenyi/mamabench}); mamaretrieval:
-\url{https://huggingface.co/datasets/nmrenyi/mamaretrieval} (code:
-\url{https://github.com/nmrenyi/mamaretrieval}). Evaluation harness:
-\url{https://github.com/nmrenyi/mamai-eval}. Browser demo of the deployed
-configuration: \url{https://nmrenyi-mamai-demo.hf.space}.} The two benchmarks
-are described in detail in a companion paper~\cite{yi2026mamabench}.
+browser demo: Figure~\ref{fig:artifacts} maps how they fit together and
+Table~\ref{tab:artifacts} links each one. The two benchmarks are described in
+detail in a companion paper~\cite{yi2026mamabench}.
+
+\begin{table}[t]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{5pt}
+\renewcommand{\arraystretch}{1.18}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{3.25cm}l@{}}
+\toprule
+\textbf{Component} & \textbf{Repository / resource} \\
+\midrule
+App \& on-device RAG pipeline & \url{https://github.com/nmrenyi/mamai} \\
+Knowledge base \& guideline bundle &
+  \url{https://github.com/nmrenyi/mamai-medical-guidelines} \\[2pt]
+\texttt{mamabench} (QA benchmark) &
+  \url{https://huggingface.co/datasets/nmrenyi/mamabench} \\
+\quad construction code & \url{https://github.com/nmrenyi/mamabench} \\
+\texttt{mamaretrieval} (retrieval) &
+  \url{https://huggingface.co/datasets/nmrenyi/mamaretrieval} \\
+\quad construction code & \url{https://github.com/nmrenyi/mamaretrieval} \\[2pt]
+Evaluation harness & \url{https://github.com/nmrenyi/mamai-eval} \\
+Browser demo (deployed config) & \url{https://nmrenyi-mamai-demo.hf.space} \\
+\bottomrule
+\end{tabular}
+\caption{The released MAM-AI components and where to find them; the two
+benchmarks are also published as Hugging Face datasets. Figure~\ref{fig:artifacts}
+shows how the pieces relate.}
+\label{tab:artifacts}
+\end{table}
 
 \begin{figure}[t]
 \centering
