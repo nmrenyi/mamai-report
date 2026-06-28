@@ -19,11 +19,12 @@
 
 % Companion benchmarks paper. When posted to arXiv, add:
 %   eprint = {XXXX.XXXXX}, archivePrefix = {arXiv}, primaryClass = {cs.CL}
-% Name is in Chinese order (family name Ren, given name Yi). The explicit
-% "Family, Given" form tells BibTeX that Ren is the surname, so it cites as
-% "[Ren 2026]" rather than mis-parsing Yi as the surname.
+% Name is in Chinese order (family name Ren, given name Yi). Double braces keep
+% "Ren Yi" as one indivisible unit, so author-year styles cite the full name in
+% native order ("[Ren Yi 2026]") and the reference list prints "Ren Yi" -- not
+% reordered to "Yi Ren" or abbreviated to the bare family name.
 @misc{ren2026mamabench,
-  author       = {Ren, Yi},
+  author       = {{Ren Yi}},
   title        = {{mamabench} and {mamaretrieval}: Benchmarks for Evaluating Medical Retrieval-Augmented Generation in Maternal, Neonatal, and Reproductive Health},
   year         = {2026},
   note         = {Companion paper; arXiv preprint forthcoming}
