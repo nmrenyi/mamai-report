@@ -1,0 +1,241 @@
+\section{mamaretrieval: A Chunk-Level Relevance Benchmark}
+\label{sec:mamaretrieval}
+
+mamaretrieval scores how well a retriever finds the guideline passages that
+answer a clinical query, at the chunk granularity a RAG system actually
+retrieves. Building it means choosing what to retrieve over (the corpus), what
+queries to ask, how to label a (query, chunk) pair's relevance, and how to keep
+those labels trustworthy at scale. We start with the corpus, then take query
+construction, the relevance rubric, pooling, and judge calibration in turn.
+
+\subsection{The guideline corpus}
+\label{sec:corpus}
+
+mamaretrieval is built over the same maternal-health guideline corpus the
+deployed system retrieves from, which the companion system
+paper~\cite{ren2026mamai} describes in full---its sources, construction, and
+packaging. We give here only what the benchmark depends on: the corpus's scale,
+its source-quality tiers, and the version coupling that makes the benchmark and
+its corpus one artifact.
+
+\paragraph{Scale and sources.}
+The corpus bundle (v0.2.0) holds 63{,}650 section-aware chunks drawn from 87
+documents spanning international clinical guidance (WHO, NICE, MSF, the
+Hesperian midwifery references, and FIGO/EmONC materials), national and local
+protocols (the Tanzania and Zanzibar Ministry of Health guidelines), and
+standard obstetric and midwifery reference texts. Each chunk carries a canonical
+header recording its source, page, and a stable chunk identifier.
+
+\paragraph{Source-quality tiers.}
+Sources are rated into quality tiers (from \emph{very high} down to
+\emph{low--moderate}) by their clinical depth and relevance to the
+Zanzibar OBGYN and midwifery scope. Query construction (below) uses these tiers
+as sampling weights, drawing proportionally more from the clinically richest
+sources.
+
+\paragraph{Version coupling.}
+Chunk identifiers are content-derived---a hash of the chunk text---so they
+survive source renames and page drift but change whenever a chunk's text
+changes. mamaretrieval references chunks by these identifiers, which couples it
+to a specific \emph{chunk set} rather than to a specific embedding. The
+distinction is not hypothetical: the deployed system moved from corpus bundle
+v0.2.0 to v0.3.0, but that update only re-embedded the corpus---swapping the
+on-device embedder---and left all 63{,}650 chunks and their identifiers
+untouched, so every mamaretrieval label applies to the deployed v0.3.0 corpus
+unchanged. A genuine re-chunking would change the identifiers and require
+re-running the labelling pipeline; we therefore treat the
+(chunk set, queries, labels) triple as a single versioned artifact rather than
+versioning queries and labels on their own.
+
+\subsection{Query construction}
+\label{sec:mr-queries}
+
+A retrieval benchmark needs queries, and for this corpus there are none to
+mine---no search logs, no question bank tied to these guidelines. We generate
+them. Each query in mamaretrieval is written by an LLM from a single corpus
+chunk, asking a clinical question that the chunk answers; the chunk that seeded a
+query is recorded as a known-relevant anchor for it.
+
+The queries come out of a three-step funnel over the corpus:
+\begin{enumerate}
+  \item \textbf{Tier-weighted sampling} draws 4{,}540 chunks, with each source's
+  quota set by its quality tier (\S\ref{sec:corpus})---the clinically richest
+  sources contribute proportionally more, so the query set inherits the corpus's
+  quality signal rather than its raw size distribution.
+  \item An \textbf{answerability gate} passes each sampled chunk to
+  \texttt{Qwen3.6-27B-FP8} (reasoning on, temperature 0), prompted to keep the
+  chunk only if a clinician could answer a specific question from it alone and,
+  when so, to write exactly that question.\footnote{The full filter-and-generate
+  prompt ships with the construction code (\S\ref{sec:access}).}
+  \item The kept chunks become \textbf{query records} with stable identifiers.
+\end{enumerate}
+The gate keeps 3{,}185 of the 4{,}540 chunks (about 70\%), and the 30\% it
+discards are themselves informative: assessment rubrics, learning objectives, and
+table-of-contents fragments are rejected because no answerable clinical question
+follows from them.
+
+Two limits of this design are worth stating up front. First, only \emph{per
+chunk} queries---one chunk, one question---are generated in this release; the
+specification also allows synthesis queries spanning several chunks and
+adversarial variants, but those are deferred (\S\ref{sec:limitations}). Second,
+and more consequentially, a query written from a chunk tends to be phrased like
+that chunk, which gives dense embedding retrievers an artificial edge over
+lexical ones on the very chunk that seeded the query. We do not correct for this
+anchor-text effect; we disclose it, and it shapes which metrics we trust
+(\S\ref{sec:mr-judge}).
+
+\subsection{The graded relevance rubric}
+\label{sec:mr-rubric}
+
+With queries and a corpus, the benchmark needs a relevance label for each
+(query, chunk) pair: how useful is this chunk for answering this query? Our first
+rubric made that judgement binary---relevant or not. It saturated. Take a query
+asking for alternative iron and folic-acid dosages: a footnote giving the exact
+substitute formulation, a dosing section padded with storage advice, and an
+adherence-counselling note that never states a dose are, by a binary test,
+equally relevant---each is on topic, meaningful, and broadly actionable. A
+benchmark that cannot separate them cannot tell a retriever that surfaces the
+dose from one that surfaces the filler.
+
+So we replaced the binary label with a graded one. Each (query, chunk) pair is
+scored
+\[
+  \mathrm{score} = D_1 \times (D_2 + D_3 + D_4) \in \{0,\dots,6\},
+\]
+one gate and three graded dimensions:
+\begin{description}
+  \item[$D_1$ --- topic (0/1).] Does the chunk address the query's clinical
+  question in the same context---the same timing window (antenatal,
+  intrapartum, postpartum)? A zero here forces a score of zero and halts
+  scoring, which also keeps the judge from spending tokens on off-topic chunks.
+  \item[$D_2$ --- meaningful content (0/1/2).] How much clinical depth the chunk
+  carries, from a bare mention to a multi-concept explanation.
+  \item[$D_3$ --- actionable guidance (0/1/2).] How specific the guidance is:
+  none, a general instruction (``give a uterotonic''), or an exact one
+  (``10 IU oxytocin IM'').
+  \item[$D_4$ --- density (0/1/2).] What fraction of the chunk is useful for
+  \emph{this} query, penalising a relevant passage buried in unrelated text.
+\end{description}
+A structural rule ties them together: actionable guidance presupposes some
+meaningful content ($D_3 > 0 \Rightarrow D_2 > 0$).
+
+The design follows established relevance theory rather than inventing one.
+Decomposing relevance into orthogonal dimensions combined by a fixed rule is the
+structure of the TREC Precision Medicine track~\cite{roberts2017precision}; the
+split between topical, cognitive, and situational relevance is
+Saracevic's~\cite{saracevic2007relevance}, with $D_1$ the topical gate and
+$D_3$/$D_4$ the situational utility; and decomposing relevance this way has been
+shown to raise inter-judge agreement over holistic scoring~\cite{farzi2025criteria}.
+Two LLM-judge practices shape the rest: a clear topical gate, as in
+UMBRELA~\cite{upadhyay2024umbrela}, and forcing the judge to reason before it
+commits to a score, as in G-Eval~\cite{liu2023geval}---the structured-output
+schema emits the reasoning first and the four dimension values last. The judge
+is \texttt{Qwen3.5-397B-A17B-FP8} at temperature 0;
+\S\ref{sec:mr-judge} reports how well its labels hold up.
+
+\begin{table}[t]
+\centering
+\small
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.2}
+\caption{The graded rubric on one query---``What are the alternative dosages for
+iron and folic acid supplementation?''---as scored by the production judge over
+four \emph{on-topic} chunks ($D_1{=}1$ throughout). Chunk text is verbatim;
+sources in brackets (MSF, the MSF obstetric manual; WHO~PCPNC, the WHO
+pregnancy/childbirth guide; WHO~ANC, the 2016 WHO antenatal-care guideline). A
+binary label cannot separate the first three; the graded score ranks them 6, 4,
+and 2.}
+\label{tab:rubric-example}
+\begin{tabular}{@{}p{0.49\columnwidth}@{\hspace{5pt}}ccccc@{}}
+\toprule
+Retrieved chunk (verbatim) & $D_1$ & $D_2$ & $D_3$ & $D_4$ & Score \\
+\midrule
+\emph{[MSF]}~``200 mg ferrous sulfate (65 mg elemental iron) + 400 micrograms
+folic acid tablets may be replaced by 185 mg ferrous fumarate (60 mg elemental
+iron) + 400 micrograms folic acid tablets.'' & 1 & 2 & 2 & 2 & \textbf{6} \\
+\addlinespace
+\emph{[WHO PCPNC]}~``Give iron and folic acid to all pregnant, postpartum and
+post-abortion women: routinely once daily in pregnancy and until 3 months after
+delivery or abortion; twice daily for anaemia (double dose). Check the supply at
+each visit and dispense 3 months' supply; advise to store iron safely.'' & 1 & 2
+& 1 & 1 & \textbf{4} \\
+\addlinespace
+\emph{[WHO PCPNC]}~``Motivate on adherence with treatments. Explore local
+perceptions about iron treatment (e.g.\ that making more blood will worsen
+bleeding, or that iron will make the baby too large).'' & 1 & 1 & 1 & 0 &
+\textbf{2} \\
+\addlinespace
+\emph{[WHO ANC]}~``Resources. Intermittent iron and folic acid supplementation
+might cost a little less than daily supplementation due to the lower total weekly
+dose of iron.'' & 1 & 0 & 0 & 0 & \textbf{0} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Table~\ref{tab:rubric-example} shows the graded rubric on that query. All four
+chunks pass the topic gate; the first three also clear a binary rubric's bar
+identically---each is meaningful and actionable---yet the graded rubric ranks
+them apart. The footnote giving the exact alternative formulation scores 6,
+specific and entirely on-query; a dosing section half-taken up by storage and
+supply logistics scores 4 ($D_4=1$); and an adherence note that never states a
+dose scores 2. The fourth chunk is on topic but pure cost commentary, and drops
+to 0---the rubric counts resource text as no meaningful clinical content
+($D_2=0$). The judge's reasoning ships with every label and makes such calls
+explicit: of that last chunk, it notes the passage sits ``literally under a
+\dots\ Resources heading and discusses cost,'' and scores $D_2=0$.
+
+\subsection{Pooling and label completeness}
+\label{sec:mr-pooling}
+
+Scoring every chunk against every query is infeasible---63{,}650 chunks times
+3{,}185 queries---so mamaretrieval labels a \emph{pool}: for each query, the
+union of the top-ranked chunks returned by several retrievers, with every pooled
+pair judged and every unpooled chunk treated as not-relevant. This is the
+standard information-retrieval pooling protocol, and its one risk is well known:
+if the pool misses relevant chunks, the labels under-count them. We measured that
+risk rather than assume it away.
+
+The first pool took the top-10 chunks from three retrievers (a lexical baseline,
+a biomedical encoder, and a strong general-purpose embedder)---about 24.7
+candidates per query and 78{,}571 judged pairs. A completeness audit on a
+100-query sample, pooling a wider panel of six retrievers, found that this first
+pool captured only about half of the relevant material (lenient recall near
+0.49): half the relevant chunks were being labelled not-relevant by omission.
+
+That finding drove the released label set. mamaretrieval v0.2.0 pools the top-20
+chunks from all six retrievers across all 3{,}185 queries, yielding 230{,}964
+graded labels---the pool the companion system paper draws its label provenance
+from. A residual gap remains: chunks that no retriever ranks in its top-20 are
+still unjudged, so even this pool is near-saturated at the top of the ranking
+rather than exhaustive, and absolute coverage-sensitive numbers should be read
+with that in mind (\S\ref{sec:mr-judge}).
+
+\subsection{Judge calibration and metric guidance}
+\label{sec:mr-judge}
+
+A single LLM produces every relevance label, so the benchmark is only as
+trustworthy as that judge. We calibrate it against a frontier reference model
+(Claude~Opus~4.7) on a 62-pair pilot: the production judge agrees on 95\% of
+pairs at the lenient cut (score $\ge 3$, any useful content) and 85\% at the
+strict cut (score $\ge 5$, complete and specific), and a stratified manual
+spot-check of its reasoning traces found its calls defensible, including on hard
+cases such as drug-name collisions across clinical contexts. Those two
+cuts---lenient $\ge 3$ and strict $\ge 5$---are the relevance thresholds the
+benchmark reports against.
+
+We are deliberate about what this establishes. It is an agreement check against
+another model, not against clinicians: it shows the judge is a reasonable
+relevance classifier and that retriever \emph{rankings} are stable under it, but
+it does not make any single label ground truth. Each label is one calibrated
+opinion, and absolute, per-row numbers carry more uncertainty than relative
+comparisons.
+
+That uncertainty, together with the pool incompleteness of
+\S\ref{sec:mr-pooling}, is why we guide consumers on metric choice. Metrics that
+ask only whether a relevant chunk is present---Hit~Rate@$k$ and MRR---are robust
+to a pool that misses some relevant chunks. nDCG@$k$ is moderately sensitive,
+since its discounting assumes the labels are complete. Recall@$k$ and
+Precision@$k$ are the most sensitive, because the missing-label problem changes
+their denominators directly. We recommend leading with the robust metrics and
+reporting the rest with the completeness caveat attached---the order the
+companion system paper follows when it evaluates retrievers on mamaretrieval.

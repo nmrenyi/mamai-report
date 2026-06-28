@@ -1,0 +1,141 @@
+\section{mamabench: A Scope-Filtered QA Benchmark}
+\label{sec:mamabench}
+
+mamabench evaluates how well a model answers the questions a nurse-midwife
+asks---those spanning maternal, neonatal, child, and reproductive health---in
+formats from multiple-choice to free-text clinical scenarios. We build it by
+assembling such questions from seven existing, expert-validated sources and
+filtering each to that scope. This poses three construction problems: assembling
+and normalising the sources into one scorable schema, defining and applying the
+scope reliably, and giving consumers a way to trust the LLM judge that scores the
+open-ended items. We take each in turn.
+
+\subsection{Source assembly}
+
+The first decision is to assemble, not author: writing and validating
+maternal-health questions from scratch needs clinicians, whereas the seven
+sources already carry expert curation---medical-licensing boards, a pan-African
+physician panel, Kenyan clinicians, and OpenAI's physician annotators---so the
+benchmark's contribution is scoping and uniform packaging, not de-novo clinical
+authoring.
+Each source is normalised by a dedicated adapter into one canonical schema and
+sorted into one of three tracks (Table~\ref{tab:mamabench-sources}):
+
+\begin{itemize}
+  \item \textbf{Multiple-choice} (23{,}241 items), for breadth of clinical
+  knowledge: the OBGYN and paediatrics subset of MedMCQA~\cite{pal2022medmcqa},
+  the in-scope portion of MedQA-USMLE~\cite{jin2021medqa}, and the
+  multiple-choice questions of AfriMed-QA~\cite{olatunji2025afrimedqa}. This
+  track serves breadth; the open-ended tracks below carry the weight.
+  \item \textbf{Short-answer} (369 items), closest to the deployment setting:
+  312 nurse-written primary-care cases~\cite{kenya2025vignettes}, the
+  short-answer questions of AfriMed-QA~\cite{olatunji2025afrimedqa}, and a small
+  set of expert-crafted items designed to expose model
+  errors~\cite{whb2025}.
+  \item \textbf{Rubric-graded} (2{,}339 items): the in-scope portion of
+  HealthBench~\cite{arora2025healthbench}, whose items are scored against
+  physician-written rubric criteria rather than a single gold answer.
+\end{itemize}
+
+\begin{table}[t]
+\centering
+\small
+\setlength{\tabcolsep}{6pt}
+\renewcommand{\arraystretch}{1.12}
+\caption{The seven sources of mamabench, by track. \emph{Yield} is the share of
+a source's upstream pool that our scope classifier (\S\ref{sec:mamabench-scope})
+keeps as in-scope; a dash marks sources that arrive already scoped to the
+domain---MedMCQA and AfriMed-QA by their subject or specialty labels, the
+Women's Health Benchmark by expert authoring---and so bypass the classifier
+entirely.}
+\label{tab:mamabench-sources}
+\begin{tabular}{@{}llrr@{}}
+\toprule
+Track & Source & Items & Yield \\
+\midrule
+\multirow{3}{*}{Multiple-choice}
+ & MedMCQA (OBGYN \& paediatrics) & 18{,}508 & -- \\
+ & MedQA-USMLE                    &  4{,}199 & 29.2\% \\
+ & AfriMed-QA                     &     534  & -- \\
+\midrule
+\multirow{3}{*}{Short-answer}
+ & Kenya Clinical Vignettes       &     312  & 61.5\% \\
+ & AfriMed-QA (short-answer)      &      37  & -- \\
+ & Women's Health Benchmark       &      20  & -- \\
+\midrule
+\multirow{3}{*}{Rubric-graded}
+ & HealthBench (oss\_eval)        &  1{,}209 & 24.2\% \\
+ & HealthBench (consensus)        &     872  & 23.8\% \\
+ & HealthBench (hard)             &     258  & 25.9\% \\
+\midrule
+\multicolumn{2}{@{}l}{\textbf{Total}} & \textbf{25{,}949} & \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Normalisation is mostly mechanical, but one source needs more than that: the
+AfriMed-QA multiple-choice items carry quality issues the others do not, and
+there we draw the line at \emph{scorability}. Multiple-choice items are scored by
+the answer's letter, and we drop only what that scoring cannot represent: items
+with more than one correct option (a single answer index cannot encode them),
+and items whose correct-answer text is duplicated under another letter---if the
+same option text sits at two positions, a model could pick the right text yet be
+marked wrong for reporting the duplicate letter. Cosmetic issues that do not
+affect scoring (embedded
+option-letter prefixes, non-ASCII typography, terse stems) are left untouched
+and documented in the manifest. The principle is that the benchmark may refuse
+an item it cannot score, but must never change what an item means.
+
+\subsection{Defining scope with an LLM classifier}
+\label{sec:mamabench-scope}
+
+The central construction decision is how to decide whether an item is in scope.
+We define scope as four positive categories---\textsc{maternal},
+\textsc{neonatal}, \textsc{child health}, and
+\textsc{sexual and reproductive health} (SRH)---plus \textsc{none}, and we
+classify
+each item by its \emph{primary clinical concept, not the patient's
+demographics}. A question about an allergic reaction that happens to involve a
+pregnant patient is \textsc{none} (the allergy is the concept); postpartum
+depression is \textsc{maternal}. The classifier is \texttt{Qwen3.6-27B-FP8}, run
+with reasoning enabled at temperature 0; it applies this rule to every candidate
+item and emits a structured verdict with its reasoning retained for audit.
+
+Trusting an LLM to draw the scope boundary needs evidence, and we offer two
+checks. First, \textbf{cross-model agreement}: re-classifying the HealthBench
+\texttt{oss\_eval} items with the much larger \texttt{Qwen3.5-397B-A17B-FP8}
+agrees with the 27B on
+98.1\% of the 4{,}988 jointly classified items, and per-category counts differ
+by under one percent; the handful of items on which the 27B fails to converge
+are all \textsc{none} under the 397B, so they would be filtered out either way
+and the net effect on in-scope counts is zero. Second, \textbf{parity against
+prior labels}: the Kenya vignettes arrived with their own classifier labels,
+and ours agree with them on 86.8\%, with the disagreements dominated by our rule
+being deliberately stricter---rejecting items where only the patient's being
+female, rather than the clinical concept, suggested OBGYN scope.
+
+The per-source yield in Table~\ref{tab:mamabench-sources} is itself a useful
+signal. The Kenyan primary-care vignettes are 61.5\% in scope, against
+24--29\% for the general benchmarks: the maternal-health sources
+concentrate exactly where the deployment lives, while the general sets
+contribute a smaller, scope-filtered slice.
+
+\subsection{A judge-calibration set, re-scoped from HealthBench}
+\label{sec:mamabench-calibration}
+
+The rubric-graded track is scored by an LLM judge, which raises the obvious
+question of whether the judge can be trusted. Rather than answer that once for
+our own judge, we ship the means to answer it for \emph{any} judge: a
+calibration side-file of 6{,}853 (prompt, response, criterion) triples carrying
+physicians' met / not-met labels. We want to be precise about provenance, since
+it is easy to overclaim here. \emph{We did not produce these labels.} They are
+the physician annotations released with HealthBench's meta-evaluation
+set~\cite{arora2025healthbench}; our only role is to re-scope that set to this
+domain---keeping the triples whose prompts the scope classifier
+(\S\ref{sec:mamabench-scope}) places in the four positive categories
+(\textsc{child health} 3{,}239, \textsc{maternal} 2{,}284, \textsc{srh} 942,
+\textsc{neonatal} 388, over 872 prompts)---and to package them as a ready-to-use
+calibration file alongside the benchmark. A consumer runs a candidate judge over
+these triples, compares its labels to the physicians', and decides whether to
+trust it before scoring the benchmark; the companion system paper selects its
+rubric judge in exactly this way~\cite{ren2026mamai}.

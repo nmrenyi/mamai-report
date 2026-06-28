@@ -16,6 +16,7 @@
 
 \usepackage{graphicx}
 \usepackage{booktabs}
+\usepackage{multirow}
 \usepackage{microtype}
 
 % The author's name in Chinese is a small vector graphic (figures/renyi-cjk.pdf,
@@ -46,8 +47,11 @@ Health}
 \orcid{0009-0002-6911-2855}
 \affiliation{%
   \institution{École Polytechnique Fédérale de Lausanne}
-  \country{Switzerland}
+  \country{Switzerland \quad bonjour@renyi.ch}
 }
+% Show the email on the author line (above) rather than in the journal
+% "Author's Contact Information" footnote, which we suppress here.
+\authorsaddresses{}
 
 \begin{document}
 
@@ -79,14 +83,10 @@ health, OBGYN, LLM-as-judge, TREC pooling}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \input{sections/01_introduction}
-\input{sections/02_corpus}
-\input{sections/03_mamabench_construction}
-\input{sections/04_mamabench_validation}
-\input{sections/05_mamaretrieval_construction}
-\input{sections/06_mamaretrieval_validation}
-\input{sections/07_retriever_baselines}
-\input{sections/08_limitations}
-\input{sections/09_access}
+\input{sections/02_mamabench}
+\input{sections/03_mamaretrieval}
+\input{sections/04_limitations}
+\input{sections/05_access}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Bibliography
