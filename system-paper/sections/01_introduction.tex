@@ -116,9 +116,69 @@ isolation, then latency---and yields three findings that structure the paper:
   (Sections~\ref{sec:methodology}--\ref{sec:latency}).
 \end{itemize}
 
-The system, knowledge-base pipeline, benchmarks, and evaluation harness are
-open source, and a browser demo of the deployed configuration is publicly
-available.\footnote{App and pipeline: \url{https://github.com/nmrenyi/mamai},
-\url{https://github.com/nmrenyi/mamai-medical-guidelines}. Live web demo:
-\url{https://nmrenyi-mamai-demo.hf.space}. The benchmarks are documented in a
-companion paper.}
+\paragraph{Availability.}
+All components are open source and the deployed configuration has a public
+browser demo (Figure~\ref{fig:artifacts} maps how they fit together): the
+on-device app and RAG pipeline, the knowledge-base pipeline and versioned
+guideline bundle, the two benchmarks (mamabench and mamaretrieval, released as
+Hugging Face datasets with construction code), and the evaluation
+harness.\footnote{App and RAG pipeline: \url{https://github.com/nmrenyi/mamai}.
+Knowledge-base pipeline and guideline bundle:
+\url{https://github.com/nmrenyi/mamai-medical-guidelines}. Benchmarks --- mamabench:
+\url{https://huggingface.co/datasets/nmrenyi/mamabench} (code:
+\url{https://github.com/nmrenyi/mamabench}); mamaretrieval:
+\url{https://huggingface.co/datasets/nmrenyi/mamaretrieval} (code:
+\url{https://github.com/nmrenyi/mamaretrieval}). Evaluation harness:
+\url{https://github.com/nmrenyi/mamai-eval}. Browser demo of the deployed
+configuration: \url{https://nmrenyi-mamai-demo.hf.space}.} The two benchmarks
+are described in detail in a companion paper~\cite{yi2026mamabench}.
+
+\begin{figure}[t]
+\centering
+\resizebox{\columnwidth}{!}{%
+\begin{tikzpicture}[
+  font=\footnotesize,
+  every node/.style={align=center},
+  repo/.style={draw=mamteal!70, rounded corners, fill=mamteal!8,
+    inner sep=3pt, text width=2.9cm, minimum height=0.95cm},
+  flow/.style={-{Latex[length=2mm]}, thick, mamteal!75},
+  lbl/.style={font=\scriptsize\itshape, text=black!65, inner sep=1.5pt},
+]
+  % --- LEFT column: the product pipeline, stacked top-to-bottom ---
+  \node[repo] (kb) at (0,0) {\texttt{\textbf{mamai-medical-}}\\\texttt{\textbf{guidelines}}\\[1pt]
+    \scriptsize knowledge-base pipeline};
+  \node[repo] (app) at (0,-2.5) {\texttt{\textbf{mamai}}\\[1pt]
+    \scriptsize on-device app \& RAG};
+  \node[repo] (demo) at (0,-5.0) {\texttt{\textbf{mamai-demo}}\\[1pt]
+    \scriptsize browser demo \emph{(HF\,Space)}};
+  \draw[flow] (kb) -- node[lbl,right]{corpus bundle\\(v0.3.0)} (app);
+  \draw[flow] (app) -- node[lbl,right]{deployed\\config} (demo);
+  % --- RIGHT: evaluation flowing leftward into the app ---
+  \node[repo] (eval) at (5.6,-2.5) {\texttt{\textbf{mamai-eval}}\\[1pt]
+    \scriptsize evaluation harness};
+  \node[repo] (b1) at (10.4,-1.25) {\texttt{\textbf{mamabench}}\\[1pt]
+    \scriptsize QA benchmark\\\emph{(HF\,dataset)}};
+  \node[repo] (b2) at (10.4,-3.75) {\texttt{\textbf{mamaretrieval}}\\[1pt]
+    \scriptsize retrieval benchmark\\\emph{(HF\,dataset)}};
+  \draw[flow] (b1.west) -- node[lbl,above,pos=0.6]{test data} (eval.east);
+  \draw[flow] (b2.west) -- (eval.east);
+  \draw[flow] (eval) -- node[lbl,above]{evaluates} (app);
+  % the two benchmarks are documented in the companion paper
+  \begin{scope}[on background layer]
+    \node[draw=mamamber!60, dashed, rounded corners, fill=mamamber!7,
+      inner sep=2.5mm, fit=(b1)(b2)] (benchbox) {};
+  \end{scope}
+  \node[font=\scriptsize\itshape, text=mamamber, align=center,
+    below=0.5mm of benchbox] {documented in the\\companion paper~\cite{yi2026mamabench}};
+\end{tikzpicture}%
+}
+\caption{The MAM-AI open-source ecosystem. Boxes are public GitHub repositories
+under the \texttt{nmrenyi} organisation. \texttt{mamai-medical-guidelines}
+builds the versioned guideline bundle that the \texttt{mamai} app retrieves over
+on-device; \texttt{mamai-demo} runs the same deployed configuration in the
+browser. The \texttt{mamabench} and \texttt{mamaretrieval} benchmarks (also
+released as Hugging Face datasets) drive \texttt{mamai-eval}, which scores the
+deployed system---the evaluation this paper reports. The benchmarks themselves
+are documented in the companion paper.}
+\label{fig:artifacts}
+\end{figure}
