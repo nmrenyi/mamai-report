@@ -120,7 +120,7 @@ one gate and three graded dimensions:
 A structural rule ties them together: actionable guidance presupposes some
 meaningful content ($D_3 > 0 \Rightarrow D_2 > 0$).
 
-This is not an ad-hoc scheme. A topical gate followed by orthogonal dimensions
+This is not an ad-hoc scheme. A topical gate followed by complementary dimensions
 that a fixed rule aggregates is the design of the TREC Precision Medicine
 track~\cite{roberts2017precision}, and the topical/cognitive/situational split it
 rests on is Saracevic's~\cite{saracevic2007relevance}---here $D_1$ is topical and
@@ -236,18 +236,20 @@ chunks from six retrievers---the five above plus Gecko---chosen to span retrieva
 paradigms so the pool is not biased toward any one
 (Table~\ref{tab:retrievers}). Judged across all 3{,}185 queries, this yields
 230{,}964 graded labels: the pool the companion system paper draws its label
-provenance from. A residual gap remains---chunks that no retriever ranks in its
-top-20 are still unjudged, so even this pool is near-saturated at the top of the
-ranking rather than exhaustive, and absolute coverage-sensitive numbers should be
-read with that in mind (\S\ref{sec:mr-judge}).
+provenance from. A residual gap remains---chunks that no retriever ranks in its top-20 are still
+unjudged---but the same audit bounds it: widening from the initial pool to a
+five-retriever top-20 union raised lenient recall from about 0.49 to about 0.99
+against its reference, and the released pool adds a sixth retriever, so it is
+near-saturated at the top of the ranking. Only absolute coverage-sensitive
+numbers need the residual caveat (\S\ref{sec:mr-judge}).
 
 \subsection{Judge calibration and metric guidance}
 \label{sec:mr-judge}
 
 A single LLM produces every relevance label, so the benchmark is only as
-trustworthy as that judge. We calibrate it against a frontier reference model
-(Claude~Opus~4.7) on a 62-pair pilot: the production judge agrees on 95\% of
-pairs at the lenient cut (score $\ge 3$, any useful content) and 85\% at the
+trustworthy as that judge. We check it against a frontier reference model
+(Claude~Opus~4.7) on a 62-pair pilot: the production judge agrees on 59 of 62
+pairs at the lenient cut (score $\ge 3$, any useful content) and 53 of 62 at the
 strict cut (score $\ge 5$, complete and specific), and a stratified manual
 spot-check of its reasoning traces found its calls defensible, including on hard
 cases such as drug-name collisions across clinical contexts. Those two

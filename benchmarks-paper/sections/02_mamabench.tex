@@ -98,14 +98,19 @@ each item by its \emph{primary clinical concept, not the patient's
 demographics}. A question about managing a wrist fracture in a patient
 who happens to be pregnant is \textsc{none}---the fracture is the concept, the
 pregnancy incidental---whereas postpartum depression is \textsc{maternal},
-because here the postpartum context \emph{is} the concept. The classifier is \texttt{Qwen3.6-27B-FP8}, run
+because here the postpartum context \emph{is} the concept. The classifier is
+\texttt{Qwen3.6-27B-FP8},\footnote{Model card:
+\url{https://huggingface.co/Qwen/Qwen3.6-27B-FP8}.} run
 with reasoning enabled at temperature 0; it applies this rule to every candidate
 item and emits a structured verdict with its reasoning retained for audit.
 
 Trusting an LLM to draw the scope boundary needs evidence, and we offer two
 checks. First, \textbf{cross-model agreement}: re-classifying the HealthBench
-\texttt{oss\_eval} items with the much larger \texttt{Qwen3.5-397B-A17B-FP8}
-agrees with the 27B on
+\texttt{oss\_eval} items with the much larger
+\texttt{Qwen3.5-397B-A17B-FP8}\footnote{Model card:
+\url{https://huggingface.co/Qwen/Qwen3.5-397B-A17B-FP8}.}---a stronger model from
+the same family, so this checks self-consistency more than
+independence---agrees with the 27B on
 98.1\% of the 4{,}988 jointly classified items, and per-category counts differ
 by under one percent; the handful of items on which the 27B fails to converge
 are all \textsc{none} under the 397B, so they would be filtered out either way
@@ -130,13 +135,18 @@ our own judge, we ship the means to answer it for \emph{any} judge: a
 calibration side-file of 6{,}853 (prompt, response, criterion) triples carrying
 physicians' met / not-met labels. We want to be precise about provenance, since
 it is easy to overclaim here. \emph{We did not produce these labels.} They are
-the physician annotations released with HealthBench's meta-evaluation
-set~\cite{arora2025healthbench}; our only role is to re-scope that set to this
-domain---keeping the triples whose prompts the scope classifier
+the physician annotations HealthBench released for vetting rubric graders---its
+meta-evaluation set~\cite{arora2025healthbench}; our only role is to re-scope
+that set to this domain---keeping the triples whose prompts the scope classifier
 (\S\ref{sec:mamabench-scope}) places in the four positive categories
 (\textsc{child health} 3{,}239, \textsc{maternal} 2{,}284, \textsc{srh} 942,
 \textsc{neonatal} 388, over 872 prompts)---and to package them as a ready-to-use
 calibration file alongside the benchmark. A consumer runs a candidate judge over
 these triples, compares its labels to the physicians', and decides whether to
 trust it before scoring the benchmark; the companion system paper selects its
-rubric judge in exactly this way~\cite{ren2026mamai}.
+rubric judge in exactly this way~\cite{ren2026mamai}. One caveat: these 872
+prompts \emph{are} the HealthBench-consensus rubric track's prompts---HealthBench
+collected the side-file's physician labels on that same set---so calibrating a
+judge here and then scoring the consensus track reuses the same prompts;
+calibrate on the side-file, but read consensus-track scores with that overlap in
+mind.
