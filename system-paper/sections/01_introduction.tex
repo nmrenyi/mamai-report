@@ -149,7 +149,6 @@ repositories. Figure~\ref{fig:artifacts} shows how the pieces relate.}
 
 \begin{figure}[t]
 \centering
-\resizebox{\columnwidth}{!}{%
 \begin{tikzpicture}[
   font=\footnotesize,
   every node/.style={align=center},
@@ -184,8 +183,7 @@ repositories. Figure~\ref{fig:artifacts} shows how the pieces relate.}
   \draw[flow] (eval) -- node[lbl,above]{evaluates} (app);
   \node[font=\scriptsize\itshape, text=mamamber, align=center,
     below=0.5mm of benchbox] {documented in the\\companion paper~\cite{yi2026mamabench}};
-\end{tikzpicture}%
-}
+\end{tikzpicture}
 \caption{The MAM-AI open-source ecosystem. Boxes are public GitHub repositories
 under the \texttt{nmrenyi} organisation. \texttt{mamai-medical-guidelines}
 builds the versioned guideline bundle that the \texttt{mamai} app retrieves over
