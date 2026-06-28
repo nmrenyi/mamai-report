@@ -1,6 +1,4 @@
-# Build with LuaLaTeX. luaotfload (used by LuaLaTeX) sees both TeX Live's
-# Libertinus fonts (needed by acmart's math setup) and Fandol fonts
-# (used here for Chinese characters in the author block). Plain pdflatex
-# can't render Chinese; XeLaTeX's fontspec doesn't find LibertinusMath
-# via fontconfig on this macOS setup.
-$pdf_mode = 4;
+# Build with pdfLaTeX -- the engine arXiv uses for acmart submissions.
+# The only CJK glyphs (the author's name) are a small vector graphic
+# (figures/renyi-cjk.pdf), so no Unicode engine / fontspec is needed.
+$pdf_mode = 1;

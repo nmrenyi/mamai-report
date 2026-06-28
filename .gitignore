@@ -17,6 +17,7 @@
 *.pdf
 # ...except vector figure assets, which are source and must be tracked/shipped.
 !system-paper/figures/*.pdf
+!benchmarks-paper/figures/*.pdf
 
 # Editor / OS
 .DS_Store
