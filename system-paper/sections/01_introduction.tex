@@ -167,21 +167,21 @@ repositories. Figure~\ref{fig:artifacts} shows how the pieces relate.}
     \scriptsize browser demo \emph{(HF\,Space)}};
   \draw[flow] (kb) -- node[lbl,right]{corpus bundle\\(v0.3.0)} (app);
   \draw[flow] (app) -- node[lbl,right]{deployed\\config} (demo);
-  % --- RIGHT: evaluation harness on top, the two benchmarks below it ---
+  % --- RIGHT: evaluation harness on top; the two benchmarks stacked compactly
+  %     below it, grouped as one block that feeds the harness ---
   \node[repo] (eval) at (5.6,-2.5) {\texttt{\textbf{mamai-eval}}\\[1pt]
     \scriptsize evaluation harness};
-  \node[repo] (b1) at (3.6,-5.0) {\texttt{\textbf{mamabench}}\\[1pt]
-    \scriptsize QA benchmark\\\emph{(HF\,dataset)}};
-  \node[repo] (b2) at (7.6,-5.0) {\texttt{\textbf{mamaretrieval}}\\[1pt]
-    \scriptsize retrieval benchmark\\\emph{(HF\,dataset)}};
-  \draw[flow] (b1.north) -- (eval.south);
-  \draw[flow] (b2.north) -- node[lbl,right,pos=0.55]{test data} (eval.south);
-  \draw[flow] (eval) -- node[lbl,above]{evaluates} (app);
-  % the two benchmarks are documented in the companion paper
+  \node[repo] (b1) at (5.6,-4.55) {\texttt{\textbf{mamabench}}\\[1pt]
+    \scriptsize QA benchmark};
+  \node[repo] (b2) at (5.6,-5.95) {\texttt{\textbf{mamaretrieval}}\\[1pt]
+    \scriptsize retrieval benchmark};
+  % group the two benchmarks; a single arrow from the block feeds the harness
   \begin{scope}[on background layer]
     \node[draw=mamamber!60, dashed, rounded corners, fill=mamamber!7,
-      inner sep=2.5mm, fit=(b1)(b2)] (benchbox) {};
+      inner sep=2mm, fit=(b1)(b2)] (benchbox) {};
   \end{scope}
+  \draw[flow] (benchbox.north) -- node[lbl,right]{test data} (eval.south);
+  \draw[flow] (eval) -- node[lbl,above]{evaluates} (app);
   \node[font=\scriptsize\itshape, text=mamamber, align=center,
     below=0.5mm of benchbox] {documented in the\\companion paper~\cite{yi2026mamabench}};
 \end{tikzpicture}%
