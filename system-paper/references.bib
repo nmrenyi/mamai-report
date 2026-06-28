@@ -19,8 +19,11 @@
 
 % Companion benchmarks paper. When posted to arXiv, add:
 %   eprint = {XXXX.XXXXX}, archivePrefix = {arXiv}, primaryClass = {cs.CL}
-@misc{yi2026mamabench,
-  author       = {Ren Yi},
+% Name is in Chinese order (family name Ren, given name Yi). The explicit
+% "Family, Given" form tells BibTeX that Ren is the surname, so it cites as
+% "[Ren 2026]" rather than mis-parsing Yi as the surname.
+@misc{ren2026mamabench,
+  author       = {Ren, Yi},
   title        = {{mamabench} and {mamaretrieval}: Benchmarks for Evaluating Medical Retrieval-Augmented Generation in Maternal, Neonatal, and Reproductive Health},
   year         = {2026},
   note         = {Companion paper; arXiv preprint forthcoming}
