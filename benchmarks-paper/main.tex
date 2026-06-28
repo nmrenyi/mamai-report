@@ -71,18 +71,23 @@ Health}
 \begin{document}
 
 \begin{abstract}
-% TODO: 200--300 word abstract. Cover:
-%   - the gap (existing medical benchmarks under-represent OBGYN /
-%     neonatal / Sub-Saharan-African / maternal-health scope);
-%   - the two artifacts (mamabench QA set; mamaretrieval retrieval
-%     benchmark) and the corpus they share;
-%   - construction methodology (source-adapter normalization,
-%     LLM-classifier-based OBGYN scoping, TREC-pooled LLM-judged
-%     relevance labels);
-%   - validation results (cross-classifier agreement, parity checks,
-%     score distributions, completeness audit);
-%   - access via HuggingFace dataset and GitHub repos, with license
-%     propagation notes.
+Medical question-answering benchmarks rarely cover the maternal, neonatal,
+child, and reproductive-health questions a nurse-midwife asks, and there is no
+chunk-level relevance benchmark for the guideline retrieval a deployed RAG system
+performs. We release two benchmarks that fill these gaps. \textbf{mamabench} is a
+scope-filtered QA set of 25{,}949 items assembled from seven existing
+expert-authored sources across multiple-choice, short-answer, and rubric-graded
+tracks; to help users calibrate the LLM judge that scores the rubric track, we
+re-scope HealthBench's physician-labelled meta-evaluation to the domain. \textbf{mamaretrieval}
+pairs 3{,}185 clinical queries with graded ($0$--$6$) relevance labels over a
+63{,}650-chunk maternal-health guideline corpus, using a decomposed rubric that
+distinguishes a chunk that answers a query from one merely on its topic. Three
+decisions shape both: assemble and filter expert sources rather than author
+questions, grade relevance rather than binarise it, and measure and disclose the
+limits of the labels---scope-classifier agreement, frontier-judge calibration,
+and a pooling-completeness audit---rather than treat them as an oracle. A
+companion paper uses the benchmarks to evaluate a deployed on-device assistant;
+both are released openly for research.
 \end{abstract}
 
 \keywords{benchmark, retrieval, medical question answering, maternal
@@ -101,6 +106,7 @@ health, OBGYN, LLM-as-judge, TREC pooling}
 \input{sections/02_mamabench}
 \input{sections/03_mamaretrieval}
 \input{sections/04_limitations}
+\input{sections/05_conclusion}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Bibliography

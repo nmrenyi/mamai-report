@@ -34,7 +34,7 @@ each is usable as a standalone instrument.
 \begin{itemize}
   \item \textbf{mamabench} (\S\ref{sec:mamabench}) is a scope-filtered
   question-answering benchmark: 25{,}949 items assembled from seven
-  expert-validated sources across multiple-choice, short-answer, and
+  expert-authored sources across multiple-choice, short-answer, and
   rubric-graded tracks, plus a 6{,}853-triple judge-calibration side-file---not
   labels of our own, but HealthBench's physician annotations re-scoped to this
   domain---for vetting an LLM judge before it is trusted to score the open-ended
@@ -51,7 +51,7 @@ each is usable as a standalone instrument.
 Three decisions shape both benchmarks, and they are the through-line of this
 paper:
 \begin{enumerate}
-  \item \textbf{Assemble and filter from expert-validated sources rather than
+  \item \textbf{Assemble and filter from expert-authored sources rather than
   author new questions.} The clinical curation already exists in licensing
   exams, physician panels, and published guidelines, so the benchmark's job is
   reliable scoping and uniform packaging, not de-novo clinical authoring.
@@ -60,9 +60,9 @@ paper:
   chunk that names a drug and a chunk that gives its dose, route, and threshold
   are not equally useful, and a benchmark that cannot tell them apart cannot
   separate strong retrieval from adequate retrieval.
-  \item \textbf{Measure and disclose the limits of the labels}---pool
-  incompleteness, single-judge bias---rather than present the benchmark as an
-  oracle.
+  \item \textbf{Measure and disclose the limits of the labels}---scope-classifier
+  agreement, frontier-judge calibration, and a pooling-completeness audit---rather
+  than present the benchmark as an oracle.
 \end{enumerate}
 
 The companion system paper uses these benchmarks to evaluate the deployed system

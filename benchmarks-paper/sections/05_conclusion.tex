@@ -1,0 +1,18 @@
+\section{Conclusion}
+\label{sec:conclusion}
+
+We release two benchmarks for evaluating medical retrieval-augmented generation
+in maternal, neonatal, child, and reproductive health: \textbf{mamabench}, a
+scope-filtered QA set assembled from seven expert sources, and
+\textbf{mamaretrieval}, a
+chunk-level relevance benchmark with a graded rubric that distinguishes a chunk
+that answers the query from one that is merely on-topic. Three choices run
+through both: assemble and filter rather than author, decompose relevance into a
+graded rubric rather than a binary label, and measure and disclose the limits of
+the labels rather than treat them as an oracle. The companion system paper uses
+them to locate where a deployed on-device assistant succeeds and fails, but they
+also stand alone---resources for maternal-health RAG that did not previously
+exist. The
+clearest next steps are the ones we left open: queries that demand multi-passage
+synthesis and survive noisy phrasing, and validation against midwives rather
+than against other models.
