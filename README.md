@@ -9,6 +9,26 @@ LaTeX source for two arXiv tech reports documenting the MAM-AI project — an on
 
 Both papers are written in ACM journal style (`acmart` class, `acmsmall` variant, `nonacm` mode) and targeted at arXiv. No specific venue is pursued.
 
+## How to cite
+
+The author's name is in Chinese order — family name **Ren**, given name **Yi**. The double braces around `{{Ren Yi}}` keep the full name as one unit so author–year styles render "[Ren Yi 2026]" and do not reorder it to "Yi Ren" or abbreviate it to the bare family name. Once the papers are on arXiv, add the `eprint` / `archivePrefix` / `primaryClass` fields.
+
+```bibtex
+@misc{ren2026mamai,
+  author = {{Ren Yi}},
+  title  = {{MAM-AI}: An On-Device Medical Retrieval-Augmented Generation System for Nurses and Midwives in Zanzibar},
+  year   = {2026},
+  note   = {arXiv preprint forthcoming}
+}
+
+@misc{ren2026mamabench,
+  author = {{Ren Yi}},
+  title  = {{mamabench} and {mamaretrieval}: Benchmarks for Evaluating Medical Retrieval-Augmented Generation in Maternal, Neonatal, and Reproductive Health},
+  year   = {2026},
+  note   = {arXiv preprint forthcoming}
+}
+```
+
 ## Design
 
 See [`paper_design.md`](paper_design.md) for:

@@ -1,0 +1,20 @@
+cff-version: 1.2.0
+message: "If you use this work, please cite the paper below."
+title: "MAM-AI: An On-Device Medical Retrieval-Augmented Generation System for Nurses and Midwives in Zanzibar"
+authors:
+  - family-names: Ren
+    given-names: Yi
+    orcid: "https://orcid.org/0009-0002-6911-2855"
+repository-code: "https://github.com/nmrenyi/mamai-report"
+preferred-citation:
+  type: article
+  title: "MAM-AI: An On-Device Medical Retrieval-Augmented Generation System for Nurses and Midwives in Zanzibar"
+  authors:
+    - family-names: Ren
+      given-names: Yi
+      orcid: "https://orcid.org/0009-0002-6911-2855"
+  year: 2026
+  # arXiv preprint forthcoming. Once posted, add:
+  #   journal: "arXiv preprint arXiv:XXXX.XXXXX"
+  #   url: "https://arxiv.org/abs/XXXX.XXXXX"
+  notes: "arXiv preprint forthcoming."
