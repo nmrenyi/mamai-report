@@ -143,7 +143,8 @@ deflection fix of \S\ref{sec:endtoend}.
 
 \begin{table}[t]
 \caption{Oracle-faithfulness detail, all nine cells (counts out of
-$n=2{,}989$). The four count columns split each Lynx FAIL by primary cause: the
+$n=2{,}989$). The four count columns split each Lynx FAIL by primary cause
+(a small residual \emph{unclear} bucket is omitted): the
 two \emph{genuine} modes---contradiction and unsupported addition---sum to the
 \emph{categorized} rate, while omission and refusal are over-flags that do
 \emph{not} count. The last column is the \emph{calibrated} extrapolation
@@ -253,7 +254,11 @@ the generator to use only what it retrieves, not further prompt engineering or
 retrieval swaps. This is the same lever the size ladder
 (\S\ref{sec:model-size}) and the retrieval analysis
 (\S\ref{sec:retrieval-results}) point to, and we take it up in
-\S\ref{sec:future}. Two caveats bound the claim: this is faithfulness to
-\emph{gold} context (an upper bound; live retrieval adds its own errors), and
-the semantic categorization rests on a single judge family
-(\S\ref{sec:limitations}).
+\S\ref{sec:future}. Three caveats bound the claim: this is faithfulness to
+\emph{gold} context (an upper bound; live retrieval adds its own errors); the
+semantic categorization rests on a single judge family
+(\S\ref{sec:limitations}); and the categorized counts include the 16 FAILs
+later traced to corpus self-contradictions rather than model error
+(Appendix~\ref{app:contradictions})---a correction of $\sim$0.5 points on the
+affected arm that shifts no comparison, since both models face the same
+corpus.

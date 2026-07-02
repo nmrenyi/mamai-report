@@ -162,7 +162,9 @@ rerankers were run under baseline alone). G1 lifts every answer metric
 (deflection $33\%\!\to\!3\%$) yet the ranking is unchanged---no-RAG still
 leads and RAG stays net-negative. Net \texttt{weighted\_met} $\approx0$ is
 separately normalised, not Positive minus Penalty; EmbeddingGemma (teal) is
-deployed.}
+deployed. Bars are from the embedder bake-off run; the prompt-matrix run of
+the same baseline EmbeddingGemma configuration (Table~\ref{tab:matrix})
+scores recall 0.139 vs.\ the 0.126 here---within run-to-run noise.}
 \label{fig:retr-converts}
 \end{figure}
 

@@ -12,7 +12,8 @@ RAG pipeline (EmbeddingGemma top-3, bundle v0.3.0) and is scored on the two
 open-ended tracks---Kenya vignettes and HealthBench-oss---by the validated
 gpt-oss-120b judge. We score on these open-ended tracks because they match
 the deployment task; multiple-choice is only a control, and there adding RAG
-slightly \emph{lowers} accuracy (53.7\%~$\to$~51.9\% over 23{,}241 items)
+slightly \emph{lowers} accuracy (53.7\%~$\to$~51.9\% over 23{,}241 items, an
+earlier run under the previous Gecko retrieval)
 because the maternal corpus is off-topic for broad USMLE-style questions.
 Table~\ref{tab:matrix} is the result; the same matrix under oracle context,
 which isolates faithfulness, is analysed in \S\ref{sec:generator}.
@@ -117,7 +118,7 @@ over-flag---the answer is standard choking first aid (back blows, chest
 thrusts, escalation), not a dangerous one---so Gemma~4~+G1 is effectively
 free of genuine dangerous answers (Figure~\ref{fig:cases}, last panel).
 Across the matrix the judge's errors run in the over-flagging direction
-($\sim$3 of 31 flags);
+($\sim$4 of 31 flags);
 only the flagged cases were re-examined, so these counts bound flagged
 errors, not necessarily all errors.
 
@@ -240,7 +241,7 @@ prompt, \emph{no} retrieval; same gpt-oss-120b judge; dotted line = deployed
 dips toward 397B, while the harm rate ($\downarrow$) falls monotonically.
 \textbf{Bottom (HealthBench-oss):} the net \texttt{weighted\_met} with its two
 components---completeness (Positive) climbs with size while the penalty stays
-flat ($\sim$0.33--0.37), so the gain is almost entirely \emph{added
+flat ($\sim$0.32--0.37), so the gain is almost entirely \emph{added
 completeness}. Gemma spans 2--33B, Qwen 28--397B (server); the 125/397B rungs
 are Qwen~3.5 against Qwen~3.6 at 28/36B, a generation boundary at the top.}
 \label{fig:size-ladder}

@@ -89,7 +89,7 @@ that the queries are clean and each grounded in a single chunk.
 
 With queries and a corpus, the benchmark needs a relevance label for each
 (query, chunk) pair: how useful is this chunk for answering this query? Our first
-rubric made that judgement binary---relevant or not. It saturated. Take a query
+rubric made that judgement coarse---effectively relevant or not. It saturated. Take a query
 asking for alternative iron and folic-acid dosages (Table~\ref{tab:rubric-example}):
 a footnote giving the exact substitute formulation, a dosing section padded with
 storage advice, and an adherence-counselling note that never states a dose are,
@@ -239,11 +239,10 @@ paradigms so the pool is not biased toward any one
 (Table~\ref{tab:retrievers}). Judged across all 3{,}185 queries, this yields
 230{,}964 graded labels: the pool the companion system paper draws its label
 provenance from. A residual gap remains---chunks that no retriever ranks in its top-20 are still
-unjudged---but the same audit bounds it: measured against every relevant chunk
-known from both judging rounds, widening from the initial pool to the
-five-retriever top-20 union raised lenient recall from about 0.49 to about
-0.99, and the released pool adds a sixth retriever, so it is near-saturated at
-the top of the ranking. Only absolute coverage-sensitive
+unjudged---but the same audit bounds it: against that same reference, widening
+from the initial pool to the five-retriever top-20 union raised lenient recall
+from about 0.49 to about 0.99, and the released pool adds a sixth retriever, so
+it is near-saturated at the top of the ranking. Only absolute coverage-sensitive
 numbers need the residual caveat (\S\ref{sec:mr-judge}).
 
 \subsection{Judge reliability and metric guidance}
