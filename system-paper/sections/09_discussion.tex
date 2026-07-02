@@ -12,8 +12,9 @@ can place the weak link there at all is a consequence of the evaluation design:
 isolating the generator under oracle context, apart from live retrieval
 (\S\ref{sec:generator}), separates a retrieval problem from a generation one,
 where an end-to-end score alone would have blamed the retriever. This section
-traces the finding to its causes, lays out the levers that follow, and draws out
-what it means for deployment.
+traces the finding to its causes and draws out what it means for deployment; the
+improvement directions it points to---technical levers, open design questions,
+and deployment prerequisites---are collected in \S\ref{sec:future}.
 
 \subsection{The bottleneck has moved from retrieval to grounding}
 
@@ -62,68 +63,8 @@ fabrication than one answering from parameters alone---the same property that
 makes Gemma~4 safe to deploy (\S\ref{sec:generator}). Per query it is also
 decisive when the corpus holds a local protocol or dose the model lacks. We
 retain retrieval for safety, traceability, and local specificity; the goal of
-the levers below is to make it pay in answer quality too, turning a small net
-cost into a net gain.
-
-\subsection{Three complementary levers}
-
-The diagnosis maps onto three levers, each attacking a different root.
-
-\paragraph{Generator grounding.} The central lever, and the one the on-device
-setting most needs, is to teach the small generator to extract specific,
-faithful guidance from retrieved context---to reach through retrieval what the
-frontier reaches through scale, since scale is not available on the phone
-(\S\ref{sec:model-size}). Concretely this is a grounding fine-tune: train the
-deployed generator on (context, faithful-answer) supervision, optionally
-distilled from a frontier model, so it uses on-target passages and resists
-off-target ones while keeping every claim cited. The Qwen ceiling shows the
-prompts and the task are already sound (\S\ref{sec:helpful-safe}); what is
-missing is a small model that uses its context well. The experiment that would
-settle the open question above is direct---a grounding fine-tune evaluated under
-\emph{live} retrieval: if it flips RAG net-positive, under-grounding was the
-cause; if a well-grounded small model still cannot beat no-RAG, the lever is
-capability and corpus instead.
-
-\paragraph{Procedure-aware retrieval and depth.} If part of the cost is the
-three-chunk window splitting a protocol, the remedy is retrieval-side, and it is
-really a question of how to spend a fixed token budget---the window is bounded by
-latency and the context cap. Two knobs govern how much of a procedure that
-budget captures: where chunk boundaries fall (around whole protocols rather than
-page breaks) and how large each chunk is, both aimed at landing a complete
-procedure in the passages retrieved rather than a fragment; reranking then
-ensures it is the \emph{management} section that fills the budget, not a
-definition or a study-exercise (the failure in
-Figure~\ref{fig:case-nausea}). The budget itself is gated by hardware: the
-shipped CPU default holds $k$ at three to stay within 60\,s, but the GPU opt-in
-affords far more context ($k=15$ in $\sim$24\,s, \S\ref{sec:latency}), so a
-faster backend---or an on-device NPU---buys procedure coverage directly. A cheap
-first step is to vary depth and chunk size on the GPU path and measure whether
-answer quality rises, testing the truncation hypothesis head-on. The caution is
-that more retrieved text adds distraction as well as coverage, which is exactly
-why this lever and generator grounding are coupled: richer context pays only for
-a generator robust enough not to drown in it.
-
-\paragraph{Query rewriting.} The cheapest lever carries no model cost, and it
-acts where the system is most exposed: the retriever consumes the nurse's query
-\emph{verbatim}. Real input is noisy---lay phrasing, abbreviations, partial
-descriptions---and wording alone decides what is retrieved (``severe nausea''
-and ``hyperemesis gravidarum'' fetch different bundles for the same patient,
-\S\ref{sec:retr-corpus}). A lightweight rewriting or normalisation step that
-cleans the query and maps it onto the corpus's vocabulary can surface the right
-section before the generator runs, paired with brief user guidance on how to
-describe a case. Because EmbeddingGemma is multilingual, the same front-end opens
-\emph{cross-lingual} retrieval: rewriting or translating the query would let a
-non-English (e.g.\ Swahili) question reach the corpus, and would let the corpus
-draw on authoritative non-English references it cannot exploit
-today---high-quality German-language obstetrics texts, for one---a concrete path
-toward the multilingual support a real deployment needs
-(\S\ref{sec:limitations}).
-
-\noindent None of the three suffices alone. Corpus and query raise the precision
-of what reaches the generator; grounding lets the generator use it. The corpus
-itself remains a real but secondary constraint: coverage is high in aggregate,
-yet it was not expanded this cycle and licensing limits some high-value
-reference texts (\S\ref{sec:limitations}).
+the levers in \S\ref{sec:future} is to make it pay in answer quality too,
+turning a small net cost into a net gain.
 
 \subsection{Deployment is a safety-versus-usefulness choice}
 
@@ -140,46 +81,3 @@ model and try to suppress its errors. In a safety-critical, low-supervision
 setting, faithfulness to sources is the right \emph{primary} criterion for
 choosing the generator and raw capability the secondary one---the reverse of the
 usual leaderboard order.
-
-\subsection{Open questions raised by the findings}
-
-Beyond the levers, two design questions surface that a fielded system will have
-to answer.
-
-\paragraph{Conflicting guidance.} The corpus draws on many authoritative
-sources, and they do not always agree---an issue we met concretely. Auditing the
-faithfulness failures (\S\ref{sec:generator}) surfaced 16 cases in which two
-retrieved passages give conflicting advice on the same clinical question, each
-verified verbatim against its source. They are not edge cases: a field reference
-re-doses emergency contraception after vomiting within \emph{three} hours where
-WHO says \emph{two}; one WHO document starts the active phase of labour at
-4\,cm dilatation where another starts it at 5\,cm; one source calls a placenta
-retained after one hour where NICE uses 30/60 minutes.
-Appendix~\ref{app:contradictions} reproduces the full retrieved context for
-three such cases with the conflicting statements highlighted---the model is
-handed both in a single prompt, so whichever it follows can be faulted against
-the other. When sources diverge like this, what should the system do---prefer
-the local or most recent protocol, surface both with their provenance, or flag
-the conflict to the clinician? Citations make the divergence visible---the
-system already shows its sources---but choosing a behaviour, and validating it
-clinically, is open for any assistant grounded in a heterogeneous guideline
-base.
-
-\paragraph{Knowing when to abstain.} A deployable assistant needs a principled
-way to decline, rather than guess, on a query the corpus cannot support. The
-technical half is unsolved: we found no usable confidence gate today
-(\S\ref{sec:retr-gate}), as neither a retrieval score nor an answer-side signal
-reliably separates answerable from unanswerable queries. But the harder half is
-clinical. \emph{When} the system should abstain, and \emph{what} it should do
-instead, are not threshold choices: they have to be set against the
-nurse-midwife's responsibility boundary---which decisions fall within their
-scope of practice, and which must be escalated or referred. The expected
-behaviour at that boundary---decline, hand off with a safe holding action, or
-surface the uncertainty---must be defined carefully and with clinicians before
-any gate is tuned to enforce it.
-
-These sit alongside the prerequisites for any real deployment---Swahili support,
-validation on the lower-cost hardware of the field, and above all a study with
-nurse-midwives in place of LLM-judge proxies---which we treat as limitations
-(\S\ref{sec:limitations}) rather than open research questions.
-
