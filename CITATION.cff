@@ -14,7 +14,15 @@ preferred-citation:
       given-names: Yi
       orcid: "https://orcid.org/0009-0002-6911-2855"
   year: 2026
-  # arXiv preprint forthcoming. Once posted, add:
-  #   journal: "arXiv preprint arXiv:XXXX.XXXXX"
-  #   url: "https://arxiv.org/abs/XXXX.XXXXX"
-  notes: "arXiv preprint forthcoming."
+  url: "https://arxiv.org/abs/2606.29580"
+  notes: "arXiv preprint arXiv:2606.29580"
+references:
+  - type: article
+    title: "mamabench and mamaretrieval: Benchmarks for Evaluating Medical Retrieval-Augmented Generation in Maternal, Neonatal, and Reproductive Health"
+    authors:
+      - family-names: Ren
+        given-names: Yi
+        orcid: "https://orcid.org/0009-0002-6911-2855"
+    year: 2026
+    url: "https://arxiv.org/abs/2606.29467"
+    notes: "Companion benchmarks paper. arXiv preprint arXiv:2606.29467"
