@@ -17,7 +17,7 @@ would make generator evaluation meaningless, and an end-to-end score alone
 confounds retrieval quality with generation faithfulness---but presented
 top-down: we lead with the deployed system's behaviour, then decompose it to
 locate the cause. Except for the latency measurements, which require the
-phone, evaluation runs on a cluster; \S\ref{sec:calibration} shows this is a
+device, evaluation runs on a cluster; \S\ref{sec:calibration} shows this is a
 faithful proxy for on-device behaviour.
 
 \subsection{Benchmarks}
@@ -165,10 +165,10 @@ Always ``not met'' (trivial) & 14.8 & 0\phantom{.0} & 100\phantom{.0} \\
 \subsection{Device--Cluster Fidelity}
 \label{sec:calibration}
 
-The deployed app runs on the phone, but for efficiency the open-ended
+The deployed app runs on the device, but for efficiency the open-ended
 evaluation is generated on a GPU cluster---a different runtime on different
 hardware (LiteRT-LM on the device's deployed CPU backend vs.\ a 4-bit Q4\_0
-quantisation under llama.cpp on an A100). Before trusting cluster scores as a
+quantization under llama.cpp on an A100). Before trusting cluster scores as a
 stand-in for the device, we re-ran the open-ended questions on the real
 device and scored both stacks with the same judge (SAQ in full, 369 per arm;
 HealthBench on a 150-per-arm stratified sample, as the full set is
@@ -207,11 +207,11 @@ every metric (Table~\ref{tab:calib}): higher key-fact recall and lower harm
 on all three SAQ datasets, and higher \texttt{weighted\_met} on all three
 HealthBench subsets. The deployed device is therefore at least as good as the
 cluster numbers we report, which stand as a mildly pessimistic lower bound
-(the 4-bit cluster quantisation is slightly lossier than the on-device
+(the 4-bit cluster quantization is slightly lossier than the on-device
 bundle), so every end-to-end conclusion holds on-device. In one respect the two
 differ: on the cluster, the model's internal reasoning occasionally leaked
 into the scored answer---an artifact of the cluster's prompt template---
-whereas this never occurred across the 669 on-device generations, so it is an
+whereas this never occurred in the 669 on-device generations examined, so it is an
 evaluation quirk, not model behaviour. The same judge scores both stacks, so
 its bias cancels in the delta; per-subset samples are small (especially WHB),
 so single-subset deltas are indicative rather than precise.

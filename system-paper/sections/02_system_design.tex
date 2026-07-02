@@ -57,7 +57,8 @@ levers: it addresses the user as a clinician rather than the patient, treats
 any clinical question (including emergencies and ones naming a location) as
 in scope, requires concrete first-line management \emph{before} advising
 referral, permits naming standard first-line drugs and doses with a
-formulary caveat, and prefers locally available options. The prompt is
+formulary caveat, and prefers locally available options; the full prompt text
+is reproduced in Appendix~\ref{app:g1}. The prompt is
 English-only; an earlier bilingual (English/Swahili) configuration was
 withdrawn because a safety-critical prompt cannot ship in a language it was
 not evaluated in (Section~\ref{sec:limitations}).
@@ -67,7 +68,7 @@ not evaluated in (Section~\ref{sec:limitations}).
 Retrieval depth is fixed at top-3 and the context window at 4{,}096 tokens.
 The generator defaults to CPU---the broadly compatible, safer backend---with
 GPU execution as an opt-in: it is faster where a compatible GPU is present
-(\S\ref{sec:latency}) but has a higher hardware bar, so it is not the shipped
+(Section~\ref{sec:latency}) but has a higher hardware bar, so it is not the shipped
 default and falls back to CPU on failure. The GPU path matters for one non-obvious reason: it
 runs FP16 attention by default, which decodes correctly at the deployed
 depth but \emph{degrades deterministically past roughly 5{,}000 tokens of

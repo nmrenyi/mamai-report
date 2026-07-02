@@ -60,7 +60,7 @@ among the deployment prerequisites below.)
 the right passages reach the model, the remaining lever is the generator's use of
 them: teach the small model to extract specific, faithful guidance from retrieved
 context---to reach through retrieval what the frontier reaches through scale,
-since scale is not available on the phone (\S\ref{sec:model-size}). Concretely
+since scale is not available on the device (\S\ref{sec:model-size}). Concretely
 this is a grounding fine-tune: train the deployed generator on
 (context, faithful-answer) supervision, optionally distilled from a frontier
 model, so it uses on-target passages and resists off-target ones while keeping
@@ -81,7 +81,7 @@ latency budget. \emph{Chunking} that keeps a whole protocol intact, rather than
 splitting it across chunks, avoids handing the generator a fragment it can answer
 only partially; greater \emph{retrieval depth} (a larger $k$) brings more of a
 procedure into the window but spends latency---the shipped CPU path holds $k$ at
-three for the 60\,s budget, while a GPU or NPU affords more ($k=15$ in
+three for the 60\,s budget, while a GPU affords more ($k=15$ in
 $\sim$24\,s, \S\ref{sec:latency}). Reranking complements both, ensuring the
 \emph{management} section fills the budget, not a definition or a study-exercise
 (Figure~\ref{fig:case-nausea}). These are tuning levers, not foundations---listed
@@ -143,7 +143,7 @@ form the engineering-and-study track a successor would run in parallel.
   (\S\ref{sec:system-prompt}). Validating a Swahili configuration---which the
   cross-lingual lever above complements---is a prerequisite for field use.
   \item \textbf{Validation on field hardware.} All timings come from one flagship
-  device---an OnePlus tablet with a Snapdragon~8 Elite SoC; the lower-cost
+  device---a OnePlus tablet with a Snapdragon~8 Elite SoC; the lower-cost
   MediaTek devices likely used in the field are untested and will be slower, and
   battery drain and sustained thermal throttling over a ward shift are unprofiled
   (\S\ref{sec:latency-pending}). A smaller Gemma~4 E2B variant is available as a

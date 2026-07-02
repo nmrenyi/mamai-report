@@ -7,8 +7,8 @@ The app ships \textbf{CPU-by-default} for broad compatibility---the safer,
 lowest-common-denominator backend---with GPU execution as an opt-in that has a
 higher hardware bar (\S\ref{sec:devices}). At the deployed top-3 depth, Gemma~4
 E4B returns a full answer in a median of \textbf{$\sim$43\,s} on the shipped CPU
-path and \textbf{$\sim$19\,s} where a compatible GPU is available (first token
-in $\sim$1\,s, generation at $\sim$13~tokens/s). Both fit the field budget we
+path and \textbf{$\sim$19\,s} where a compatible GPU is available (there, first
+token in $\sim$1\,s and generation at $\sim$13~tokens/s). Both fit the field budget we
 set ourselves (a query should resolve well under a minute) on this flagship and
 run entirely offline---the GPU with wide headroom, the CPU with a tighter margin
 that shrinks further on the cheaper hardware typical of the field
@@ -21,7 +21,7 @@ memory and GPU availability.
 \subsection{Setup}
 \label{sec:latency-setup}
 
-All numbers are measured on real hardware: an OnePlus tablet (Snapdragon~8
+All numbers are measured on real hardware: a OnePlus tablet (Snapdragon~8
 Elite, 16\,GB RAM, Android~15) running LiteRT-LM 0.11.0. We sweep three axes
 that matter for deployment---generator size (Gemma~4 E4B vs the smaller E2B),
 compute backend (GPU via OpenCL on the Adreno; CPU via XNNPACK), and retrieval
@@ -271,9 +271,9 @@ from the artifacts.
 floor: $\sim$3.3\,GB for E4B and $\sim$1.7\,GB for E2B (the published model
 specs). Android and the app add $\sim$1.5--2\,GB on top, which sets the device
 RAM floor. Storage is the one-time install: the $\sim$193\,MB app, the model
-weights ($3.66$\,GB for E4B, $2.59$\,GB for E2B), and the $\sim$260\,MB
-knowledge base (the embedder plus the $63{,}650$-passage index)---$\sim$4.1\,GB
-of assets for E4B and $\sim$3.0\,GB for E2B. These assets are obtained
+weights ($3.66$\,GB for E4B, $2.59$\,GB for E2B), the $\sim$260\,MB
+knowledge base (the $63{,}650$-passage index), and the $\sim$170\,MB
+embedder---$\sim$4.3\,GB of assets for E4B and $\sim$3.2\,GB for E2B. These assets are obtained
 once---downloaded over Wi-Fi or \emph{sideloaded} onto the device directly (USB
 or memory card, needing no connectivity)---after which the system runs fully
 offline; sideloading lets the install reach a low-connectivity site without

@@ -12,9 +12,9 @@ that answers free-form questions. More recently, LLM clinical decision support
 has been deployed in African primary care, reducing diagnostic and treatment
 errors across tens of thousands of visits in Kenya~\cite{korom2025clinical},
 though cloud-served and clinician-facing in facilities. MAM-AI joins these two
-threads---an offline, on-device LLM that answers nurse-midwives'
-questions---the regime closest to MedAide, an offline edge-LLM medical
-assistant~\cite{basit2024medaide}. Pan-African medical QA benchmarks such as
+threads as an offline, on-device LLM that answers nurse-midwives'
+questions---a regime whose closest precedent is MedAide, an offline edge-LLM
+medical assistant~\cite{basit2024medaide}. Pan-African medical QA benchmarks such as
 AfriMed-QA~\cite{olatunji2025afrimedqa} motivate evaluation for these settings,
 but are datasets rather than deployed systems.
 
@@ -37,7 +37,7 @@ mobile devices is enabled by mobile runtimes---Google's LiteRT-LM~\cite{litertlm
 MLC-LLM---together with low-bit quantization: weight-only int4
 methods~\cite{lin2024awq} and the outlier-aware 8-bit analysis
 of~\citet{dettmers2022llmint8}, whose findings on low-precision transformer
-numerics bear directly on the FP16 attention collapse we characterise
+numerics bear directly on the FP16 attention collapse we characterize
 (\S\ref{sec:context-wall}). Where much on-device work favours sub-billion-%
 parameter models, we deploy a 4B model at int4, trading precision for capability.
 

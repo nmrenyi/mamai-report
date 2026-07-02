@@ -80,7 +80,7 @@ weighted variants (wHR, wP) track the same ordering (see text).}
 \label{fig:retrievers}
 \end{figure}
 
-A 300M model running on the phone competes with cloud retrieval: the deployed
+A 300M model running on the device competes with cloud retrieval: the deployed
 EmbeddingGemma improves on the earlier on-device Gecko by $+30.7$ points of
 lenient precision (0.784 vs.\ 0.477), closing essentially the whole on-device
 gap. The threshold-free weighted precision tells the same story (EmbeddingGemma
@@ -161,7 +161,7 @@ is the deployed Gemma~4\,+\,G1 prompt (no-RAG/Gecko/EmbeddingGemma only;
 rerankers were run under baseline alone). G1 lifts every answer metric
 (deflection $33\%\!\to\!3\%$) yet the ranking is unchanged---no-RAG still
 leads and RAG stays net-negative. Net \texttt{weighted\_met} $\approx0$ is
-separately normalized, not Positive minus Penalty; EmbeddingGemma (teal) is
+separately normalised, not Positive minus Penalty; EmbeddingGemma (teal) is
 deployed.}
 \label{fig:retr-converts}
 \end{figure}
@@ -209,7 +209,7 @@ right of the dotted line). No-RAG still leads (recall 0.328), EmbeddingGemma
 (0.279) again edges Gecko (0.268) but neither reaches it, and RAG stays
 net-negative (the harm rate is likewise flat at $\sim$0.16)---an effect the
 size ladder (\S\ref{sec:model-size}) shows deepening with capability (the RAG
-penalty grows from $-0.01$ HealthBench at 4B to $-0.10$ at 31B). The binding
+penalty grows from $-0.01$ HealthBench at 4B to $-0.10$ at 33B). The binding
 constraint is the generator's use of context, which we isolate next
 (\S\ref{sec:generator}).
 
@@ -219,8 +219,9 @@ constraint is the generator's use of context, which we isolate next
 In the aggregate, the corpus reaches the answer. A coverage audit pooling the
 top-20 of all seven retrievers---their union, so a test of corpus reachability
 rather than of any single retriever---finds a relevant chunk present for
-$96.5\%$ of Kenya queries at the lenient bar and $89.4\%$ at the strict bar;
-only $10.6\%$ are genuinely absent. So \emph{on average} the chain
+$96.5\%$ of Kenya queries at the lenient bar and $89.4\%$ at the strict
+bar---so only $3.5\%$ of queries have no relevant content anywhere, though a
+further $7.1\%$ lack a chunk that clears the strict bar. So \emph{on average} the chain
 retrieval~$\to$~corpus reaches the answer, and the average break is downstream,
 in the generator (\S\ref{sec:retr-converts}).
 
@@ -294,12 +295,14 @@ deployment quality, co-equal with generator grounding---not the secondary
 caveat a high average coverage might suggest. Three corpus properties govern
 answer quality directly:
 \begin{itemize}\setlength{\itemsep}{1pt}
-  \item \textbf{Coverage.} The $10.6\%$ of queries with no relevant chunk
-  anywhere are a hard ceiling no retriever or generator can lift---only corpus
+  \item \textbf{Coverage.} The queries the corpus cannot support---$3.5\%$
+  with no relevant chunk at all, $10.6\%$ without one that clears the strict
+  bar---are a hard ceiling no retriever or generator can lift; only corpus
   expansion can.
-  \item \textbf{Specificity.} Present content is often only topical (the
-  deployed top-3 averages a relevance grade of just $2.13/6$; Gecko $1.44/6$),
-  supplying the topic but not the actionable detail.
+  \item \textbf{Specificity.} Present content is often only topical (on the
+  Kenya queries the deployed top-3 averages a relevance grade of just
+  $2.13/6$; Gecko $1.44/6$), supplying the topic but not the actionable
+  detail.
   \item \textbf{Curation.} The corpus still holds passages that should never
   reach a clinical query---in Figure~\ref{fig:case-nausea} a student
   study-exercise ranked among the top-3 ``guidelines,'' above the real
@@ -307,24 +310,17 @@ answer quality directly:
 \end{itemize}
 This also explains why a better \emph{embedder} did not move the average
 (\S\ref{sec:retr-converts}): re-ranking the same pool cannot chunk the
-actionable content, filter the study-exercises, or add the missing tenth---%
+actionable content, filter the study-exercises, or fill the coverage gap---%
 that is corpus work, and a large share of the remaining deployment headroom
-sits there (\S\ref{sec:discussion}).
+sits there (\S\ref{sec:future}).
 
 A further lever sits with the user: how a nurse phrases a case decides what is
 retrieved. The two queries in Figure~\ref{fig:case-nausea} differ only in
 wording---a lay description (``severe nausea'') versus the clinical term
 (``hyperemesis gravidarum'') for the same presentation---yet retrieve
-different bundles. Two mitigations follow, at no model cost:
-\begin{itemize}\setlength{\itemsep}{1pt}
-  \item \textbf{System-side.} A query-rewriting or normalisation step maps a
-  nurse's phrasing onto the vocabulary the corpus indexes---expanding
-  ``hyperemesis gravidarum'' so it also fetches the management text that
-  ``severe nausea'' found.
-  \item \textbf{User-side.} Brief guidance on how to describe a case sharpens
-  retrieval directly.
-\end{itemize}
-We take query rewriting up as a near-term lever in \S\ref{sec:discussion}.
+different bundles. The mitigations---rewriting the query onto the corpus's
+vocabulary, and guiding the user on how to describe a case---are taken up as a
+near-term lever in \S\ref{sec:future}.
 
 \subsection{No usable confidence gate}
 \label{sec:retr-gate}
@@ -341,11 +337,12 @@ act on; below that, any cutoff misclassifies too many chunks in one direction
 or the other. We re-asked the question for the deployed EmbeddingGemma (an
 earlier study had shelved it for Gecko), and \emph{every} signal a gate could
 key on falls short of that bar (Figure~\ref{fig:gate-auc}): cosine separates
-relevant from irrelevant Kenya chunks at AUC only $0.72$, and the three
+relevant from irrelevant Kenya chunks at AUC only $0.72$, and of the three
 threshold-rule families a gate could implement---an absolute cutoff on chunk
 relevance, the top-1 chunk's margin over the rest of the bundle, and gated
-abstention on whether the bundle holds any relevant chunk---sit at
-$0.69$--$0.72$, the margin rule barely above chance. Because these compare the
+abstention on whether the bundle holds any relevant chunk---the first and last
+sit at $0.69$--$0.72$ while the margin rule, at $0.57$, is barely above
+chance. Because these compare the
 cosine score against Qwen-judged chunk relevance, they are independent of the
 generator and prompt and hold for the deployed configuration.
 
@@ -440,4 +437,4 @@ the coverage, specificity, and curation of the corpus
 (\S\ref{sec:retr-corpus})---since a faithful small model is only as good as the
 chunk it receives, and that chunk depends on how the query is phrased.
 Grounding the generator, improving the corpus, and rewriting the query are
-complementary remedies, taken up in the discussion (\S\ref{sec:discussion}).
+complementary remedies, taken up in \S\ref{sec:future}.
