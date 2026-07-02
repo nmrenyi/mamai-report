@@ -5,19 +5,15 @@ The evaluation points to a concrete programme of work, in three tracks:
 near-term technical levers that follow directly from the diagnosis
 (\S\ref{sec:discussion}); open design questions that need clinical partners as
 much as engineering; and the prerequisites for a real field deployment. We order
-the levers \emph{foundation-first}: a RAG system is only as good as the
-guidelines it can retrieve, so the sequence runs from the corpus outward---good
-sources, accurate queries onto them, multilingual reach, and teaching the
-generator to use what it receives---and closes with the retrieval-tuning knobs
-(chunking and depth) that pay off only once the corpus is rich and latency
-allows.
+the levers \emph{foundation-first}, working from the corpus that everything else
+depends on out to the generator that consumes it.
 
 \subsection{Technical levers}
 
 We take them from the foundation outward---the corpus everything retrieves from,
 the queries that hit it, the languages it can reach, and the generator's use of
-what it receives---and close with two retrieval-tuning knobs (chunking and depth)
-that pay off only once the corpus is rich and latency allows.
+what it receives---then close with two retrieval-tuning knobs, chunking and
+depth.
 
 \paragraph{Corpus expansion and curation (the foundation).} A RAG system is only
 as good as the guidelines it can retrieve, and a small generator that leans on
@@ -96,6 +92,19 @@ last because they are gated on the corpus and the hardware above them.
 Two design questions a fielded system must answer need clinical partners as much
 as engineering.
 
+\paragraph{Knowing when to abstain.} Sometimes the safest answer is no answer:
+when the corpus cannot support a query, the system should say so rather than
+guess. Building this has two parts. The first is technical---spotting the queries
+the system is likely to get wrong---and it is unsolved: none of the signals we
+tried tell answerable queries from unanswerable ones, neither a retrieval score
+nor an answer-side check (\S\ref{sec:retr-gate}). A usable signal would probably
+have to come from the generator itself---how confident or self-consistent its
+answer is---which we have not built. The second part is clinical, and harder:
+deciding \emph{when} the system should hold back, and \emph{what} it should tell
+the nurse instead, depends on the nurse-midwife's scope of practice---which
+decisions are theirs to make, and which must be referred to a doctor. That line
+has to be drawn with clinicians before any such gate is built.
+
 \paragraph{Conflicting guidance.} The corpus draws on many authoritative
 sources, and they do not always agree. Auditing the faithfulness failures
 (\S\ref{sec:generator}) surfaced 16 cases in which two retrieved passages give
@@ -103,25 +112,15 @@ conflicting advice on the same clinical question, each verified verbatim against
 its source---a field reference re-doses emergency contraception after vomiting
 within \emph{three} hours where WHO says \emph{two}; one WHO document starts the
 active phase of labour at 4\,cm dilatation where another starts it at 5\,cm
-(Appendix~\ref{app:contradictions}). The model is handed both in a single prompt,
-so whichever it follows can be faulted against the other. When sources diverge,
+(Appendix~\ref{app:contradictions}). These are few, and whether the differences
+matter clinically is not ours to judge---that needs clinicians. The mechanism,
+though, is real: the model is handed both passages at once, so whichever it
+follows can be faulted against the other. When sources diverge,
 what should the system do---prefer the local or most recent protocol, surface
 both with their provenance, or flag the conflict to the clinician? Citations make
-the divergence visible; choosing a behaviour, and validating it clinically, is
-open for any assistant grounded in a heterogeneous guideline base.
-
-\paragraph{Knowing when to abstain.} A deployable assistant needs a principled
-way to decline, rather than guess, on a query the corpus cannot support. The
-technical half is unsolved: we found no usable confidence gate today
-(\S\ref{sec:retr-gate}), as neither a retrieval score nor an answer-side signal
-reliably separates answerable from unanswerable queries---so a usable signal
-would likely have to come from the generator (answer-side confidence or
-self-consistency), which we have not built for the deployed configuration. The
-harder half is clinical: \emph{when} the system should abstain, and \emph{what}
-it should do instead, must be set against the nurse-midwife's responsibility
-boundary---which decisions fall within their scope of practice, and which must be
-escalated or referred---and defined with clinicians before any gate is tuned to
-enforce it.
+the disagreement visible, but deciding what the system should do about it---and
+confirming that choice with clinicians---is still unsolved, and not just for
+MAM-AI: any assistant built on many different sources faces it.
 
 \subsection{Toward a field deployment}
 
@@ -144,9 +143,14 @@ form the engineering-and-study track a successor would run in parallel.
   (\S\ref{sec:system-prompt}). Validating a Swahili configuration---which the
   cross-lingual lever above complements---is a prerequisite for field use.
   \item \textbf{Validation on field hardware.} All timings come from one flagship
-  SoC; the lower-cost MediaTek devices likely used in the field are untested and
-  will be slower, and battery drain and sustained thermal throttling over a ward
-  shift are unprofiled (\S\ref{sec:latency-pending}). The deployed G1 prompt also
-  produces longer answers than the runs we timed, so measured latency is a lower
-  bound.
+  device---an OnePlus tablet with a Snapdragon~8 Elite SoC; the lower-cost
+  MediaTek devices likely used in the field are untested and will be slower, and
+  battery drain and sustained thermal throttling over a ward shift are unprofiled
+  (\S\ref{sec:latency-pending}). A smaller Gemma~4 E2B variant is available as a
+  fallback for memory-constrained or slower devices---it roughly halves the
+  runtime memory footprint (dropping the device RAM floor from 6 to 4\,GB) and is
+  somewhat faster (up to ${\sim}2\times$ on CPU total)---but it too has been
+  measured only on this flagship. We also timed the baseline prompt, whereas the
+  release uses the G1 prompt, which can produce longer responses and thus more
+  latency, so the measured numbers are a lower bound.
 \end{itemize}
