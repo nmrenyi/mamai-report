@@ -4,72 +4,92 @@
 The evaluation points to a concrete programme of work, in three tracks:
 near-term technical levers that follow directly from the diagnosis
 (\S\ref{sec:discussion}); open design questions that need clinical partners as
-much as engineering; and the prerequisites for a real field deployment. The
-single highest-leverage next step is the first lever below---teaching the small
-generator to use what it retrieves---which is also the experiment that would
-settle why retrieval does not yet help.
+much as engineering; and the prerequisites for a real field deployment. We order
+the levers \emph{foundation-first}: a RAG system is only as good as the
+guidelines it can retrieve, so the sequence runs from the corpus outward---good
+sources, accurate queries onto them, multilingual reach, and teaching the
+generator to use what it receives---and closes with the retrieval-tuning knobs
+(chunking and depth) that pay off only once the corpus is rich and latency
+allows.
 
 \subsection{Technical levers}
 
-Three retrieval-and-generation levers each attack a different root of the RAG
-penalty, over the corpus that underlies them.
+We take them from the foundation outward---the corpus everything retrieves from,
+the queries that hit it, the languages it can reach, and the generator's use of
+what it receives---and close with two retrieval-tuning knobs (chunking and depth)
+that pay off only once the corpus is rich and latency allows.
 
-\paragraph{Generator grounding (the primary lever).} The central lever, and the
-one the on-device setting most needs, is to teach the small generator to extract
-specific, faithful guidance from retrieved context---to reach through retrieval
-what the frontier reaches through scale, since scale is not available on the
-phone (\S\ref{sec:model-size}). Concretely this is a grounding fine-tune: train
-the deployed generator on (context, faithful-answer) supervision, optionally
-distilled from a frontier model, so it uses on-target passages and resists
-off-target ones while keeping every claim cited. The Qwen ceiling shows the
-prompts and the task are already sound (\S\ref{sec:helpful-safe}); what is
-missing is a small model that uses its context well. The experiment that would
-settle whether RAG can be made net-positive is direct---a grounding fine-tune
-evaluated under \emph{live} retrieval: if it flips RAG net-positive,
+\paragraph{Corpus expansion and curation (the foundation).} A RAG system is only
+as good as the guidelines it can retrieve, and a small generator that leans on
+what it receives (\S\ref{sec:retrieval-results}) makes the corpus decisive.
+Coverage is high in aggregate---a relevant chunk exists for $96.5\%$ of
+queries---but the corpus was not expanded this cycle, and per-query gaps are
+decisive when they fall on a query it cannot answer. The reliable, direct lever
+is to grow the corpus on two fronts---authoritative international guidelines
+(WHO, NICE, and comparable bodies) and local protocols (Tanzania and
+Zanzibar)---\emph{broadening} each so more questions have a trustworthy source at
+all and \emph{deepening} each toward information-rich, actionable content: the
+exact doses, thresholds, and steps a nurse can act on, including the locally
+specific ones. It is the slowest lever but the most reliable, and its payoff is the
+most direct per query.
+
+\paragraph{Query rewriting.} The retriever consumes the nurse's query
+\emph{verbatim}, and real input is noisy---lay phrasing, abbreviations, partial
+descriptions---where wording alone decides what is retrieved (``severe nausea''
+and ``hyperemesis gravidarum'' fetch different bundles for the same patient,
+\S\ref{sec:retr-corpus}). A rewriting or normalisation step that maps the query
+onto the corpus's vocabulary can surface the right section before the generator
+runs, paired with brief user guidance on how to describe a case. Its cost is an
+extra inference step on the device: cheap to build but not free at run time---it
+adds latency (and, as a separate model, memory) to an already-tight budget---so
+it must earn its place through a retrieval-precision gain, and is most attractive
+when it reuses the deployed model to emit only a short normalised query rather
+than loading a second model.
+
+\paragraph{Multilingual and cross-lingual retrieval.} Because EmbeddingGemma and
+Gemma~4 are both multilingual, the system can in principle retrieve and answer
+across languages: an English query fetching German guidelines, or a Swahili query
+fetching English and German passages and being answered in Swahili. This is
+doubly valuable---it would let the corpus draw on authoritative non-English
+references it cannot exploit today (high-quality German-language obstetrics
+texts, for one), feeding the corpus lever above, and it is the natural path
+toward serving Swahili-speaking users. It is also the most \emph{exploratory}
+lever here: cross-lingual retrieval quality and the faithfulness of Swahili
+answers are unmeasured and would have to be evaluated before being relied on.
+(This is a research lever, distinct from \emph{shipping} a validated Swahili
+configuration: the latter is what field use requires, and we list it separately
+among the deployment prerequisites below.)
+
+\paragraph{Generator grounding (the deepest lever).} Once the corpus is rich and
+the right passages reach the model, the remaining lever is the generator's use of
+them: teach the small model to extract specific, faithful guidance from retrieved
+context---to reach through retrieval what the frontier reaches through scale,
+since scale is not available on the phone (\S\ref{sec:model-size}). Concretely
+this is a grounding fine-tune: train the deployed generator on
+(context, faithful-answer) supervision, optionally distilled from a frontier
+model, so it uses on-target passages and resists off-target ones while keeping
+every claim cited. Unlike the retrieval-side levers it adds no run-time
+cost---the same model, one pass, better weights---but it is the most expensive to
+build and depends on the corpus work above for its training data. The Qwen
+ceiling shows the prompts and task are already sound (\S\ref{sec:helpful-safe});
+what is missing is a small model that uses its context well. The experiment that
+would settle whether RAG can be made net-positive is direct---a grounding
+fine-tune evaluated under \emph{live} retrieval: if it flips RAG net-positive,
 under-grounding was the cause; if a well-grounded small model still cannot beat
-no-RAG, the remaining lever is capability and corpus.
+no-RAG, the remaining constraint is capability and corpus.
 
-\paragraph{Procedure-aware retrieval and depth.} If part of the cost is the
-three-chunk window splitting a protocol, the remedy is retrieval-side, and it is
-really a question of how to spend a fixed token budget bounded by latency and
-the context cap. Two knobs govern how much of a procedure that budget captures:
-where chunk boundaries fall (around whole protocols rather than page breaks) and
-how large each chunk is, both aimed at landing a complete procedure in the
-passages retrieved rather than a fragment; reranking then ensures it is the
-\emph{management} section that fills the budget, not a definition or a
-study-exercise (Figure~\ref{fig:case-nausea}). The budget itself is gated by
-hardware: the shipped CPU default holds $k$ at three to stay within 60\,s, but
-the GPU opt-in affords far more context ($k=15$ in $\sim$24\,s,
-\S\ref{sec:latency}), so a faster backend---or an on-device NPU---buys procedure
-coverage directly. A cheap first step is to vary depth and chunk size on the GPU
-path and measure whether answer quality rises, testing the truncation hypothesis
-head-on. The caution is that more retrieved text adds distraction as well as
-coverage, which is why this lever and generator grounding are coupled: richer
-context pays only for a generator robust enough not to drown in it.
-
-\paragraph{Query rewriting and cross-lingual retrieval.} The cheapest lever
-carries no model cost and acts where the system is most exposed: the retriever
-consumes the nurse's query \emph{verbatim}. Real input is noisy---lay phrasing,
-abbreviations, partial descriptions---and wording alone decides what is retrieved
-(``severe nausea'' and ``hyperemesis gravidarum'' fetch different bundles for the
-same patient, \S\ref{sec:retr-corpus}). A lightweight rewriting or normalisation
-step that maps the query onto the corpus's vocabulary can surface the right
-section before the generator runs, paired with brief user guidance on how to
-describe a case. Because EmbeddingGemma is multilingual, the same front-end opens
-\emph{cross-lingual} retrieval: rewriting or translating the query would let a
-non-English (e.g.\ Swahili) question reach the corpus, and would let the corpus
-draw on authoritative non-English references it cannot exploit today---%
-high-quality German-language obstetrics texts, for one---a concrete path toward
-the multilingual support a real deployment needs.
-
-\paragraph{Corpus expansion and curation.} These three levers raise the
-precision of what reaches the generator; the corpus itself remains a real
-constraint. Coverage is high in aggregate---a relevant chunk exists for
-$96.5\%$ of queries---but the corpus was not expanded this cycle, per-query gaps
-are decisive when they fall on a query the corpus cannot answer
-(\S\ref{sec:retrieval-results}), and licensing limits some high-value reference
-texts. Expanding coverage and securing licensing for authoritative sources is
-the slow but reliable lever, and the one whose payoff is most direct per query.
+\paragraph{Chunking and retrieval depth.} Two retrieval-shaping knobs tune how
+well the retrieved content serves a query, and---unlike the levers above---they
+pay off \emph{only} once the corpus holds good guidelines and only within the
+latency budget. \emph{Chunking} that keeps a whole protocol intact, rather than
+splitting it across chunks, avoids handing the generator a fragment it can answer
+only partially; greater \emph{retrieval depth} (a larger $k$) brings more of a
+procedure into the window but spends latency---the shipped CPU path holds $k$ at
+three for the 60\,s budget, while a GPU or NPU affords more ($k=15$ in
+$\sim$24\,s, \S\ref{sec:latency}). Reranking complements both, ensuring the
+\emph{management} section fills the budget, not a definition or a study-exercise
+(Figure~\ref{fig:case-nausea}). These are tuning levers, not foundations---listed
+last because they are gated on the corpus and the hardware above them.
 
 \subsection{Open design questions}
 
