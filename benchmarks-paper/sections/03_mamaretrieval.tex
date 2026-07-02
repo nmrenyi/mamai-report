@@ -131,7 +131,9 @@ reasoning-before-verdict---the structured-output schema makes the judge emit its
 reasoning before the four scores, as in G-Eval~\cite{liu2023geval}---both
 following the now-standard use of a strong LLM as the relevance
 assessor~\cite{upadhyay2024umbrela}. The judge is \texttt{Qwen3.5-397B-A17B-FP8}
-at temperature 0; \S\ref{sec:mr-judge} reports how well its labels hold up.
+at temperature 0, running the prompt reproduced in full in
+Appendix~\ref{app:judge-prompt}; \S\ref{sec:mr-judge} reports how well its
+labels hold up.
 
 \begin{table}[t]
 \centering
@@ -206,7 +208,7 @@ risk rather than assume it away.
 \caption{The six retrievers whose top-$k$ unions form mamaretrieval's label pool,
 spanning retrieval paradigms. They \emph{construct} the labels; the
 retriever scoreboard \emph{over} them---which one best serves the deployed
-system---is reported in the companion paper~\cite{ren2026mamai}, not here. ModernColBERT is the HuggingFace model
+system---is reported in the companion paper~\cite{ren2026mamai}, not here. Lateon is the HuggingFace model
 \texttt{lightonai/GTE-ModernColBERT-v1}.}
 \label{tab:retrievers}
 \begin{tabular}{@{}lll@{}}
@@ -217,7 +219,7 @@ BM25               & lexical (sparse)      & \cite{robertson2009bm25} \\
 MedCPT             & biomedical bi-encoder & \cite{jin2023medcpt} \\
 Octen-Embedding-8B & general-purpose dense & model card\tablefootnote{\url{https://huggingface.co/Octen/Octen-Embedding-8B}} \\
 voyage-4-large     & frontier API dense    & Voyage~AI\tablefootnote{\url{https://www.voyageai.com}} \\
-ModernColBERT      & late-interaction      & \cite{khattab2020colbert} \\
+Lateon             & late-interaction      & \cite{khattab2020colbert} \\
 Gecko              & on-device dense       & \cite{lee2024gecko} \\
 \bottomrule
 \end{tabular}
@@ -225,11 +227,11 @@ Gecko              & on-device dense       & \cite{lee2024gecko} \\
 
 The first pool took the top-10 chunks from three retrievers (BM25, MedCPT, and
 Octen-Em\-bedding-8B): about 24.7 candidates per query and 78{,}571 judged pairs. A
-completeness audit on a 100-query sample then measured that pool against a wider
-reference (five retrievers at top-20, adding voyage-4-large and ModernColBERT)
-and found it had captured only about half of the relevant material (lenient
-recall near 0.49): half the relevant chunks were being labelled not-relevant by
-omission.
+completeness audit on a 100-query sample then judged a wider pool (five
+retrievers at top-20, adding voyage-4-large and Lateon) and found the original
+pool had captured only about half of all the relevant chunks known across both
+judging rounds (lenient recall near 0.49): half the relevant chunks were being
+labelled not-relevant by omission.
 
 That finding drove the released label set. mamaretrieval v0.2.0 pools the top-20
 chunks from six retrievers---the five above plus Gecko---chosen to span retrieval
@@ -237,10 +239,11 @@ paradigms so the pool is not biased toward any one
 (Table~\ref{tab:retrievers}). Judged across all 3{,}185 queries, this yields
 230{,}964 graded labels: the pool the companion system paper draws its label
 provenance from. A residual gap remains---chunks that no retriever ranks in its top-20 are still
-unjudged---but the same audit bounds it: widening from the initial pool to a
-five-retriever top-20 union raised lenient recall from about 0.49 to about 0.99
-against its reference, and the released pool adds a sixth retriever, so it is
-near-saturated at the top of the ranking. Only absolute coverage-sensitive
+unjudged---but the same audit bounds it: measured against every relevant chunk
+known from both judging rounds, widening from the initial pool to the
+five-retriever top-20 union raised lenient recall from about 0.49 to about
+0.99, and the released pool adds a sixth retriever, so it is near-saturated at
+the top of the ranking. Only absolute coverage-sensitive
 numbers need the residual caveat (\S\ref{sec:mr-judge}).
 
 \subsection{Judge reliability and metric guidance}
